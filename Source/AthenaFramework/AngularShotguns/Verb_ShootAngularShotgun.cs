@@ -142,7 +142,6 @@ namespace AthenaFramework
                 {
                     continue;
                 }
-
                 float newAngle = angle - pelletAngle * (extension.pelletCount - 1) / 2 + i * pelletAngle;
                 IntVec3 endPosition = (new IntVec3((int)(Math.Cos(newAngle) * verbProps.range), 0, (int)(Math.Sin(newAngle) * verbProps.range)));
                 if (currentTarget.Cell.z < caster.Position.z)
@@ -165,6 +164,7 @@ namespace AthenaFramework
                         newTarget = targetBuilding;
                         break;
                     }
+                    Log.Message("4");
 
                     Thing cover = targetPosition.GetCover(caster.Map);
                     if (cover != null)
@@ -177,7 +177,7 @@ namespace AthenaFramework
                     }
 
                     bool foundPawn = false;
-                    foreach (Pawn pawnTarget in GridsUtility.GetThingList(targetPosition, caster.Map))
+                    foreach (Pawn pawnTarget in GridsUtility.GetThingList(targetPosition, caster.Map).Where((Thing x) => x is Pawn))
                     {
                         if (pawnTarget.Downed || pawnTarget.Dead)
                         {
@@ -201,6 +201,7 @@ namespace AthenaFramework
                         break;
                     }
                 }
+
 
                 if (newTarget != null)
                 {
