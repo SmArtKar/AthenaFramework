@@ -28,27 +28,36 @@ namespace AthenaFramework
             }
 
             Pawn pawn = parent as Pawn;
-            List<BodyPartRecord> partRecords = pawn.RaceProps.body.GetPartsWithDef(Props.bodyPartDef);
-            foreach (BodyPartRecord partRecord in partRecords)
+            foreach (HediffBodypartPair pair in Props.bodypartPairs)
             {
-                if (!pawn.health.hediffSet.HasHediff(Props.hediffDef, partRecord))
+                List<BodyPartRecord> partRecords = pawn.RaceProps.body.GetPartsWithDef(pair.bodyPartDef);
+                foreach (BodyPartRecord partRecord in partRecords)
                 {
-                    Hediff hediff = HediffMaker.MakeHediff(Props.hediffDef, pawn, partRecord);
-                    pawn.health.AddHediff(hediff, partRecord, null, null);
+                    if (!pawn.health.hediffSet.HasHediff(pair.hediffDef, partRecord))
+                    {
+                        Hediff hediff = HediffMaker.MakeHediff(pair.hediffDef, pawn, partRecord);
+                        pawn.health.AddHediff(hediff, partRecord, null, null);
+                    }
                 }
             }
+            
             parent.AllComps.Remove(this);
         }
+    }
 
-        public class CompProperties_HediffBodypartGiver : CompProperties
+    public class CompProperties_HediffBodypartGiver : CompProperties
+    {
+        public CompProperties_HediffBodypartGiver()
         {
-            public CompProperties_HediffBodypartGiver()
-            {
-                compClass = typeof(Comp_HediffBodypartGiver);
-            }
-
-            public BodyPartDef bodyPartDef;
-            public HediffDef hediffDef;
+            compClass = typeof(Comp_HediffBodypartGiver);
         }
+
+        public List<HediffBodypartPair> bodypartPairs;
+    }
+
+    public class HediffBodypartPair
+    {
+        public BodyPartDef bodyPartDef;
+        public HediffDef hediffDef;
     }
 }

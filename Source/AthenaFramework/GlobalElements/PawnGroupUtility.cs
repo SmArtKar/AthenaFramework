@@ -31,10 +31,36 @@ namespace AthenaFramework
 
             return result;
         }
+        public static Dictionary<Pawn, float> GetNearbyAlliesWithDistances(IntVec3 cell, Map map, Faction faction, float maxDistance)
+        {
+            Dictionary<Pawn, float> result = new Dictionary<Pawn, float>();
+            float squaredDistance = maxDistance * maxDistance;
+
+            foreach (Pawn ally in map.mapPawns.PawnsInFaction(faction))
+            {
+                if (!ally.Spawned || ally.Downed || ally.Dead)
+                {
+                    continue;
+                }
+
+                float allyDistance = ally.Position.DistanceToSquared(cell);
+                if (allyDistance <= squaredDistance)
+                {
+                    result[ally] = allyDistance;
+                }
+            }
+
+            return result;
+        }
 
         public static List<Pawn> GetNearbyAllies(Pawn pawn, float maxDistance)
         {
             return GetNearbyAlliesWithDistances(pawn, maxDistance).Keys.ToList();
+        }
+
+        public static List<Pawn> GetNearbyAllies(IntVec3 cell, Map map, Faction faction, float maxDistance)
+        {
+            return GetNearbyAlliesWithDistances(cell, map, faction, maxDistance).Keys.ToList();
         }
 
         public static Dictionary<Pawn, float> GetNearbyHostilesWithDistances(Pawn pawn, float maxDistance)
@@ -59,9 +85,36 @@ namespace AthenaFramework
             return result;
         }
 
+        public static Dictionary<Pawn, float> GetNearbyHostilesWithDistances(IntVec3 cell, Map map, Faction faction, float maxDistance)
+        {
+            Dictionary<Pawn, float> result = new Dictionary<Pawn, float>();
+            float squaredDistance = maxDistance * maxDistance;
+
+            foreach (Pawn potentialEnemy in map.mapPawns.AllPawnsSpawned)
+            {
+                if (!potentialEnemy.Spawned || potentialEnemy.Downed || potentialEnemy.Dead || !potentialEnemy.Faction.HostileTo(faction))
+                {
+                    continue;
+                }
+
+                float enemyDistance = potentialEnemy.Position.DistanceToSquared(cell);
+                if (enemyDistance <= squaredDistance)
+                {
+                    result[potentialEnemy] = enemyDistance;
+                }
+            }
+
+            return result;
+        }
+
         public static List<Pawn> GetNearbyHostiles(Pawn pawn, float maxDistance)
         {
             return GetNearbyHostilesWithDistances(pawn, maxDistance).Keys.ToList();
+        }
+
+        public static List<Pawn> GetNearbyHostiles(IntVec3 cell, Map map, Faction faction, float maxDistance)
+        {
+            return GetNearbyHostilesWithDistances(cell, map, faction, maxDistance).Keys.ToList();
         }
 
         public static List<PawnGroupup> GroupPawns(List<Pawn> pawnList, float groupDistance)

@@ -57,9 +57,11 @@
   <ItemGroup>
     <Compile Include="AngularShotguns\AngularShotgunExtension.cs" />
     <Compile Include="AngularShotguns\Verb_ShootAngularShotgun.cs" />
+    <Compile Include="GlobalElements\AthenaBeams.cs" />
+    <Compile Include="GlobalElements\MapComponent_AthenaRenderer.cs" />
     <Compile Include="Hediffs\Comp_HediffBodypartGiver.cs" />
     <Compile Include="ThinkNodes\ThinkNodeConditional_UnderGroupCombatPressure.cs" />
-    <Compile Include="Utilities\PawnGroupUtility.cs" />
+    <Compile Include="GlobalElements\PawnGroupUtility.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
