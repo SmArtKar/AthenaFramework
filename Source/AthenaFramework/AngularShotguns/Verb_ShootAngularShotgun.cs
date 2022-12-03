@@ -1,4 +1,5 @@
-﻿using Mono.Unix.Native;
+﻿using HotSwap;
+using Mono.Unix.Native;
 using RimWorld;
 using System;
 using System.Collections.Generic;
@@ -7,9 +8,11 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using Verse;
+using static UnityEngine.GraphicsBuffer;
 
 namespace AthenaFramework
 {
+    [HotSwappable]
     public class Verb_ShootAngularShotgun : Verb_LaunchProjectile
     {
         private List<IntVec3> cachedTargetCells = new List<IntVec3>();
@@ -50,14 +53,18 @@ namespace AthenaFramework
             cachedTargetPosition = target.Cell;
 
             AngularShotgunExtension extension = EquipmentSource.def.GetModExtension<AngularShotgunExtension>();
-            float angle = (float)Math.Acos(Vector2.Dot((new Vector2(currentTarget.Cell.x, currentTarget.Cell.z) - new Vector2(caster.Position.x, caster.Position.z)).normalized, new Vector2(1, 0)));
+            float angle = (float)Math.Acos(Vector2.Dot((new Vector2(target.Cell.x, target.Cell.z) - new Vector2(caster.Position.x, caster.Position.z)).normalized, new Vector2(1, 0)));
             float pelletAngle = (float)(extension.pelletAngle * (Math.PI) / 180);
 
             for (int i = 0; i < extension.pelletCount - 1; i++)
             {
-
                 float newAngle = angle - pelletAngle * (extension.pelletCount - 1) / 2 + i * pelletAngle;
-                IntVec3 rangeEndPosition = (new IntVec3((int)(Math.Cos(newAngle) * verbProps.range), 0, (int)(Math.Sin(newAngle) * verbProps.range))) + caster.Position;
+                IntVec3 endPosition = (new IntVec3((int)(Math.Cos(newAngle) * verbProps.range), 0, (int)(Math.Sin(newAngle) * verbProps.range)));
+                if (target.Cell.z < caster.Position.z)
+                {
+                    endPosition.z *= -1;
+                }
+                IntVec3 rangeEndPosition = endPosition + caster.Position;
 
                 List<IntVec3> targetedCells = getHitTiles(caster.Position, rangeEndPosition, caster.Map);
                 cachedTargetCells = cachedTargetCells.Concat(targetedCells).ToList();
@@ -70,7 +77,7 @@ namespace AthenaFramework
         {
             List<IntVec3> cellList = new List<IntVec3>();
 
-            foreach (IntVec3 targetPosition in GenSight.PointsOnLineOfSight(startPosition, endPosition))
+            foreach (IntVec3 targetPosition in GenSight.PointsOnLineOfSight(startPosition, endPosition).Concat(endPosition))
             {
                 if (targetPosition == startPosition)
                 {
@@ -87,7 +94,7 @@ namespace AthenaFramework
                 cellList.Add(targetPosition);
                 bool foundPawn = false;
 
-                foreach (Pawn pawnTarget in GridsUtility.GetThingList(targetPosition, map))
+                foreach (Pawn pawnTarget in GridsUtility.GetThingList(targetPosition, map).Where((Thing x) => x is Pawn))
                 {
                     if (!pawnTarget.Downed && !pawnTarget.Dead)
                     {
@@ -116,6 +123,7 @@ namespace AthenaFramework
 
             if (extension == null)
             {
+                Log.Error(String.Format("{0} attempted to use Verb_ShootAngularShotgun without a AngularShotgunExtension mod extension.", EquipmentSource.def.defName));
                 return false;
             }
 
@@ -136,10 +144,15 @@ namespace AthenaFramework
                 }
 
                 float newAngle = angle - pelletAngle * (extension.pelletCount - 1) / 2 + i * pelletAngle;
-                IntVec3 rangeEndPosition = (new IntVec3((int)(Math.Cos(newAngle) * verbProps.range), 0, (int)(Math.Sin(newAngle) * verbProps.range))) + caster.Position;
+                IntVec3 endPosition = (new IntVec3((int)(Math.Cos(newAngle) * verbProps.range), 0, (int)(Math.Sin(newAngle) * verbProps.range)));
+                if (currentTarget.Cell.z < caster.Position.z)
+                {
+                    endPosition.z *= -1;
+                }
+                IntVec3 rangeEndPosition = endPosition + caster.Position;
                 Thing newTarget = null;
 
-                foreach (IntVec3 targetPosition in GenSight.PointsOnLineOfSight(caster.Position, rangeEndPosition))
+                foreach (IntVec3 targetPosition in GenSight.PointsOnLineOfSight(caster.Position, rangeEndPosition).Concat(rangeEndPosition))
                 {
                     if (targetPosition == caster.Position) //Prevents the caster from shooting himself
                     {
