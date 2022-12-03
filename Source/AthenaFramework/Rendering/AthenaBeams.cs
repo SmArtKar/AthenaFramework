@@ -19,9 +19,9 @@ namespace AthenaFramework
 
     public struct BeamInfo : IExposable
     {
-        Thing beamStart;
-        Thing beamEnd;
-        BeamRenderer beam;
+        public Thing beamStart;
+        public Thing beamEnd;
+        public BeamRenderer beam;
 
         public BeamInfo(Thing beamStart, Thing beamEnd, BeamRenderer beam)
         {
@@ -40,9 +40,9 @@ namespace AthenaFramework
 
     public struct StaticBeamInfo : IExposable
     {
-        Vector3 beamStart;
-        Vector3 beamEnd;
-        BeamRenderer beam;
+        public Vector3 beamStart;
+        public Vector3 beamEnd;
+        public BeamRenderer beam;
 
         public StaticBeamInfo(Vector3 beamStart, Vector3 beamEnd, BeamRenderer beam)
         {
@@ -59,50 +59,12 @@ namespace AthenaFramework
         }
     }
 
-    public class BeamRenderer : ThingWithComps
+    public class CompBeam : ThingComp
     {
-        public Vector3 firstPoint;
-        public Vector3 secondPoint;
-        public Matrix4x4 matrix;
+        protected virtual BeamRenderer Beam => parent as BeamRenderer;
 
-        public List<List<Material>> materials; //First list is for distance-based textures, second list is for frames
-        public Material currentMaterial;
+        public virtual void PostValuesSetup() { }
 
-        public int frameAmount = 0;
-        public int frameDelayAmount = 0;
-        public int currentFrame = 0;
-        public int currentFrameTick = 0;
-
-        public int sizeTextureAmount = 0;
-        public int currentSize = 1;
-
-        public float maxRange = 25.9f;
-        public bool multipleTex = false;
-
-        public BeamRenderer()
-        {
-            if (def != null)
-            {
-                setupValues();
-            }
-        }
-
-        public override void PostPostMake()
-        {
-            base.PostPostMake();
-            setupValues();
-        }
-
-        public virtual void setupValues()
-        {
-            BeamExtension extension = def.GetModExtension<BeamExtension>();
-            materials = new List<List<Material>>();
-
-            sizeTextureAmount = extension.sizeTextureAmount;
-            frameAmount = extension.textureFrameAmount;
-            maxRange = extension.maxRange;
-
-            string texPath = def.graphicData.texPath;
-        }
+        public virtual void PreDestroyBeam() { }
     }
 }
