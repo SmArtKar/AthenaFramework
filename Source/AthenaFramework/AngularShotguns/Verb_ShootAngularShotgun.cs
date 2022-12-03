@@ -66,14 +66,14 @@ namespace AthenaFramework
                 }
                 IntVec3 rangeEndPosition = endPosition + caster.Position;
 
-                List<IntVec3> targetedCells = getHitTiles(caster.Position, rangeEndPosition, caster.Map);
+                List<IntVec3> targetedCells = GetHitTiles(caster.Position, rangeEndPosition, caster.Map);
                 cachedTargetCells = cachedTargetCells.Concat(targetedCells).ToList();
             }
 
             GenDraw.DrawFieldEdges(cachedTargetCells);
         }
 
-        public List<IntVec3> getHitTiles(IntVec3 startPosition, IntVec3 endPosition, Map map)
+        public List<IntVec3> GetHitTiles(IntVec3 startPosition, IntVec3 endPosition, Map map)
         {
             List<IntVec3> cellList = new List<IntVec3>();
 
@@ -123,7 +123,7 @@ namespace AthenaFramework
 
             if (extension == null)
             {
-                Log.Error(String.Format("{0} attempted to use Verb_ShootAngularShotgun without a AngularShotgunExtension mod extension.", EquipmentSource.def.defName));
+                Log.Error(String.Format("{0} attempted to use Verb_ShootAngularShotgun without a AngularShotgunExtension mod extension", EquipmentSource.def.defName));
                 return false;
             }
 
