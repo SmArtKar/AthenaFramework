@@ -1,0 +1,6 @@
+C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\AthenaFramework\Source\AthenaFramework\obj\Debug\AthenaFramework.csproj.AssemblyReference.cache
+C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\AthenaFramework\Source\AthenaFramework\obj\Debug\AthenaFramework.csproj.CoreCompileInputs.cache
+C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\AthenaFramework\1.4\Assemblies\AthenaFramework.dll
+C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\AthenaFramework\1.4\Assemblies\AthenaFramework.pdb
+C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\AthenaFramework\Source\AthenaFramework\obj\Debug\AthenaFramework.dll
+C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\AthenaFramework\Source\AthenaFramework\obj\Debug\AthenaFramework.pdb
