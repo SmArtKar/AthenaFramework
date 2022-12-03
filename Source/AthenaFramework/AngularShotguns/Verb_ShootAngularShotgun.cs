@@ -164,7 +164,6 @@ namespace AthenaFramework
                         newTarget = targetBuilding;
                         break;
                     }
-                    Log.Message("4");
 
                     Thing cover = targetPosition.GetCover(caster.Map);
                     if (cover != null)
