@@ -124,7 +124,7 @@ namespace AthenaFramework
 
             foreach(Pawn pawn in pawnList)
             {
-                if (!pawn.Spawned || pawn.health.Downed || pawn.health.Dead)
+                if (!pawn.Spawned || pawn.Downed || pawn.Dead)
                 {
                     continue;
                 }

@@ -58,13 +58,4 @@ namespace AthenaFramework
             Scribe_References.Look(ref beam, "beam");
         }
     }
-
-    public class CompBeam : ThingComp
-    {
-        protected virtual BeamRenderer Beam => parent as BeamRenderer;
-
-        public virtual void PostValuesSetup() { }
-
-        public virtual void PreDestroyBeam() { }
-    }
 }

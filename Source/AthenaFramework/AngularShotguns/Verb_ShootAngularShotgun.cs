@@ -1,5 +1,4 @@
-﻿using HotSwap;
-using Mono.Unix.Native;
+﻿using Mono.Unix.Native;
 using RimWorld;
 using System;
 using System.Collections.Generic;
@@ -12,7 +11,6 @@ using static UnityEngine.GraphicsBuffer;
 
 namespace AthenaFramework
 {
-    [HotSwappable]
     public class Verb_ShootAngularShotgun : Verb_LaunchProjectile
     {
         private List<IntVec3> cachedTargetCells = new List<IntVec3>();

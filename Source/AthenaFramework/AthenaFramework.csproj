@@ -57,8 +57,11 @@
   <ItemGroup>
     <Compile Include="AngularShotguns\AngularShotgunExtension.cs" />
     <Compile Include="AngularShotguns\Verb_ShootAngularShotgun.cs" />
+    <Compile Include="Harmony\HarmonyPatches.cs" />
+    <Compile Include="HediffComps\HediffComp_GasBomb.cs" />
     <Compile Include="Rendering\BeamRenderer.cs" />
     <Compile Include="Rendering\AthenaBeams.cs" />
+    <Compile Include="Rendering\CompBeam.cs" />
     <Compile Include="Rendering\MapComponent_AthenaRenderer.cs" />
     <Compile Include="Hediffs\Comp_HediffBodypartGiver.cs" />
     <Compile Include="ThinkNodes\ThinkNodeConditional_UnderGroupCombatPressure.cs" />

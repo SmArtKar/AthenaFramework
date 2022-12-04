@@ -135,6 +135,17 @@ namespace AthenaFramework
                     float distance = (firstPoint - secondPoint).magnitude;
                     if (distance > maxRange)
                     {
+                        foreach (ThingComp thingComp in AllComps)
+                        {
+                            if (!(thingComp is CompBeam))
+                            {
+                                continue;
+                            }
+
+                            CompBeam beamComp = thingComp as CompBeam;
+                            beamComp.MaxRangeCut();
+                        }
+
                         DestroyBeam();
                         return;
                     }
@@ -156,10 +167,24 @@ namespace AthenaFramework
                 }
 
                 CompBeam beamComp = thingComp as CompBeam;
-                beamComp.PreDestroyBeam();
+                beamComp.PreSelfDestroyBeam();
             }
 
-            MapHeld.GetComponent<MapComponent_AthenaRenderer>().DespawnBeam(this);
+            MapHeld.GetComponent<MapComponent_AthenaRenderer>().DestroyBeam(this);
+        }
+
+        public virtual void PreDestroyBeam()
+        {
+            foreach (ThingComp thingComp in AllComps)
+            {
+                if (!(thingComp is CompBeam))
+                {
+                    continue;
+                }
+
+                CompBeam beamComp = thingComp as CompBeam;
+                beamComp.PreDestroyBeam();
+            }
         }
     }
 }
