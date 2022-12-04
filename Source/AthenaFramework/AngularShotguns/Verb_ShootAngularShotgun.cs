@@ -92,7 +92,7 @@ namespace AthenaFramework
                 cellList.Add(targetPosition);
                 bool foundPawn = false;
 
-                foreach (Pawn pawnTarget in GridsUtility.GetThingList(targetPosition, map).Where((Thing x) => x is Pawn))
+                foreach (Pawn pawnTarget in GridsUtility.GetThingList(targetPosition, map).OfType<Pawn>())
                 {
                     if (!pawnTarget.Downed && !pawnTarget.Dead)
                     {
@@ -174,7 +174,7 @@ namespace AthenaFramework
                     }
 
                     bool foundPawn = false;
-                    foreach (Pawn pawnTarget in GridsUtility.GetThingList(targetPosition, caster.Map).Where((Thing x) => x is Pawn))
+                    foreach (Pawn pawnTarget in GridsUtility.GetThingList(targetPosition, caster.Map).OfType<Pawn>())
                     {
                         if (pawnTarget.Downed || pawnTarget.Dead)
                         {

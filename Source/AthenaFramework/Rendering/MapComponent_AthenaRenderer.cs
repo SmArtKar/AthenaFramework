@@ -26,6 +26,30 @@ namespace AthenaFramework
         {
             base.MapComponentTick();
             tickHappened = true;
+
+            foreach (BeamInfo beamInfo in activeBeams)
+            {
+                if (beamInfo.ticksLeft > 0)
+                {
+                    beamInfo.ticksLeft--;
+                    if (beamInfo.ticksLeft == 0)
+                    {
+                        DestroyBeam(beamInfo);
+                    }
+                }
+            }
+
+            foreach (StaticBeamInfo beamInfo in staticBeams)
+            {
+                if (beamInfo.ticksLeft > 0)
+                {
+                    beamInfo.ticksLeft--;
+                    if (beamInfo.ticksLeft == 0)
+                    {
+                        DestroyBeam(beamInfo);
+                    }
+                }
+            }
         }
 
         public override void MapComponentUpdate()
@@ -37,8 +61,15 @@ namespace AthenaFramework
             }
 
             tickHappened = false;
+
             foreach (BeamInfo beamInfo in activeBeams)
             {
+                if (beamInfo.beamStart.MapHeld != beamInfo.beamEnd.MapHeld)
+                {
+                    DestroyBeam(beamInfo);
+                    continue;
+                }
+
                 beamInfo.beam.RenderBeam(beamInfo.beamStart.DrawPos, beamInfo.beamEnd.DrawPos);
             }
         }

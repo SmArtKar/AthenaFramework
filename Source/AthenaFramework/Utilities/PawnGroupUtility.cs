@@ -10,27 +10,6 @@ namespace AthenaFramework
 {
     public static class PawnGroupUtility
     {
-        public static Dictionary<Pawn, float> GetNearbyAlliesWithDistances(Pawn pawn, float maxDistance)
-        {
-            Dictionary<Pawn, float> result = new Dictionary<Pawn, float>();
-            float squaredDistance = maxDistance * maxDistance;
-
-            foreach (Pawn ally in pawn.MapHeld.mapPawns.PawnsInFaction(pawn.Faction))
-            {
-                if (pawn == ally || !ally.Spawned || ally.Downed || ally.Dead)
-                {
-                    continue;
-                }
-
-                float allyDistance = ally.Position.DistanceToSquared(pawn.Position);
-                if (allyDistance <= squaredDistance)
-                {
-                    result[ally] = allyDistance;
-                }
-            }
-
-            return result;
-        }
         public static Dictionary<Pawn, float> GetNearbyAlliesWithDistances(IntVec3 cell, Map map, Faction faction, float maxDistance)
         {
             Dictionary<Pawn, float> result = new Dictionary<Pawn, float>();
@@ -53,6 +32,11 @@ namespace AthenaFramework
             return result;
         }
 
+        public static Dictionary<Pawn, float> GetNearbyAlliesWithDistances(Pawn pawn, float maxDistance)
+        {
+            return GetNearbyAlliesWithDistances(pawn.Position, pawn.MapHeld, pawn.Faction, maxDistance);
+        }
+
         public static List<Pawn> GetNearbyAllies(Pawn pawn, float maxDistance)
         {
             return GetNearbyAlliesWithDistances(pawn, maxDistance).Keys.ToList();
@@ -63,26 +47,35 @@ namespace AthenaFramework
             return GetNearbyAlliesWithDistances(cell, map, faction, maxDistance).Keys.ToList();
         }
 
-        public static Dictionary<Pawn, float> GetNearbyHostilesWithDistances(Pawn pawn, float maxDistance)
+
+        public static bool AlliedPawnsNearbyThreshold(IntVec3 cell, Map map, Faction faction, float maxDistance, int alliesAmount)
         {
-            Dictionary<Pawn, float> result = new Dictionary<Pawn, float>();
+            int nearbyAllies = 0;
             float squaredDistance = maxDistance * maxDistance;
 
-            foreach (Pawn potentialEnemy in pawn.MapHeld.mapPawns.AllPawnsSpawned)
+            foreach (Pawn ally in map.mapPawns.PawnsInFaction(faction))
             {
-                if (pawn == potentialEnemy || !potentialEnemy.Spawned || potentialEnemy.Downed || potentialEnemy.Dead || !potentialEnemy.Faction.HostileTo(pawn.Faction))
+                if (!ally.Spawned || ally.Downed || ally.Dead)
                 {
                     continue;
                 }
 
-                float enemyDistance = potentialEnemy.Position.DistanceToSquared(pawn.Position);
-                if (enemyDistance <= squaredDistance)
+                if (ally.Position.DistanceToSquared(cell) <= squaredDistance)
                 {
-                    result[potentialEnemy] = enemyDistance;
+                    nearbyAllies++;
+                    if (nearbyAllies >= alliesAmount)
+                    {
+                        return true;
+                    }
                 }
             }
 
-            return result;
+            return false;
+        }
+
+        public static bool AlliedPawnsNearbyThreshold(Pawn pawn, float maxDistance, int alliesAmount)
+        {
+            return AlliedPawnsNearbyThreshold(pawn.Position, pawn.MapHeld, pawn.Faction, maxDistance, alliesAmount);
         }
 
         public static Dictionary<Pawn, float> GetNearbyHostilesWithDistances(IntVec3 cell, Map map, Faction faction, float maxDistance)
@@ -107,6 +100,11 @@ namespace AthenaFramework
             return result;
         }
 
+        public static Dictionary<Pawn, float> GetNearbyHostilesWithDistances(Pawn pawn, float maxDistance)
+        {
+            return GetNearbyHostilesWithDistances(pawn.Position, pawn.MapHeld, pawn.Faction, maxDistance);
+        }
+
         public static List<Pawn> GetNearbyHostiles(Pawn pawn, float maxDistance)
         {
             return GetNearbyHostilesWithDistances(pawn, maxDistance).Keys.ToList();
@@ -115,6 +113,36 @@ namespace AthenaFramework
         public static List<Pawn> GetNearbyHostiles(IntVec3 cell, Map map, Faction faction, float maxDistance)
         {
             return GetNearbyHostilesWithDistances(cell, map, faction, maxDistance).Keys.ToList();
+        }
+
+        public static bool HostilePawnsNearbyThreshold(IntVec3 cell, Map map, Faction faction, float maxDistance, int hostilesAmount)
+        {
+            int nearbyHostiles = 0;
+            float squaredDistance = maxDistance * maxDistance;
+
+            foreach (Pawn potentialEnemy in map.mapPawns.AllPawnsSpawned)
+            {
+                if (!potentialEnemy.Spawned || potentialEnemy.Downed || potentialEnemy.Dead || !potentialEnemy.Faction.HostileTo(faction))
+                {
+                    continue;
+                }
+
+                if (potentialEnemy.Position.DistanceToSquared(cell) <= squaredDistance)
+                {
+                    nearbyHostiles++;
+                    if (nearbyHostiles >= hostilesAmount)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public static bool HostilePawnsNearbyThreshold(Pawn pawn, float maxDistance, int hostilesAmount)
+        {
+            return HostilePawnsNearbyThreshold(pawn.Position, pawn.MapHeld, pawn.Faction, maxDistance, hostilesAmount);
         }
 
         public static List<PawnGroupup> GroupPawns(List<Pawn> pawnList, float groupDistance)
@@ -129,8 +157,7 @@ namespace AthenaFramework
                     continue;
                 }
 
-                PawnGroupup groupZero = new PawnGroupup();
-                bool foundGroup = false;
+                PawnGroupup groupZero = null;
                 for (int j = 0; j < pawnGroups.Count; j++)
                 {
                     PawnGroupup group = pawnGroups[j];
@@ -139,7 +166,7 @@ namespace AthenaFramework
                         continue;
                     }
 
-                    if (!foundGroup)
+                    if (groupZero == null)
                     {
                         groupZero = group;
                         groupZero.members.Add(pawn);
@@ -154,7 +181,7 @@ namespace AthenaFramework
                     }
                 }
 
-                if (!foundGroup)
+                if (groupZero == null)
                 {
                     PawnGroupup newGroup = new PawnGroupup(new List<Pawn>() { pawn }, new IntVec3(pawn.Position.x, pawn.Position.y, pawn.Position.z));
                     pawnGroups.Add(newGroup);
@@ -165,7 +192,7 @@ namespace AthenaFramework
         }
     }
 
-    public struct PawnGroupup
+    public class PawnGroupup
     {
         public List<Pawn> members;
         public IntVec3 groupCenter;

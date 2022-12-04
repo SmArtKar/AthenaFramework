@@ -17,17 +17,19 @@ namespace AthenaFramework
         public int textureFrameAmount = 1;
     }
 
-    public struct BeamInfo : IExposable
+    public class BeamInfo : IExposable
     {
         public Thing beamStart;
         public Thing beamEnd;
         public BeamRenderer beam;
+        public int ticksLeft = -1;
 
-        public BeamInfo(Thing beamStart, Thing beamEnd, BeamRenderer beam)
+        public BeamInfo(Thing beamStart, Thing beamEnd, BeamRenderer beam, int ticksLeft = -1)
         {
             this.beamStart = beamStart;
             this.beamEnd = beamEnd;
             this.beam = beam;
+            this.ticksLeft = ticksLeft;
         }
 
         public void ExposeData()
@@ -38,17 +40,19 @@ namespace AthenaFramework
         }
     }
 
-    public struct StaticBeamInfo : IExposable
+    public class StaticBeamInfo : IExposable
     {
         public Vector3 beamStart;
         public Vector3 beamEnd;
         public BeamRenderer beam;
+        public int ticksLeft = -1;
 
-        public StaticBeamInfo(Vector3 beamStart, Vector3 beamEnd, BeamRenderer beam)
+        public StaticBeamInfo(Vector3 beamStart, Vector3 beamEnd, BeamRenderer beam, int ticksLeft = -1)
         {
             this.beamStart = beamStart;
             this.beamEnd = beamEnd;
             this.beam = beam;
+            this.ticksLeft = ticksLeft;
         }
 
         public void ExposeData()

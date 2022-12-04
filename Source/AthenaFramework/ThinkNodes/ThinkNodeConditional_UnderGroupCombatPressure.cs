@@ -38,26 +38,7 @@ namespace AthenaFramework
             int alliesAmount = 1 + allies.Count;
             int hostileThreshold = Math.Max(soloMinPawns, alliesAmount * groupPawnMultiplier);
 
-            TraverseParms tp = TraverseParms.For(pawn, Danger.Deadly, TraverseMode.ByPawn, false, false, false);
-            int hostileCount = 0;
-            RegionTraverser.BreadthFirstTraverse(pawn.Position, pawn.Map, (Region from, Region to) => to.Allows(tp, false), delegate (Region r)
-            {
-                List<Thing> possibleHostiles = r.ListerThings.ThingsInGroup(ThingRequestGroup.AttackTarget);
-                for (int i = 0; i < possibleHostiles.Count; i++)
-                {
-                    if (possibleHostiles[i].HostileTo(pawn) && (maxThreatDistance <= 0f || possibleHostiles[i].Position.InHorDistOf(pawn.Position, maxThreatDistance)))
-                    {
-                        hostileCount += 1;
-                        if (hostileCount >= hostileThreshold)
-                        {
-                            return true;
-                        }
-                    }
-                }
-                return true;
-            }, 9, RegionType.Set_Passable);
-
-            bool result = hostileCount >= hostileThreshold;
+            bool result = PawnGroupUtility.HostilePawnsNearbyThreshold(pawn, maxThreatDistance, hostileThreshold);
 
             foreach (Pawn ally in allies)
             {
