@@ -15,6 +15,7 @@ namespace AthenaFramework
         public override void CompTick()
         {
             base.CompTick();
+
             if (!parent.Spawned)
             {
                 return;
@@ -26,7 +27,6 @@ namespace AthenaFramework
                 parent.AllComps.Remove(this);
                 return;
             }
-
             Pawn pawn = parent as Pawn;
             foreach (HediffBodypartPair pair in Props.bodypartPairs)
             {

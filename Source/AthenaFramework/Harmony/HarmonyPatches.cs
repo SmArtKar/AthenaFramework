@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Verse;
 using RimWorld;
+using UnityEngine;
 
 namespace AthenaFramework
 {
@@ -29,11 +30,26 @@ namespace AthenaFramework
                 }
 
                 Pawn pawn = __instance.Instigator as Pawn;
-                foreach (HediffWithComps hediff in pawn.health.hediffSet.hediffs.OfType<HediffWithComps>())
+                if (AthenaHediffUtility.amplifierCompsByPawn.ContainsKey(pawn))
                 {
-                    foreach (CompHediff_DamageAmplifier amplifier in hediff.comps.OfType<CompHediff_DamageAmplifier>())
+                    foreach (CompHediff_DamageAmplifier amplifier in AthenaHediffUtility.amplifierCompsByPawn[pawn])
                     {
-                        __result *= amplifier.Props.damageMultiplier;
+                        __result *= amplifier.damageMultiplier;
+                    }
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(Pawn), nameof(Pawn.DrawAt))]
+        public static class Pawn_PostDrawAt
+        {
+            static void Postfix(Pawn __instance, Vector3 drawLoc)
+            {
+                if (AthenaHediffUtility.renderableCompsByPawn.ContainsKey(__instance))
+                {
+                    foreach (CompHediff_Renderable renderable in AthenaHediffUtility.renderableCompsByPawn[__instance])
+                    {
+                        renderable.DrawAt(drawLoc);
                     }
                 }
             }

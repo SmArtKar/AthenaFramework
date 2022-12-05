@@ -47,7 +47,6 @@ namespace AthenaFramework
             return GetNearbyAlliesWithDistances(cell, map, faction, maxDistance).Keys.ToList();
         }
 
-
         public static bool AlliedPawnsNearbyThreshold(IntVec3 cell, Map map, Faction faction, float maxDistance, int alliesAmount)
         {
             int nearbyAllies = 0;
@@ -143,6 +142,73 @@ namespace AthenaFramework
         public static bool HostilePawnsNearbyThreshold(Pawn pawn, float maxDistance, int hostilesAmount)
         {
             return HostilePawnsNearbyThreshold(pawn.Position, pawn.MapHeld, pawn.Faction, maxDistance, hostilesAmount);
+        }
+
+        public static Dictionary<Pawn, float> GetNearbyPawnsWithDistances(IntVec3 cell, Map map, float maxDistance)
+        {
+            Dictionary<Pawn, float> result = new Dictionary<Pawn, float>();
+            float squaredDistance = maxDistance * maxDistance;
+
+            foreach (Pawn pawn in map.mapPawns.AllPawnsSpawned)
+            {
+                if (!pawn.Spawned || pawn.Downed || pawn.Dead)
+                {
+                    continue;
+                }
+
+                float enemyDistance = pawn.Position.DistanceToSquared(cell);
+                if (enemyDistance <= squaredDistance)
+                {
+                    result[pawn] = enemyDistance;
+                }
+            }
+
+            return result;
+        }
+
+        public static Dictionary<Pawn, float> GetNearbyPawnsWithDistances(Pawn pawn, float maxDistance)
+        {
+            return GetNearbyPawnsWithDistances(pawn.Position, pawn.MapHeld, maxDistance);
+        }
+
+        public static List<Pawn> GetNearbyPawns(Pawn pawn, float maxDistance)
+        {
+            return GetNearbyPawnsWithDistances(pawn, maxDistance).Keys.ToList();
+        }
+
+        public static List<Pawn> GetNearbyPawns(IntVec3 cell, Map map, float maxDistance)
+        {
+            return GetNearbyPawnsWithDistances(cell, map, maxDistance).Keys.ToList();
+        }
+
+        public static bool PawnsNearbyThreshold(IntVec3 cell, Map map, float maxDistance, int pawnAmount)
+        {
+            int nearbyPawns = 0;
+            float squaredDistance = maxDistance * maxDistance;
+
+            foreach (Pawn pawn in map.mapPawns.AllPawnsSpawned)
+            {
+                if (!pawn.Spawned || pawn.Downed || pawn.Dead)
+                {
+                    continue;
+                }
+
+                if (pawn.Position.DistanceToSquared(cell) <= squaredDistance)
+                {
+                    nearbyPawns++;
+                    if (nearbyPawns >= pawnAmount)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public static bool PawnsNearbyThreshold(Pawn pawn, float maxDistance, int pawnAmount)
+        {
+            return PawnsNearbyThreshold(pawn.Position, pawn.MapHeld, maxDistance, pawnAmount);
         }
 
         public static List<PawnGroupup> GroupPawns(List<Pawn> pawnList, float groupDistance)

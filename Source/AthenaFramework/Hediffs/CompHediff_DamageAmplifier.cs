@@ -9,7 +9,37 @@ namespace AthenaFramework
 {
     public class CompHediff_DamageAmplifier : HediffComp
     {
-        public HediffCompProperties_DamageAmplifier Props => props as HediffCompProperties_DamageAmplifier;
+        private HediffCompProperties_DamageAmplifier Props => props as HediffCompProperties_DamageAmplifier;
+
+        public virtual float damageMultiplier
+        {
+            get
+            {
+                return Props.damageMultiplier;
+            }
+        }
+
+        public override void CompPostPostAdd(DamageInfo? dinfo)
+        {
+            base.CompPostPostAdd(dinfo);
+            if (!AthenaHediffUtility.amplifierCompsByPawn.ContainsKey(parent.pawn))
+            {
+                AthenaHediffUtility.amplifierCompsByPawn[parent.pawn] = new List<CompHediff_DamageAmplifier>();
+            }
+
+            AthenaHediffUtility.amplifierCompsByPawn[parent.pawn].Add(this);
+        }
+
+        public override void CompPostPostRemoved()
+        {
+            base.CompPostPostRemoved();
+            AthenaHediffUtility.amplifierCompsByPawn[parent.pawn].Remove(this);
+
+            if (AthenaHediffUtility.amplifierCompsByPawn[parent.pawn].Count == 0)
+            {
+                AthenaHediffUtility.amplifierCompsByPawn.Remove(parent.pawn);
+            }
+        }
     }
 
     public class HediffCompProperties_DamageAmplifier : HediffCompProperties
