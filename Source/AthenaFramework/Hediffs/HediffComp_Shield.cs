@@ -9,9 +9,11 @@ using static HarmonyLib.Code;
 using UnityEngine;
 using AthenaFramework.Gizmos;
 using Verse.Sound;
+using HotSwap;
 
 namespace AthenaFramework
 {
+    [HotSwappable]
     public class HediffComp_Shield : HediffComp_Renderable
     {
         public float energy;
@@ -106,11 +108,6 @@ namespace AthenaFramework
                 return false;
             }
 
-            if (!(dinfo.Def.isRanged && Props.blocksRangedDamage) && !((!dinfo.Def.isRanged && !dinfo.Def.isExplosive) && Props.blocksMeleeDamage) && !(dinfo.Def.isExplosive && Props.blocksExplosions))
-            {
-                return false;
-            }
-
             if (energy <= dinfo.Amount * Props.energyPerDamageModifier)
             {
                 Shatter(ref dinfo);
@@ -143,6 +140,11 @@ namespace AthenaFramework
             for (int i = 0; i < 6; i++)
             {
                 FleckMaker.ThrowDustPuff(parent.pawn.DrawPos + Vector3Utility.HorizontalVectorFromAngle(Rand.Range(0, 360)) * Rand.Range(0.3f, 0.6f), parent.pawn.MapHeld, Rand.Range(0.8f, 1.2f));
+            }
+
+            if (Props.explosionOnShieldBreak)
+            {
+                GenExplosion.DoExplosion(parent.pawn.Position, parent.pawn.MapHeld, Props.explosionRadius, Props.explosionDef, parent.pawn);
             }
         }
 
@@ -245,9 +247,6 @@ namespace AthenaFramework
         public bool blocksExplosions = true;
         public bool blocksMeleeDamage = false;
 
-        public bool blocksRangedWeaponsUsage = true;
-        public bool blocksMeleeWeaponsUsage = false;
-
         public List<DamageDef> blockDamageDefs;
         public List<DamageDef> absorbStuns;
         public float energyPerStunModifier = 0.5f;
@@ -255,6 +254,7 @@ namespace AthenaFramework
         public List<DamageDef> shatterOn = new List<DamageDef>() { DamageDefOf.EMP };
         public bool explosionOnShieldBreak = false;
         public DamageDef explosionDef = DamageDefOf.Flame;
+        public float explosionRadius = 2.9f;
 
         public SoundDef absorbSound;
         public SoundDef resetSound;
