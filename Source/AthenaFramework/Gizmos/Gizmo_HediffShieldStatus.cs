@@ -13,7 +13,7 @@ namespace AthenaFramework.Gizmos
     [StaticConstructorOnStartup]
     public class Gizmo_HediffShieldStatus : Gizmo
     {
-        public CompHediff_Shield shieldHediff;
+        public HediffComp_Shield shieldHediff;
 
         private static readonly Texture2D FullShieldBarTex = SolidColorMaterials.NewSolidColorTexture(new Color(0.2f, 0.2f, 0.24f));
         private static readonly Texture2D EmptyShieldBarTex = SolidColorMaterials.NewSolidColorTexture(Color.clear);
@@ -36,15 +36,15 @@ namespace AthenaFramework.Gizmos
             Rect drawRect = backgroundRect.ContractedBy(6f);
             Widgets.DrawWindowBackground(backgroundRect);
             Rect textRect = drawRect;
-            textRect.height = backgroundRect.height / 2f;
+            textRect.height = backgroundRect.height / 2f - 12f;
             Text.Font = GameFont.Tiny;
+            Text.Anchor = TextAnchor.MiddleCenter;
             Widgets.Label(textRect, props.gizmoTitle);
             Rect barRect = drawRect;
             barRect.yMin = drawRect.y + drawRect.height / 2f;
             float num = shieldHediff.energy / Mathf.Max(1f, props.maxEnergy);
             Widgets.FillableBar(barRect, num, Gizmo_HediffShieldStatus.FullShieldBarTex, Gizmo_HediffShieldStatus.EmptyShieldBarTex, false);
             Text.Font = GameFont.Small;
-            Text.Anchor = TextAnchor.MiddleCenter;
             Widgets.Label(barRect, (shieldHediff.energy).ToString("F0") + " / " + (props.maxEnergy).ToString("F0"));
             Text.Anchor = TextAnchor.UpperLeft;
             TooltipHandler.TipRegion(drawRect, props.gizmoTip);

@@ -56,16 +56,15 @@
     <Compile Include="Gizmos\Gizmo_HediffShieldStatus.cs" />
     <Compile Include="Harmony\HarmonyPatches.cs" />
     <Compile Include="HediffComps\HediffComp_GasBomb.cs" />
-    <Compile Include="Hediffs\CompHediff_DamageAmplifier.cs" />
-    <Compile Include="Hediffs\CompHediff_Renderable.cs" />
-    <Compile Include="Hediffs\CompHediff_Shield.cs" />
+    <Compile Include="Hediffs\HediffComp_DamageAmplifier.cs" />
+    <Compile Include="Hediffs\HediffComp_Renderable.cs" />
+    <Compile Include="Hediffs\HediffComp_Shield.cs" />
     <Compile Include="Rendering\BeamRenderer.cs" />
     <Compile Include="Rendering\AthenaBeams.cs" />
     <Compile Include="Rendering\CompBeam.cs" />
     <Compile Include="Rendering\MapComponent_AthenaRenderer.cs" />
     <Compile Include="Hediffs\Comp_HediffBodypartGiver.cs" />
     <Compile Include="ThinkNodes\ThinkNodeConditional_UnderGroupCombatPressure.cs" />
-    <Compile Include="Utilities\AthenaHediffUtility.cs" />
     <Compile Include="Utilities\PawnGroupUtility.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

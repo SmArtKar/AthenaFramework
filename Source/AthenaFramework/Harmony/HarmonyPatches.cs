@@ -19,6 +19,8 @@ namespace AthenaFramework
             harmony.PatchAll();
         }
 
+        // Damage patches
+
         [HarmonyPatch(typeof(DamageInfo), nameof(DamageInfo.Amount), MethodType.Getter)]
         public static class DamageInfo_AmountGetter
         {
@@ -30,27 +32,64 @@ namespace AthenaFramework
                 }
 
                 Pawn pawn = __instance.Instigator as Pawn;
-                if (AthenaHediffUtility.amplifierCompsByPawn.ContainsKey(pawn))
+                foreach (HediffComp_DamageAmplifier amplifier in pawn.health.hediffSet.hediffs.OfType<HediffWithComps>().SelectMany((HediffWithComps x) => x.comps).OfType<HediffComp_DamageAmplifier>())
                 {
-                    foreach (CompHediff_DamageAmplifier amplifier in AthenaHediffUtility.amplifierCompsByPawn[pawn])
+                    __result *= amplifier.damageMultiplier;
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(Pawn), nameof(Pawn.PreApplyDamage))]
+        public static class Pawn_PostPreApplyDamage
+        {
+            static void Postfix(Pawn __instance, ref DamageInfo dinfo, ref bool absorbed)
+            {
+                foreach (HediffComp_Shield shield in __instance.health.hediffSet.hediffs.OfType<HediffWithComps>().SelectMany((HediffWithComps x) => x.comps).OfType<HediffComp_Shield>())
+                {
+                    shield.BlockDamage(ref dinfo, ref absorbed);
+
+                    if (absorbed)
                     {
-                        __result *= amplifier.damageMultiplier;
+                        return;
                     }
                 }
             }
         }
+
+        [HarmonyPatch(typeof(StunHandler), "Notify_DamageApplied")]
+        public static class ThingWithComps_PreApplyDamage
+        {
+            static bool Prefix(StunHandler __instance, ref DamageInfo dinfo)
+            {
+                if (!(__instance.parent is Pawn))
+                {
+                    return true;
+                }
+
+                Pawn pawn = __instance.parent as Pawn;
+
+                foreach (HediffComp_Shield shield in pawn.health.hediffSet.hediffs.OfType<HediffWithComps>().SelectMany((HediffWithComps x) => x.comps).OfType<HediffComp_Shield>())
+                {
+                    if (shield.BlockStun(ref dinfo))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
+
+        // Rendering patches
 
         [HarmonyPatch(typeof(Pawn), nameof(Pawn.DrawAt))]
         public static class Pawn_PostDrawAt
         {
             static void Postfix(Pawn __instance, Vector3 drawLoc)
             {
-                if (AthenaHediffUtility.renderableCompsByPawn.ContainsKey(__instance))
+                foreach (HediffComp_Renderable renderable in __instance.health.hediffSet.hediffs.OfType<HediffWithComps>().SelectMany((HediffWithComps x) => x.comps).OfType<HediffComp_Renderable>())
                 {
-                    foreach (CompHediff_Renderable renderable in AthenaHediffUtility.renderableCompsByPawn[__instance])
-                    {
-                        renderable.DrawAt(drawLoc);
-                    }
+                    renderable.DrawAt(drawLoc);
                 }
             }
         }
