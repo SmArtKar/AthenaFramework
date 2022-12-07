@@ -27,9 +27,20 @@ namespace AthenaFramework
                 parent.AllComps.Remove(this);
                 return;
             }
+
             Pawn pawn = parent as Pawn;
             foreach (HediffBodypartPair pair in Props.bodypartPairs)
             {
+                if (pair.bodyPartDef == null)
+                {
+                    if (!pawn.health.hediffSet.HasHediff(pair.hediffDef, null))
+                    {
+                        Hediff hediff = HediffMaker.MakeHediff(pair.hediffDef, pawn, null);
+                        pawn.health.AddHediff(hediff, null, null, null);
+                    }
+                    continue;
+                }
+
                 List<BodyPartRecord> partRecords = pawn.RaceProps.body.GetPartsWithDef(pair.bodyPartDef);
                 foreach (BodyPartRecord partRecord in partRecords)
                 {

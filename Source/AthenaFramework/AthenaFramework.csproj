@@ -67,7 +67,8 @@
     <Compile Include="Rendering\AthenaBeams.cs" />
     <Compile Include="Rendering\CompBeam.cs" />
     <Compile Include="Rendering\MapComponent_AthenaRenderer.cs" />
-    <Compile Include="Hediffs\Comp_HediffBodypartGiver.cs" />
+    <Compile Include="Things\Comp_HediffBodypartGiver.cs" />
+    <Compile Include="Things\ThingComp_FullTurretGraphics.cs" />
     <Compile Include="ThinkNodes\ThinkNodeConditional_UnderGroupCombatPressure.cs" />
     <Compile Include="Utilities\PawnGroupUtility.cs" />
   </ItemGroup>

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Verse;
 using RimWorld;
 using UnityEngine;
+using System.Reflection;
 
 namespace AthenaFramework
 {
@@ -24,12 +25,41 @@ namespace AthenaFramework
         {
             static void Prefix(CompTurretGun __instance)
             {
+                CompProperties_TurretGun props = __instance.props as CompProperties_TurretGun;
+
                 if (__instance.turretMat != null)
                 {
                     return;
                 }
 
-                __instance.turretMat = (__instance.props as CompProperties_TurretGun).turretDef.graphicData.Graphic.MatSingle;
+                __instance.turretMat = props.turretDef.graphicData.Graphic.MatSingle;
+            }
+        }
+
+        [HarmonyPatch(typeof(CompTurretGun), "PostDraw")]
+        public static class CompTurretGun_PrePostDraw
+        {
+            static bool Prefix(CompTurretGun __instance)
+            {
+                if (!(__instance.gun is ThingWithComps) || (__instance.gun as ThingWithComps).AllComps.OfType<ThingComp_FullTurretGraphics>().ToList().Count == 0)
+                {
+                    return true;
+                }
+
+                CompProperties_TurretGun props = __instance.props as CompProperties_TurretGun;
+
+                if (__instance.turretMat == null)
+                {
+                    __instance.turretMat = props.turretDef.graphicData.Graphic.MatSingle;
+                }
+
+                Rot4 rotation = __instance.parent.Rotation;
+                Vector3 vector = new Vector3(0f, 0.04054054f, 0f);
+                Matrix4x4 matrix4x = default(Matrix4x4);
+                Vector2 drawSize = (__instance.props as CompProperties_TurretGun).turretDef.graphicData.drawSize;
+                matrix4x.SetTRS(__instance.parent.DrawPos + vector, ((float)typeof(CompTurretGun).GetField("curRotation", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(__instance)).ToQuat(), new Vector3(drawSize.x, 0, drawSize.y));
+                Graphics.DrawMesh(MeshPool.plane10, matrix4x, __instance.turretMat, 0);
+                return false;
             }
         }
 
