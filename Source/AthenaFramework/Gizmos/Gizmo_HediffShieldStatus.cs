@@ -37,7 +37,7 @@ namespace AthenaFramework.Gizmos
             Widgets.DrawWindowBackground(backgroundRect);
             Rect textRect = drawRect;
             textRect.height = backgroundRect.height / 2f - 12f;
-            Text.Font = GameFont.Tiny;
+            Text.Font = GameFont.Small;
             Text.Anchor = TextAnchor.MiddleCenter;
             Widgets.Label(textRect, props.gizmoTitle);
             Rect barRect = drawRect;

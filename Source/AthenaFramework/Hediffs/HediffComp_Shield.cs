@@ -19,6 +19,8 @@ namespace AthenaFramework
         public float energy;
         public int ticksToReset = -1;
         public int lastImpactTick = -1;
+        public int lastResetTick = -1;
+        public bool freeRecharge = false;
         public Vector3 impactAngleVect;
 
         private HediffCompProperties_Shield Props => props as HediffCompProperties_Shield;
@@ -31,6 +33,12 @@ namespace AthenaFramework
             {
                 return energy / Props.maxEnergy;
             }
+        }
+
+        public override void CompPostMake()
+        {
+            base.CompPostMake();
+            energy = Props.maxEnergy * Props.energyOnStart;
         }
 
         public virtual void BlockDamage(ref DamageInfo dinfo, ref bool absorbed)
@@ -135,6 +143,17 @@ namespace AthenaFramework
             ticksToReset = Props.rechargeDelay;
 
             float scale = Props.minDrawSize + (Props.maxDrawSize - Props.minDrawSize) * EnergyPercent;
+            if (Props.scaleWithOwner)
+            {
+                if (parent.pawn.RaceProps.Humanlike)
+                {
+                    scale *= parent.pawn.DrawSize.x;
+                }
+                else
+                {
+                    scale = (scale - 1) + parent.pawn.ageTracker.CurKindLifeStage.bodyGraphicData.drawSize.x;
+                }
+            }
             Props.shieldBreakEffecter.SpawnAttached(parent.pawn, parent.pawn.MapHeld, scale * 0.5f);
             FleckMaker.Static(parent.pawn.DrawPos, parent.pawn.Map, Props.breakFleck, 12f);
             for (int i = 0; i < 6; i++)
@@ -157,7 +176,17 @@ namespace AthenaFramework
             }
 
             ticksToReset = -1;
-            energy = Props.maxEnergy * Props.energyOnReset;
+            if (freeRecharge)
+            {
+                energy = Props.maxEnergy;
+                freeRecharge = false;
+            }
+            else
+            {
+                energy = Props.maxEnergy * Props.energyOnReset;
+            }
+
+            lastResetTick = Find.TickManager.TicksGame;
         }
 
         public override void CompPostTick(ref float severityAdjustment)
@@ -191,11 +220,29 @@ namespace AthenaFramework
             drawPos.y = AltitudeLayer.MoteOverhead.AltitudeFor();
             float scale = Props.minDrawSize + (Props.maxDrawSize - Props.minDrawSize) * EnergyPercent;
 
+            if (Props.scaleWithOwner)
+            {
+                if (parent.pawn.RaceProps.Humanlike)
+                {
+                    scale *= parent.pawn.DrawSize.x;
+                }
+                else
+                {
+                    scale = (scale - 1) + parent.pawn.ageTracker.CurKindLifeStage.bodyGraphicData.drawSize.x;
+                }
+            }
+
             if (lastImpactTick > Find.TickManager.TicksGame - 8)
             {
                 float tickScaleModifier = (8 - Find.TickManager.TicksGame + lastImpactTick) / 8f * 0.05f;
                 drawPos += this.impactAngleVect * tickScaleModifier;
                 scale -= tickScaleModifier;
+            }
+
+            if (lastResetTick > Find.TickManager.TicksGame - 20)
+            {
+                float tickScaleModifier = 1 - (20 - Find.TickManager.TicksGame + lastResetTick) / 20f;
+                scale *= tickScaleModifier;
             }
 
             matrix.SetTRS(drawPos, Quaternion.AngleAxis(Rand.Range(0, 360), Vector3.up), new Vector3(scale, 1f, scale));
@@ -240,6 +287,7 @@ namespace AthenaFramework
         public float energyPerDamageModifier = 0.33f;
         public int rechargeDelay = -1;
         public float energyOnReset = 0.2f;
+        public float energyOnStart = 1f;
         public bool blockOverdamage = true;
         public bool consumeOverdamage = false;
 
@@ -269,5 +317,6 @@ namespace AthenaFramework
 
         public float minDrawSize = 1.2f;
         public float maxDrawSize = 1.55f;
+        public bool scaleWithOwner = false;
     }
 }

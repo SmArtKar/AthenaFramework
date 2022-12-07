@@ -19,6 +19,32 @@ namespace AthenaFramework
             harmony.PatchAll();
         }
 
+        [HarmonyPatch(typeof(CompTurretGun), "TurretMat", MethodType.Getter)]
+        public static class CompTurretGun_TurretMat_Fixer
+        {
+            static void Prefix(CompTurretGun __instance)
+            {
+                if (__instance.turretMat != null)
+                {
+                    return;
+                }
+
+                __instance.turretMat = (__instance.props as CompProperties_TurretGun).turretDef.graphicData.Graphic.MatSingle;
+            }
+        }
+
+
+        /*
+        [HarmonyPatch(typeof(PawnGraphicSet), "ResolveAllGraphics")]
+        public static class PawnGraphicSet_ResolveAllGraphics_Postfix
+        {
+            static void Postfix(PawnGraphicSet __instance)
+            {
+                __instance.nakedGraphic = null;
+            }
+        }
+        */
+
         // Damage patches
 
         [HarmonyPatch(typeof(DamageInfo), nameof(DamageInfo.Amount), MethodType.Getter)]
