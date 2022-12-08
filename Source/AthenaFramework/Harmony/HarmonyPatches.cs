@@ -41,7 +41,7 @@ namespace AthenaFramework
         {
             static bool Prefix(CompTurretGun __instance)
             {
-                if (!(__instance.gun is ThingWithComps) || (__instance.gun as ThingWithComps).AllComps.OfType<ThingComp_FullTurretGraphics>().ToList().Count == 0)
+                if (!(__instance.gun is ThingWithComps) || (__instance.gun as ThingWithComps).AllComps.OfType<Comp_FullTurretGraphics>().ToList().Count == 0)
                 {
                     return true;
                 }
@@ -63,17 +63,43 @@ namespace AthenaFramework
             }
         }
 
-
-        /*
         [HarmonyPatch(typeof(PawnGraphicSet), "ResolveAllGraphics")]
         public static class PawnGraphicSet_ResolveAllGraphics_Postfix
         {
             static void Postfix(PawnGraphicSet __instance)
             {
-                __instance.nakedGraphic = null;
+                if (!__instance.pawn.RaceProps.Humanlike)
+                {
+                    return;
+                }
+
+                bool graphicsSet = false;
+
+                foreach (Comp_CustomApparelBody customBody in __instance.pawn.apparel.WornApparel.SelectMany((Apparel x) => x.AllComps).OfType<Comp_CustomApparelBody>())
+                {
+                    Graphic customBodyGraphic = customBody.getBodyGraphic;
+                    if (customBodyGraphic != null)
+                    {
+                        __instance.nakedGraphic = customBodyGraphic;
+                        graphicsSet = true;
+                    }
+
+                    Graphic customHeadGraphic = customBody.getHeadGraphic;
+                    if (customHeadGraphic != null)
+                    {
+                        __instance.headGraphic = customHeadGraphic;
+                        graphicsSet = true;
+                    }
+                }
+
+                if (graphicsSet)
+                {
+                    __instance.CalculateHairMats();
+                    __instance.ResolveApparelGraphics();
+                    __instance.ResolveGeneGraphics();
+                }
             }
         }
-        */
 
         // Damage patches
 

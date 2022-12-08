@@ -9,16 +9,16 @@ using Verse;
 
 namespace AthenaFramework
 {
-    public class ThingComp_FullTurretGraphics : ThingComp 
+    public class Comp_FullTurretGraphics : ThingComp 
     { 
-        public ThingComp_FullTurretGraphics() { }
+        public Comp_FullTurretGraphics() { }
     }
 
     public class CompProperties_FullTurretGraphics : CompProperties
     {
         public CompProperties_FullTurretGraphics()
         {
-            compClass = typeof(ThingComp_FullTurretGraphics);
+            compClass = typeof(Comp_FullTurretGraphics);
         }
     }
 }
