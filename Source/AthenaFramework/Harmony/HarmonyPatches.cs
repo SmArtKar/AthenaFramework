@@ -41,7 +41,7 @@ namespace AthenaFramework
         {
             static bool Prefix(CompTurretGun __instance)
             {
-                if (!(__instance.gun is ThingWithComps) || (__instance.gun as ThingWithComps).AllComps.OfType<Comp_FullTurretGraphics>().ToList().Count == 0)
+                if (!(__instance.gun is ThingWithComps) || (__instance.gun as ThingWithComps).def.HasModExtension<TurretGraphicOverride>())
                 {
                     return true;
                 }
@@ -106,7 +106,7 @@ namespace AthenaFramework
         [HarmonyPatch(typeof(DamageInfo), nameof(DamageInfo.Amount), MethodType.Getter)]
         public static class DamageInfo_AmountGetter
         {
-            static void Postfix(DamageInfo __instance, float __result)
+            static void Postfix(DamageInfo __instance, ref float __result)
             {
                 if (__instance.Instigator == null || !(__instance.Instigator is Pawn))
                 {
