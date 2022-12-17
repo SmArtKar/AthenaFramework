@@ -70,6 +70,7 @@
     <Compile Include="Things\Comp_CustomApparelBody.cs" />
     <Compile Include="Things\Comp_HediffBodypartGiver.cs" />
     <Compile Include="Things\TurretGraphicOverride.cs" />
+    <Compile Include="Things\TurretRoofBlocked.cs" />
     <Compile Include="ThinkNodes\ThinkNodeConditional_UnderGroupCombatPressure.cs" />
     <Compile Include="Utilities\PawnGroupUtility.cs" />
   </ItemGroup>

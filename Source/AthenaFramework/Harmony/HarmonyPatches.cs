@@ -8,6 +8,7 @@ using Verse;
 using RimWorld;
 using UnityEngine;
 using System.Reflection;
+using AthenaFramework.Things;
 
 namespace AthenaFramework
 {
@@ -25,9 +26,15 @@ namespace AthenaFramework
         {
             static void Prefix(CompTurretGun __instance)
             {
+
                 CompProperties_TurretGun props = __instance.props as CompProperties_TurretGun;
 
                 if (__instance.turretMat != null)
+                {
+                    return;
+                }
+
+                if (!__instance.gun.def.HasModExtension<TurretGraphicOverride>())
                 {
                     return;
                 }
@@ -36,12 +43,38 @@ namespace AthenaFramework
             }
         }
 
+        [HarmonyPatch(typeof(CompTurretGun), "CanShoot", MethodType.Getter)]
+        public static class CompTurretGun_CanShoot
+        {
+            static void Postfix(CompTurretGun __instance, ref bool __result)
+            {
+                if (!__instance.gun.def.HasModExtension<TurretRoofBlocked>())
+                {
+                    return;
+                }
+
+                Pawn pawn = __instance.parent as Pawn;
+
+                if(pawn == null)
+                {
+                    return;
+                }
+
+                RoofDef roof = pawn.Position.GetRoof(pawn.MapHeld);
+
+                if (roof != null)
+                {
+                    __result = false;
+                }
+            }
+        }
+
         [HarmonyPatch(typeof(CompTurretGun), "PostDraw")]
         public static class CompTurretGun_PrePostDraw
         {
             static bool Prefix(CompTurretGun __instance)
             {
-                if (!(__instance.gun is ThingWithComps) || (__instance.gun as ThingWithComps).def.HasModExtension<TurretGraphicOverride>())
+                if (!__instance.gun.def.HasModExtension<TurretGraphicOverride>())
                 {
                     return true;
                 }
@@ -56,7 +89,7 @@ namespace AthenaFramework
                 Rot4 rotation = __instance.parent.Rotation;
                 Vector3 vector = new Vector3(0f, 0.04054054f, 0f);
                 Matrix4x4 matrix4x = default(Matrix4x4);
-                Vector2 drawSize = (__instance.props as CompProperties_TurretGun).turretDef.graphicData.drawSize;
+                Vector2 drawSize = props.turretDef.graphicData.drawSize;
                 matrix4x.SetTRS(__instance.parent.DrawPos + vector, ((float)typeof(CompTurretGun).GetField("curRotation", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(__instance)).ToQuat(), new Vector3(drawSize.x, 0, drawSize.y));
                 Graphics.DrawMesh(MeshPool.plane10, matrix4x, __instance.turretMat, 0);
                 return false;
