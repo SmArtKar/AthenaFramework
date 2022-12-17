@@ -9,11 +9,9 @@ using static HarmonyLib.Code;
 using UnityEngine;
 using AthenaFramework.Gizmos;
 using Verse.Sound;
-using HotSwap;
 
 namespace AthenaFramework
 {
-    [HotSwappable]
     public class HediffComp_Shield : HediffComp_Renderable
     {
         public float energy;

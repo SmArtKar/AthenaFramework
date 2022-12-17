@@ -4,4 +4,3 @@ C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\AthenaFramework\1.4\
 C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\AthenaFramework\1.4\Assemblies\AthenaFramework.pdb
 C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\AthenaFramework\Source\AthenaFramework\obj\Debug\AthenaFramework.dll
 C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\AthenaFramework\Source\AthenaFramework\obj\Debug\AthenaFramework.pdb
-C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\AthenaFramework\Source\AthenaFramework\obj\Debug\AthenaFramework.csproj.CopyComplete
