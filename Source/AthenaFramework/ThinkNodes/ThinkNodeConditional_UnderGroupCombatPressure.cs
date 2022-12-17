@@ -11,10 +11,14 @@ namespace AthenaFramework
 {
     public class ThinkNodeConditional_UnderGroupCombatPressure : ThinkNode_Conditional
     {
-        public float maxThreatDistance = 3f;        // Maximum distance to enemies
-        public float maxAllyDistance = 3f;          // At what distance allies are considered to be nearby
-        public int soloMinPawns = 3;                // Minimal amount of hostile pawns which is required the condition would be fulfilled
-        public int groupPawnMultiplier = 2;         // How much hostile pawns are added to the minimum per ally nearby. With default settings, it will be 3 with 0 allies, 4 with 1, 6 with 2 and etc
+        // Maximum distance to enemies
+        public float maxThreatDistance = 3f;
+        // At what distance allies are considered to be nearby
+        public float maxAllyDistance = 3f;
+        // Minimal amount of hostile pawns which is required the condition would be fulfilled
+        public int soloMinPawns = 3;
+        // How much hostile pawns are added to the minimum per ally nearby. With default settings, it will be 3 with 0 allies, 4 with 1, 6 with 2 and etc
+        public int groupPawnMultiplier = 2;         
 
         Dictionary<Pawn, bool> cachedGroupThreats = new Dictionary<Pawn, bool>();
 

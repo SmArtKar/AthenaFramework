@@ -141,14 +141,12 @@ namespace AthenaFramework
 
         public BeamInfo GetActiveBeamInfo(BeamRenderer beam)
         {
-            List<BeamInfo> fittingBeams = activeBeams.Where((BeamInfo x) => x.beam == beam).ToList();
-            return fittingBeams[0];
+            return activeBeams.Where((BeamInfo x) => x.beam == beam).ToList()[0];
         }
 
         public StaticBeamInfo GetStaticBeamInfo(BeamRenderer beam)
         {
-            List<StaticBeamInfo> fittingBeams = staticBeams.Where((StaticBeamInfo x) => x.beam == beam).ToList();
-            return fittingBeams[0];
+            return staticBeams.Where((StaticBeamInfo x) => x.beam == beam).ToList()[0];
         }
     }
 }

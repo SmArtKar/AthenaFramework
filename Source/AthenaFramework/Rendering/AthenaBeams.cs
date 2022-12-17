@@ -11,10 +11,16 @@ namespace AthenaFramework
 {
     public class BeamExtension : DefModExtension
     {
+        // Range at which the beam is cut
         public float maxRange;
+        // Delay between beam frames
         public int textureChangeDelay;
-        public int sizeTextureAmount = 1;
+        // Amount of texture frames
         public int textureFrameAmount = 1;
+        // Amount of textures for different beam lengths
+        public int sizeTextureAmount = 1;
+        // Duration after which beam will be destroyed. Disabled if set to -1
+        public int beamDuration = -1;
     }
 
     public class BeamInfo : IExposable

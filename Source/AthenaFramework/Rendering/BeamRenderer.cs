@@ -25,6 +25,8 @@ namespace AthenaFramework
         public int sizeTextureAmount = 0;
         public int currentSize = 1;
 
+        public int ticksLeft = -1;
+
         public float maxRange = 25.9f;
         public bool multipleTex = false;
 
@@ -42,6 +44,7 @@ namespace AthenaFramework
             sizeTextureAmount = extension.sizeTextureAmount;
             frameAmount = extension.textureFrameAmount;
             maxRange = extension.maxRange;
+            ticksLeft = extension.beamDuration;
 
             string texPath = def.graphicData.texPath;
 
@@ -60,7 +63,7 @@ namespace AthenaFramework
 
                 for (int j = 0; j < frameAmount; j++)
                 {
-                    sizeMaterials.Add(MaterialPool.MatFrom(texPath + ((char)(i + 65)).ToString() + (j + 1), ShaderDatabase.MoteGlow));
+                    sizeMaterials.Add(MaterialPool.MatFrom(texPath + (extension.sizeTextureAmount > 1 ? ((char)(i + 65)).ToString() : "") + (extension.textureFrameAmount > 1 ? (j + 1) : ""), ShaderDatabase.MoteGlow));
                 }
 
                 materials.Add(sizeMaterials);
@@ -103,6 +106,16 @@ namespace AthenaFramework
         public override void Tick()
         {
             base.Tick();
+
+            if (ticksLeft > 0)
+            {
+                ticksLeft -= 1;
+                if (ticksLeft == 0)
+                {
+                    DestroyBeam();
+                    return;
+                }
+            }
 
             if (!multipleTex)
             {
