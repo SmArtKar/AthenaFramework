@@ -37,6 +37,18 @@ namespace AthenaFramework
                 return Props.headGraphicData.Graphic;
             }
         }
+
+		public override void Notify_Equipped(Pawn pawn)
+		{
+            base.Notify_Equipped(pawn);
+            pawn.Drawer.renderer.graphics.ResolveAllGraphics();
+        }
+
+        public override void Notify_Unequipped(Pawn pawn)
+        {
+            base.Notify_Unequipped(pawn);
+            pawn.Drawer.renderer.graphics.ResolveAllGraphics();
+        }
     }
 
     public class CompProperties_CustomApparelBody : CompProperties
