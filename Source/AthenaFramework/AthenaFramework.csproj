@@ -57,6 +57,7 @@
     <Compile Include="Harmony\HarmonyPatches.cs" />
     <Compile Include="Hediffs\HediffComp_Bomb.cs" />
     <Compile Include="Hediffs\HediffComp_DamageAmplifier.cs" />
+    <Compile Include="Hediffs\HediffComp_RemoveOnSeverity.cs" />
     <Compile Include="Hediffs\HediffComp_Renderable.cs" />
     <Compile Include="Hediffs\HediffComp_Shield.cs" />
     <Compile Include="Rendering\BeamRenderer.cs" />
