@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Verse;
 
-namespace AthenaFramework.Things
+namespace AthenaFramework
 {
     public class TurretRoofBlocked : DefModExtension { }
 }

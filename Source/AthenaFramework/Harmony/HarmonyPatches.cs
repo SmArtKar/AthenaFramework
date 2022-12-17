@@ -8,7 +8,6 @@ using Verse;
 using RimWorld;
 using UnityEngine;
 using System.Reflection;
-using AthenaFramework.Things;
 
 namespace AthenaFramework
 {
@@ -96,6 +95,37 @@ namespace AthenaFramework
             }
         }
 
+        [HarmonyPatch(typeof(ApparelGraphicRecordGetter), "TryGetGraphicApparel")]
+        public static class ApparelGraphicRecordGetter_TryGetGraphicApparel
+        {
+            static bool Prefix(ref Apparel apparel, ref BodyTypeDef bodyType, ref ApparelGraphicRecord rec, ref bool __result)
+            {
+                Comp_CustomApparelBody customBody = apparel.GetComp<Comp_CustomApparelBody>();
+                if (customBody == null || !(customBody.props as CompProperties_CustomApparelBody).preventBodytype)
+                {
+                    return true;
+                }
+
+                if (apparel.WornGraphicPath.NullOrEmpty())
+                {
+                    return true;
+                }
+
+                Shader shader = ShaderDatabase.Cutout;
+                if (apparel.def.apparel.useWornGraphicMask)
+                {
+                    shader = ShaderDatabase.CutoutComplex;
+                }
+
+                Graphic graphic = GraphicDatabase.Get<Graphic_Multi>(apparel.WornGraphicPath, shader, apparel.def.graphicData.drawSize, apparel.DrawColor);
+                rec = new ApparelGraphicRecord(graphic, apparel);
+
+                __result = true;
+                return false;
+            }
+        }
+
+
         [HarmonyPatch(typeof(PawnGraphicSet), "ResolveAllGraphics")]
         public static class PawnGraphicSet_ResolveAllGraphics_Postfix
         {
@@ -149,7 +179,7 @@ namespace AthenaFramework
                 Pawn pawn = __instance.Instigator as Pawn;
                 foreach (HediffComp_DamageAmplifier amplifier in pawn.health.hediffSet.hediffs.OfType<HediffWithComps>().SelectMany((HediffWithComps x) => x.comps).OfType<HediffComp_DamageAmplifier>())
                 {
-                    __result *= amplifier.damageMultiplier;
+                    __result *= amplifier.DamageMultiplier;
                 }
             }
         }

@@ -18,7 +18,7 @@ namespace AthenaFramework
         public int ticksToReset = -1;
         public int lastImpactTick = -1;
         public int lastResetTick = -1;
-        public bool freeRecharge = false;
+        public bool freeRecharge = false; // Set to true in case you want your shield's next reboot to give it full energy
         public Vector3 impactAngleVect;
 
         private HediffCompProperties_Shield Props => props as HediffCompProperties_Shield;
@@ -88,15 +88,15 @@ namespace AthenaFramework
 
         public virtual void OnDamageAbsorb(ref DamageInfo dinfo)
         {
-            Props.absorbSound.PlayOneShot(new TargetInfo(parent.pawn.Position, parent.pawn.Map, false));
+            Props.absorbSound.PlayOneShot(new TargetInfo(Pawn.Position, Pawn.Map, false));
             impactAngleVect = Vector3Utility.HorizontalVectorFromAngle(dinfo.Angle);
-            Vector3 offsetVector = parent.pawn.DrawPos + this.impactAngleVect.RotatedBy(180f) * 0.5f;
+            Vector3 offsetVector = Pawn.DrawPos + this.impactAngleVect.RotatedBy(180f) * 0.5f;
             float damagePower = Mathf.Min(10f, 2f + dinfo.Amount / 10f);
-            FleckMaker.Static(offsetVector, parent.pawn.MapHeld, Props.absorbFleck, damagePower);
+            FleckMaker.Static(offsetVector, Pawn.MapHeld, Props.absorbFleck, damagePower);
 
             for (int i = 0; i < damagePower; i++)
             {
-                FleckMaker.ThrowDustPuff(offsetVector, parent.pawn.MapHeld, Rand.Range(0.8f, 1.2f));
+                FleckMaker.ThrowDustPuff(offsetVector, Pawn.MapHeld, Rand.Range(0.8f, 1.2f));
             }
 
             lastImpactTick = Find.TickManager.TicksGame;
@@ -114,7 +114,7 @@ namespace AthenaFramework
                 return false;
             }
 
-            if (energy <= dinfo.Amount * Props.energyPerDamageModifier)
+            if (energy <= dinfo.Amount * Props.energyPerStunModifier)
             {
                 Shatter(ref dinfo);
                 if (Props.blockOverdamage)
@@ -124,7 +124,7 @@ namespace AthenaFramework
 
                 if (Props.consumeOverdamage)
                 {
-                    dinfo.SetAmount(dinfo.Amount - energy / Props.energyPerDamageModifier);
+                    dinfo.SetAmount(dinfo.Amount - energy / Props.energyPerStunModifier);
                 }
 
                 return false;
@@ -138,39 +138,39 @@ namespace AthenaFramework
         public virtual void Shatter(ref DamageInfo dinfo)
         {
             energy = 0;
-            ticksToReset = Props.rechargeDelay;
+            ticksToReset = Props.resetDelay;
 
             float scale = Props.minDrawSize + (Props.maxDrawSize - Props.minDrawSize) * EnergyPercent;
             if (Props.scaleWithOwner)
             {
-                if (parent.pawn.RaceProps.Humanlike)
+                if (Pawn.RaceProps.Humanlike)
                 {
-                    scale *= parent.pawn.DrawSize.x;
+                    scale *= Pawn.DrawSize.x;
                 }
                 else
                 {
-                    scale = (scale - 1) + parent.pawn.ageTracker.CurKindLifeStage.bodyGraphicData.drawSize.x;
+                    scale = (scale - 1) + Pawn.ageTracker.CurKindLifeStage.bodyGraphicData.drawSize.x;
                 }
             }
-            Props.shieldBreakEffecter.SpawnAttached(parent.pawn, parent.pawn.MapHeld, scale * 0.5f);
-            FleckMaker.Static(parent.pawn.DrawPos, parent.pawn.Map, Props.breakFleck, 12f);
+            Props.shieldBreakEffecter.SpawnAttached(Pawn, Pawn.MapHeld, scale * 0.5f);
+            FleckMaker.Static(Pawn.DrawPos, Pawn.Map, Props.breakFleck, 12f);
             for (int i = 0; i < 6; i++)
             {
-                FleckMaker.ThrowDustPuff(parent.pawn.DrawPos + Vector3Utility.HorizontalVectorFromAngle(Rand.Range(0, 360)) * Rand.Range(0.3f, 0.6f), parent.pawn.MapHeld, Rand.Range(0.8f, 1.2f));
+                FleckMaker.ThrowDustPuff(Pawn.DrawPos + Vector3Utility.HorizontalVectorFromAngle(Rand.Range(0, 360)) * Rand.Range(0.3f, 0.6f), Pawn.MapHeld, Rand.Range(0.8f, 1.2f));
             }
 
             if (Props.explosionOnShieldBreak)
             {
-                GenExplosion.DoExplosion(parent.pawn.Position, parent.pawn.MapHeld, Props.explosionRadius, Props.explosionDef, parent.pawn);
+                GenExplosion.DoExplosion(Pawn.Position, Pawn.MapHeld, Props.explosionRadius, Props.explosionDef, Pawn);
             }
         }
 
         public virtual void Reset()
         {
-            if (parent.pawn.Spawned)
+            if (Pawn.Spawned)
             {
-                Props.resetSound.PlayOneShot(new TargetInfo(parent.pawn.Position, parent.pawn.MapHeld, false));
-                FleckMaker.ThrowLightningGlow(parent.pawn.DrawPos, parent.pawn.MapHeld, 3f);
+                Props.resetSound.PlayOneShot(new TargetInfo(Pawn.Position, Pawn.MapHeld, false));
+                FleckMaker.ThrowLightningGlow(Pawn.DrawPos, Pawn.MapHeld, 3f);
             }
 
             ticksToReset = -1;
@@ -220,13 +220,13 @@ namespace AthenaFramework
 
             if (Props.scaleWithOwner)
             {
-                if (parent.pawn.RaceProps.Humanlike)
+                if (Pawn.RaceProps.Humanlike)
                 {
-                    scale *= parent.pawn.DrawSize.x;
+                    scale *= Pawn.DrawSize.x;
                 }
                 else
                 {
-                    scale = (scale - 1) + parent.pawn.ageTracker.CurKindLifeStage.bodyGraphicData.drawSize.x;
+                    scale = (scale - 1) + Pawn.ageTracker.CurKindLifeStage.bodyGraphicData.drawSize.x;
                 }
             }
 
@@ -251,7 +251,7 @@ namespace AthenaFramework
         {
             if (Props.displayGizmo)
             {
-                if (parent.pawn.Faction.IsPlayer && Find.Selector.SingleSelectedThing == parent.pawn)
+                if (Pawn.Faction.IsPlayer && Find.Selector.SingleSelectedThing == Pawn)
                 {
                     if (gizmo == null)
                     {
@@ -280,41 +280,61 @@ namespace AthenaFramework
             this.compClass = typeof(HediffComp_Shield);
         }
 
-        public float maxEnergy = -1f;
-        public float energyRechargeRate = -1f;
+        // Maximum amount of energy that the shield can hold
+        public float maxEnergy = 0f;
+        // How much energy is recharged every tick
+        public float energyRechargeRate = 0f;
+        // How much energy is lost per unit of damage
         public float energyPerDamageModifier = 0.33f;
-        public int rechargeDelay = -1;
+        // How long(in ticks) it takes for a shield to go back online after it has been destroyed
+        public int resetDelay = 1;
+        // What fraction of shield's max energy it has after resetting
         public float energyOnReset = 0.2f;
+        // What fraction of shield's max energy should it start after being applied
         public float energyOnStart = 1f;
+        // Whenever the shield blocks all damage/stun from the attack that breaks it or not
         public bool blockOverdamage = true;
+        // Whenever the shield reduces damage/stun of the attack that broke it by what energy it had left(considering energyPerDamageModifier and energyPerStunModifier)
         public bool consumeOverdamage = false;
 
+        // Whenever the shield blocks ranged/explosive/melee damage
         public bool blocksRangedDamage = true;
         public bool blocksExplosions = true;
         public bool blocksMeleeDamage = false;
 
+        // If the shield should only block particular damage defs or not
         public List<DamageDef> blockDamageDefs;
+        // What types of stuns the shield should block. If set to false no stuns will be blocked
         public List<DamageDef> absorbStuns;
+        // How much energy is lost per unit of stun.
         public float energyPerStunModifier = 0.5f;
 
+        // What types of damage should cause the shield to instantly shatter
         public List<DamageDef> shatterOn = new List<DamageDef>() { DamageDefOf.EMP };
+        // If the shield should create an explosion upon being destroyed
         public bool explosionOnShieldBreak = false;
+        // Damage type and radius of the explosion
         public DamageDef explosionDef = DamageDefOf.Flame;
         public float explosionRadius = 2.9f;
 
+        // Shield sounds and flecks
         public SoundDef absorbSound;
         public SoundDef resetSound;
 
         public FleckDef absorbFleck;
         public FleckDef breakFleck;
-        public EffecterDef shieldBreakEffecter;
+        // Effecter that's used upon shield shattering
+        public EffecterDef shieldBreakEffecter = EffecterDefOf.Shield_Break;
 
+        // Whenever the shield should display a charge gizmo and what text and hover tip should it have
         public bool displayGizmo = true;
         public string gizmoTitle = "";
         public string gizmoTip = "";
 
+        // Shield scale based on amount of energy left
         public float minDrawSize = 1.2f;
         public float maxDrawSize = 1.55f;
-        public bool scaleWithOwner = false;
+        // Whenever the shield should scale with owner's draw size
+        public bool scaleWithOwner = true;
     }
 }

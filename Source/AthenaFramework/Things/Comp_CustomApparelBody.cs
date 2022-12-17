@@ -10,7 +10,7 @@ namespace AthenaFramework
 {
     public class Comp_CustomApparelBody : ThingComp
     {
-        public CompProperties_CustomApparelBody Props => props as CompProperties_CustomApparelBody;
+        private CompProperties_CustomApparelBody Props => props as CompProperties_CustomApparelBody;
 
         public virtual Graphic getBodyGraphic
         {
@@ -58,7 +58,11 @@ namespace AthenaFramework
             this.compClass = typeof(Comp_CustomApparelBody);
         }
 
+        // Custom graphic for the wearer's head
         public GraphicData bodyGraphicData = null;
+        // Custom graphic for the wearer's head
         public GraphicData headGraphicData = null;
+        // If bodygear should ignore bodytype in their texture paths similarly to headgear.
+        public bool preventBodytype = true;
     }
 }

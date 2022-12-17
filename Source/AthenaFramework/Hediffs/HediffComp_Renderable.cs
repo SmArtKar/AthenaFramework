@@ -22,13 +22,20 @@ namespace AthenaFramework
             }
 
             drawPos.y = AltitudeLayer.MoteOverhead.AltitudeFor(); 
-            Props.graphicData.Graphic.Draw(drawPos, parent.pawn.Rotation, Pawn);
+            Props.graphicData.Graphic.Draw(drawPos, Pawn.Rotation, Pawn);
         }
 
         public override void CompPostTick(ref float severityAdjustment)
         {
             base.CompPostTick(ref severityAdjustment);
-            attachedMote.Maintain();
+            if (attachedMote != null && !attachedMote.Destroyed)
+            {
+                attachedMote.Maintain();
+            }
+            else if (Props.attachedMoteDef != null)
+            {
+                attachedMote = MoteMaker.MakeAttachedOverlay(Pawn, Props.attachedMoteDef, Props.attachedMoteOffset, Props.attachedMoteScale);
+            }
         }
 
         public override void CompPostPostAdd(DamageInfo? dinfo)
@@ -36,7 +43,7 @@ namespace AthenaFramework
             base.CompPostPostAdd(dinfo);
             if (Props.attachedMoteDef != null)
             {
-                attachedMote = MoteMaker.MakeAttachedOverlay(parent.pawn, Props.attachedMoteDef, new Vector3(), 1.5f);
+                attachedMote = MoteMaker.MakeAttachedOverlay(Pawn, Props.attachedMoteDef, Props.attachedMoteOffset, Props.attachedMoteScale);
             }
         }
 
@@ -57,7 +64,15 @@ namespace AthenaFramework
             this.compClass = typeof(HediffComp_Renderable);
         }
 
-        public GraphicData graphicData = null;
-        public ThingDef attachedMoteDef = null;
+        // Displayed graphic
+        public GraphicData graphicData;
+        // Mote attached to the hediff
+        public ThingDef attachedMoteDef;
+        // Offset of the attached mote
+        public Vector3 attachedMoteOffset = new Vector3();
+        // Scale of the attached mote
+        public float attachedMoteScale = 1f;
+        // If set to true, attached mote will be destroyed after hediff's removal
+        public bool destroyMoteOnRemoval = true;
     }
 }

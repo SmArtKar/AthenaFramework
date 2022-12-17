@@ -11,7 +11,7 @@ namespace AthenaFramework
     {
         private HediffCompProperties_DamageAmplifier Props => props as HediffCompProperties_DamageAmplifier;
 
-        public virtual float damageMultiplier
+        public virtual float DamageMultiplier
         {
             get
             {

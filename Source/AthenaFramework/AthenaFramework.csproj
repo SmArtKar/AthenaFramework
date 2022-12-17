@@ -55,7 +55,7 @@
     <Compile Include="AngularShotguns\Verb_ShootAngularShotgun.cs" />
     <Compile Include="Gizmos\Gizmo_HediffShieldStatus.cs" />
     <Compile Include="Harmony\HarmonyPatches.cs" />
-    <Compile Include="HediffComps\HediffComp_GasBomb.cs" />
+    <Compile Include="Hediffs\HediffComp_Bomb.cs" />
     <Compile Include="Hediffs\HediffComp_DamageAmplifier.cs" />
     <Compile Include="Hediffs\HediffComp_Renderable.cs" />
     <Compile Include="Hediffs\HediffComp_Shield.cs" />
