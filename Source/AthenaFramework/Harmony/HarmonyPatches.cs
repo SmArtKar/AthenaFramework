@@ -25,9 +25,6 @@ namespace AthenaFramework
         {
             static void Prefix(CompTurretGun __instance)
             {
-
-                CompProperties_TurretGun props = __instance.props as CompProperties_TurretGun;
-
                 if (__instance.turretMat != null)
                 {
                     return;
@@ -37,6 +34,8 @@ namespace AthenaFramework
                 {
                     return;
                 }
+
+                CompProperties_TurretGun props = __instance.props as CompProperties_TurretGun;
 
                 __instance.turretMat = props.turretDef.graphicData.Graphic.MatSingle;
             }
