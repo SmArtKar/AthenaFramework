@@ -28,14 +28,12 @@ namespace AthenaFramework
         public Thing beamStart;
         public Thing beamEnd;
         public BeamRenderer beam;
-        public int ticksLeft = -1;
 
-        public BeamInfo(Thing beamStart, Thing beamEnd, BeamRenderer beam, int ticksLeft = -1)
+        public BeamInfo(Thing beamStart, Thing beamEnd, BeamRenderer beam)
         {
             this.beamStart = beamStart;
             this.beamEnd = beamEnd;
             this.beam = beam;
-            this.ticksLeft = ticksLeft;
         }
 
         public void ExposeData()
@@ -53,12 +51,11 @@ namespace AthenaFramework
         public BeamRenderer beam;
         public int ticksLeft = -1;
 
-        public StaticBeamInfo(Vector3 beamStart, Vector3 beamEnd, BeamRenderer beam, int ticksLeft = -1)
+        public StaticBeamInfo(Vector3 beamStart, Vector3 beamEnd, BeamRenderer beam)
         {
             this.beamStart = beamStart;
             this.beamEnd = beamEnd;
             this.beam = beam;
-            this.ticksLeft = ticksLeft;
         }
 
         public void ExposeData()

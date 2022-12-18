@@ -64,6 +64,7 @@
     <Compile Include="Rendering\AthenaBeams.cs" />
     <Compile Include="Rendering\CompBeam.cs" />
     <Compile Include="Rendering\MapComponent_AthenaRenderer.cs" />
+    <Compile Include="Things\BeamProjectile.cs" />
     <Compile Include="Things\Comp_CustomApparelBody.cs" />
     <Compile Include="Things\Comp_HediffBodypartGiver.cs" />
     <Compile Include="Things\TurretGraphicOverride.cs" />

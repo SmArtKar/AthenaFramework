@@ -42,7 +42,7 @@ namespace AthenaFramework
         }
 
         [HarmonyPatch(typeof(CompTurretGun), "CanShoot", MethodType.Getter)]
-        public static class CompTurretGun_CanShoot
+        public static class CompTurretGun_CanShootGetter
         {
             static void Postfix(CompTurretGun __instance, ref bool __result)
             {
@@ -64,6 +64,21 @@ namespace AthenaFramework
                 {
                     __result = false;
                 }
+            }
+        }
+
+        [HarmonyPatch(typeof(Projectile), "Launch")]
+        public static class Projectile_PostLaunch
+        {
+            static void Postfix(Projectile __instance, Thing launcher, ref Vector3 origin, LocalTargetInfo usedTarget, LocalTargetInfo intendedTarget)
+            {
+                if (!__instance.def.HasModExtension<BeamProjectile>())
+                {
+                    return;
+                }
+
+                MapComponent_AthenaRenderer renderer = __instance.Map.GetComponent<MapComponent_AthenaRenderer>();
+                renderer.CreateActiveBeam(launcher, __instance, __instance.def.GetModExtension<BeamProjectile>().beamType);
             }
         }
 
@@ -95,7 +110,7 @@ namespace AthenaFramework
         }
 
         [HarmonyPatch(typeof(ApparelGraphicRecordGetter), "TryGetGraphicApparel")]
-        public static class ApparelGraphicRecordGetter_TryGetGraphicApparel
+        public static class ApparelGraphicRecordGetter_PostTryGetGraphicApparel
         {
             static bool Prefix(ref Apparel apparel, ref BodyTypeDef bodyType, ref ApparelGraphicRecord rec, ref bool __result)
             {
@@ -126,7 +141,7 @@ namespace AthenaFramework
 
 
         [HarmonyPatch(typeof(PawnGraphicSet), "ResolveAllGraphics")]
-        public static class PawnGraphicSet_ResolveAllGraphics_Postfix
+        public static class PawnGraphicSet_PostResolveAllGraphics_Postfix
         {
             static void Postfix(PawnGraphicSet __instance)
             {

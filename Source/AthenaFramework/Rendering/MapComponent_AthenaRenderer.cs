@@ -29,25 +29,9 @@ namespace AthenaFramework
 
             foreach (BeamInfo beamInfo in activeBeams)
             {
-                if (beamInfo.ticksLeft > 0)
+                if (beamInfo.beamStart.MapHeld != beamInfo.beamEnd.MapHeld || beamInfo.beamStart.Destroyed || beamInfo.beamEnd.Destroyed)
                 {
-                    beamInfo.ticksLeft--;
-                    if (beamInfo.ticksLeft == 0)
-                    {
-                        DestroyBeam(beamInfo);
-                    }
-                }
-            }
-
-            foreach (StaticBeamInfo beamInfo in staticBeams)
-            {
-                if (beamInfo.ticksLeft > 0)
-                {
-                    beamInfo.ticksLeft--;
-                    if (beamInfo.ticksLeft == 0)
-                    {
-                        DestroyBeam(beamInfo);
-                    }
+                    DestroyBeam(beamInfo);
                 }
             }
         }
@@ -64,12 +48,6 @@ namespace AthenaFramework
 
             foreach (BeamInfo beamInfo in activeBeams)
             {
-                if (beamInfo.beamStart.MapHeld != beamInfo.beamEnd.MapHeld)
-                {
-                    DestroyBeam(beamInfo);
-                    continue;
-                }
-
                 beamInfo.beam.RenderBeam(beamInfo.beamStart.DrawPos, beamInfo.beamEnd.DrawPos);
             }
         }
@@ -109,6 +87,7 @@ namespace AthenaFramework
             beamInfo.beam.PreDestroyBeam();
             activeBeams.Remove(beamInfo);
             beamInfo.beam.Destroy();
+            beamInfo.beam = null;
             return true;
         }
 
@@ -117,6 +96,7 @@ namespace AthenaFramework
             beamInfo.beam.PreDestroyBeam();
             staticBeams.Remove(beamInfo);
             beamInfo.beam.Destroy();
+            beamInfo.beam = null;
             return true;
         }
 
@@ -141,12 +121,29 @@ namespace AthenaFramework
 
         public BeamInfo GetActiveBeamInfo(BeamRenderer beam)
         {
-            return activeBeams.Where((BeamInfo x) => x.beam == beam).ToList()[0];
+            List<BeamInfo> beams = activeBeams.Where((BeamInfo x) => x.beam == beam).ToList();
+            if (beams.Count == 0)
+            {
+                return null;
+            }
+            return beams[0];
         }
 
         public StaticBeamInfo GetStaticBeamInfo(BeamRenderer beam)
         {
-            return staticBeams.Where((StaticBeamInfo x) => x.beam == beam).ToList()[0];
+            List<StaticBeamInfo> beams = staticBeams.Where((StaticBeamInfo x) => x.beam == beam).ToList();
+            if (beams.Count == 0)
+            {
+                return null;
+            }
+            return beams[0];
+        }
+
+        public override void ExposeData()
+        {
+            base.ExposeData();
+            Scribe_Collections.Look(ref activeBeams, "activeBeams");
+            Scribe_Collections.Look(ref staticBeams, "staticBeams");
         }
     }
 }
