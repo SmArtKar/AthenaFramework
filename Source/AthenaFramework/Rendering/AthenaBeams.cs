@@ -28,12 +28,27 @@ namespace AthenaFramework
         public Thing beamStart;
         public Thing beamEnd;
         public BeamRenderer beam;
+        public Vector3 startOffset;
+        public Vector3 endOffset;
+
+        public BeamInfo() { }
 
         public BeamInfo(Thing beamStart, Thing beamEnd, BeamRenderer beam)
         {
             this.beamStart = beamStart;
             this.beamEnd = beamEnd;
             this.beam = beam;
+            this.startOffset = new Vector3();
+            this.endOffset = new Vector3();
+        }
+
+        public BeamInfo(Thing beamStart, Thing beamEnd, BeamRenderer beam, Vector3 startOffset, Vector3 endOffset)
+        {
+            this.beamStart = beamStart;
+            this.beamEnd = beamEnd;
+            this.beam = beam;
+            this.startOffset = startOffset;
+            this.endOffset = endOffset;
         }
 
         public void ExposeData()
@@ -41,6 +56,8 @@ namespace AthenaFramework
             Scribe_References.Look(ref beamStart, "beamStart");
             Scribe_References.Look(ref beamEnd, "beamEnd");
             Scribe_References.Look(ref beam, "beam");
+            Scribe_Values.Look(ref startOffset, "startOffset");
+            Scribe_Values.Look(ref endOffset, "startOffset");
         }
     }
 
@@ -50,6 +67,8 @@ namespace AthenaFramework
         public Vector3 beamEnd;
         public BeamRenderer beam;
         public int ticksLeft = -1;
+
+        public StaticBeamInfo() { }
 
         public StaticBeamInfo(Vector3 beamStart, Vector3 beamEnd, BeamRenderer beam)
         {

@@ -48,7 +48,7 @@ namespace AthenaFramework
 
             foreach (BeamInfo beamInfo in activeBeams)
             {
-                beamInfo.beam.RenderBeam(beamInfo.beamStart.DrawPos, beamInfo.beamEnd.DrawPos);
+                beamInfo.beam.RenderBeam(beamInfo.beamStart.DrawPos + beamInfo.startOffset, beamInfo.beamEnd.DrawPos + beamInfo.endOffset);
             }
         }
 
@@ -58,6 +58,16 @@ namespace AthenaFramework
             beam.RenderBeam(firstPoint.DrawPos, secondPoint.DrawPos);
             GenSpawn.Spawn(beam, (firstPoint.DrawPos.Yto0() + Vector3.up * beamDef.Altitude).ToIntVec3(), firstPoint.Map);
             BeamInfo beamInfo = new BeamInfo(firstPoint, secondPoint, beam);
+            activeBeams.Add(beamInfo);
+            return beamInfo;
+        }
+
+        public BeamInfo CreateActiveBeam(Thing firstPoint, Thing secondPoint, ThingDef beamDef, Vector3 startOffset, Vector3 endOffset)
+        {
+            BeamRenderer beam = ThingMaker.MakeThing(beamDef) as BeamRenderer;
+            beam.RenderBeam(firstPoint.DrawPos, secondPoint.DrawPos);
+            GenSpawn.Spawn(beam, (firstPoint.DrawPos.Yto0() + startOffset.Yto0() + Vector3.up * beamDef.Altitude).ToIntVec3(), firstPoint.Map);
+            BeamInfo beamInfo = new BeamInfo(firstPoint, secondPoint, beam, startOffset, endOffset);
             activeBeams.Add(beamInfo);
             return beamInfo;
         }

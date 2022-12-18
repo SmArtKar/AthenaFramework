@@ -67,10 +67,10 @@ namespace AthenaFramework
             }
         }
 
-        [HarmonyPatch(typeof(Projectile), "Launch")]
+        [HarmonyPatch(typeof(Projectile), "Launch", new Type[] { typeof(Thing), typeof(Vector3), typeof(LocalTargetInfo), typeof(LocalTargetInfo), typeof(ProjectileHitFlags), typeof(bool), typeof(Thing), typeof(ThingDef) })]
         public static class Projectile_PostLaunch
         {
-            static void Postfix(Projectile __instance, Thing launcher, ref Vector3 origin, LocalTargetInfo usedTarget, LocalTargetInfo intendedTarget)
+            static void Postfix(Projectile __instance, Thing launcher, ref Vector3 origin, LocalTargetInfo usedTarget, LocalTargetInfo intendedTarget, ProjectileHitFlags hitFlags)
             {
                 if (!__instance.def.HasModExtension<BeamProjectile>())
                 {
@@ -78,7 +78,7 @@ namespace AthenaFramework
                 }
 
                 MapComponent_AthenaRenderer renderer = __instance.Map.GetComponent<MapComponent_AthenaRenderer>();
-                renderer.CreateActiveBeam(launcher, __instance, __instance.def.GetModExtension<BeamProjectile>().beamType);
+                renderer.CreateActiveBeam(launcher, __instance, __instance.def.GetModExtension<BeamProjectile>().beamType, origin - launcher.DrawPos, new Vector3());
             }
         }
 
