@@ -9,6 +9,7 @@ namespace AthenaFramework
 {
     public class BeamProjectile : DefModExtension
     {
+        // BeamRenderer thing def
         public ThingDef beamType;
     }
 }
