@@ -19,7 +19,6 @@ namespace AthenaFramework
                 Pawn.health.RemoveHediff(parent);
             }
         }
-
     }
 
     public class HediffCompProperties_RemoveOnSeverity : HediffCompProperties
