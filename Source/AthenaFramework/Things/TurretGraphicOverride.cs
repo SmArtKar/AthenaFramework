@@ -9,5 +9,8 @@ using Verse;
 
 namespace AthenaFramework
 {
-    public class TurretGraphicOverride : DefModExtension { }
+    public class TurretGraphicOverride : DefModExtension 
+    { 
+        public List<Vector3> offsets;
+    }
 }

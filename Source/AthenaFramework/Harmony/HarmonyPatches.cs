@@ -98,9 +98,21 @@ namespace AthenaFramework
                 {
                     __instance.turretMat = props.turretDef.graphicData.Graphic.MatSingle;
                 }
+                TurretGraphicOverride graphicOverride = __instance.gun.def.GetModExtension<TurretGraphicOverride>();
 
                 Rot4 rotation = __instance.parent.Rotation;
                 Vector3 vector = new Vector3(0f, 0.04054054f, 0f);
+                if (graphicOverride.offsets != null)
+                {
+                    if (graphicOverride.offsets.Count == 4)
+                    {
+                        vector += graphicOverride.offsets[rotation.AsInt];
+                    }
+                    else
+                    {
+                        vector += graphicOverride.offsets[0];
+                    }
+                }
                 Matrix4x4 matrix4x = default(Matrix4x4);
                 Vector2 drawSize = props.turretDef.graphicData.drawSize;
                 matrix4x.SetTRS(__instance.parent.DrawPos + vector, ((float)typeof(CompTurretGun).GetField("curRotation", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(__instance)).ToQuat(), new Vector3(drawSize.x, 0, drawSize.y));
