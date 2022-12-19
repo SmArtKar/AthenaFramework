@@ -52,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AngularShotguns\AngularShotgunExtension.cs" />
+    <Compile Include="AngularShotguns\CompAbilityEffect_LaunchShotgunProjectiles.cs" />
     <Compile Include="AngularShotguns\Verb_ShootAngularShotgun.cs" />
     <Compile Include="Gizmos\Gizmo_HediffShieldStatus.cs" />
     <Compile Include="Harmony\HarmonyPatches.cs" />
