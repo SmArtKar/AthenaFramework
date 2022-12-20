@@ -162,7 +162,8 @@ namespace AthenaFramework
                     return;
                 }
 
-                bool graphicsSet = false;
+                bool bodyGraphicsSet = false;
+                bool headGraphicsSet = false;
 
                 foreach (Comp_CustomApparelBody customBody in __instance.pawn.apparel.WornApparel.SelectMany((Apparel x) => x.AllComps).OfType<Comp_CustomApparelBody>())
                 {
@@ -170,18 +171,24 @@ namespace AthenaFramework
                     if (customBodyGraphic != null)
                     {
                         __instance.nakedGraphic = customBodyGraphic;
-                        graphicsSet = true;
+                        bodyGraphicsSet = true;
                     }
 
                     Graphic customHeadGraphic = customBody.getHeadGraphic;
                     if (customHeadGraphic != null)
                     {
                         __instance.headGraphic = customHeadGraphic;
-                        graphicsSet = true;
+                        headGraphicsSet = true;
+                    }
+
+                    BodyTypeDef customBodytype = customBody.getBodytype;
+                    if (customBodytype != null && !bodyGraphicsSet)
+                    {
+
                     }
                 }
 
-                if (graphicsSet)
+                if (bodyGraphicsSet || headGraphicsSet)
                 {
                     __instance.CalculateHairMats();
                     __instance.ResolveApparelGraphics();

@@ -38,7 +38,20 @@ namespace AthenaFramework
             }
         }
 
-		public override void Notify_Equipped(Pawn pawn)
+        public virtual BodyTypeDef getBodytype
+        {
+            get
+            {
+                if (Props.forcedBodytype == null)
+                {
+                    return null;
+                }
+
+                return Props.forcedBodytype;
+            }
+        }
+
+        public override void Notify_Equipped(Pawn pawn)
 		{
             base.Notify_Equipped(pawn);
             pawn.Drawer.renderer.graphics.ResolveAllGraphics();
@@ -64,5 +77,7 @@ namespace AthenaFramework
         public GraphicData headGraphicData = null;
         // If bodygear should ignore bodytype in their texture paths similarly to headgear.
         public bool preventBodytype = true;
+        // If set to a certain bodytype it will force that bodytype onto all apparel that user is wearing
+        public BodyTypeDef forcedBodytype;
     }
 }

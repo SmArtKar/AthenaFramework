@@ -13,9 +13,9 @@ namespace AthenaFramework
 {
     public class CompAbilityEffect_LaunchShotgunProjectiles : CompAbilityEffect
     {
-        private List<IntVec3> cachedTargetCells = new List<IntVec3>();
-        private IntVec3 cachedTargetPosition;
-        private IntVec3 cachedCasterPosition;
+        public List<IntVec3> cachedTargetCells = new List<IntVec3>();
+        public IntVec3 cachedTargetPosition;
+        public IntVec3 cachedCasterPosition;
 
         public new CompProperties_AbilityLaunchShotgunProjectiles Props => props as CompProperties_AbilityLaunchShotgunProjectiles;
 

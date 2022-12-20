@@ -14,7 +14,7 @@ namespace AthenaFramework
         public List<BeamInfo> activeBeams;
         public List<StaticBeamInfo> staticBeams;
 
-        private bool tickHappened = false;
+        protected bool tickHappened = false;
 
         public MapComponent_AthenaRenderer(Map map) : base(map)
         {

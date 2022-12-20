@@ -13,9 +13,9 @@ namespace AthenaFramework
 {
     public class Verb_ShootAngularShotgun : Verb_LaunchProjectile
     {
-        private List<IntVec3> cachedTargetCells = new List<IntVec3>();
-        private IntVec3 cachedTargetPosition;
-        private IntVec3 cachedCasterPosition;
+        public List<IntVec3> cachedTargetCells = new List<IntVec3>();
+        public IntVec3 cachedTargetPosition;
+        public IntVec3 cachedCasterPosition;
 
         protected override int ShotsPerBurst => verbProps.burstShotCount;
 

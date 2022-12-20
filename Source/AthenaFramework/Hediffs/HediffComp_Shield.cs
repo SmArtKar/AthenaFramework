@@ -22,8 +22,8 @@ namespace AthenaFramework
         public Vector3 impactAngleVect;
 
         private HediffCompProperties_Shield Props => props as HediffCompProperties_Shield;
-        private Matrix4x4 matrix;
-        private Gizmo_HediffShieldStatus gizmo;
+        public Matrix4x4 matrix;
+        public Gizmo_HediffShieldStatus gizmo;
 
         public float EnergyPercent
         {
