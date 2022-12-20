@@ -162,8 +162,8 @@ namespace AthenaFramework
                     return;
                 }
 
-                bool bodyGraphicsSet = false;
-                bool headGraphicsSet = false;
+                bool graphicsSet = false;
+                BodyTypeDef customUserBody = null;
 
                 foreach (Comp_CustomApparelBody customBody in __instance.pawn.apparel.WornApparel.SelectMany((Apparel x) => x.AllComps).OfType<Comp_CustomApparelBody>())
                 {
@@ -171,28 +171,35 @@ namespace AthenaFramework
                     if (customBodyGraphic != null)
                     {
                         __instance.nakedGraphic = customBodyGraphic;
-                        bodyGraphicsSet = true;
+                        graphicsSet = true;
                     }
 
                     Graphic customHeadGraphic = customBody.getHeadGraphic;
                     if (customHeadGraphic != null)
                     {
                         __instance.headGraphic = customHeadGraphic;
-                        headGraphicsSet = true;
+                        graphicsSet = true;
                     }
 
                     BodyTypeDef customBodytype = customBody.getBodytype;
-                    if (customBodytype != null && !bodyGraphicsSet)
+                    if (customBodytype != null)
                     {
-
+                        customUserBody = customBodytype;
                     }
                 }
 
-                if (bodyGraphicsSet || headGraphicsSet)
+                if (graphicsSet)
                 {
                     __instance.CalculateHairMats();
                     __instance.ResolveApparelGraphics();
                     __instance.ResolveGeneGraphics();
+                }
+                else if (customUserBody != null)
+                {
+                    Color color = (__instance.pawn.story.SkinColorOverriden ? (PawnGraphicSet.RottingColorDefault * __instance.pawn.story.SkinColor) : PawnGraphicSet.RottingColorDefault);
+                    __instance.nakedGraphic = GraphicDatabase.Get<Graphic_Multi>(customUserBody.bodyNakedGraphicPath, ShaderUtility.GetSkinShader(__instance.pawn.story.SkinColorOverriden), Vector2.one, __instance.pawn.story.SkinColor);
+                    __instance.rottingGraphic = GraphicDatabase.Get<Graphic_Multi>(customUserBody.bodyNakedGraphicPath, ShaderUtility.GetSkinShader(__instance.pawn.story.SkinColorOverriden), Vector2.one, color);
+                    __instance.dessicatedGraphic = GraphicDatabase.Get<Graphic_Multi>(customUserBody.bodyDessicatedGraphicPath, ShaderDatabase.Cutout);
                 }
             }
         }
