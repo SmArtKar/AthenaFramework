@@ -37,6 +37,13 @@ namespace AthenaFramework
                 return Props.headGraphicData.Graphic;
             }
         }
+        public virtual bool getPreventBodytype
+        {
+            get
+            {
+                return Props.preventBodytype;
+            }
+        }
 
         public virtual BodyTypeDef getBodytype
         {

@@ -8,12 +8,11 @@ using RimWorld;
 using UnityEngine;
 using Verse;
 using static UnityEngine.GraphicsBuffer;
-using HotSwap;
 using Verse.Sound;
+using Verse.Noise;
 
 namespace AthenaFramework
 {
-    [HotSwappable]
     public class Verb_ShootRunningBeam : Verb
     {
         protected override int ShotsPerBurst
@@ -28,7 +27,8 @@ namespace AthenaFramework
         public Thing targeted;
         public MoteDualAttached beamMote;
         public Effecter endEffecter;
-        Sustainer sustainer;
+        public Sustainer beamSustainer;
+        public IntVec3 currentBeamTile;
 
         public override float? AimAngleOverride
         {
@@ -75,6 +75,11 @@ namespace AthenaFramework
                 }
             }
 
+            if (beamSustainer != null)
+            {
+                beamSustainer.Maintain();
+            }
+
             HitTile(targetTile);
             return true;
         }
@@ -96,6 +101,7 @@ namespace AthenaFramework
                 beamPos = currentPosVector.ToIntVec3();
             }
 
+            currentBeamTile = beamPos;
             beamMote.UpdateTargets(new TargetInfo(caster.Position, caster.Map), new TargetInfo(beamPos, caster.Map), offsetVector.normalized * verbProps.beamStartOffset, currentPosVector - beamPos.ToVector3Shifted());
 
             if (verbProps.beamGroundFleckDef != null && Rand.Chance(verbProps.beamFleckChancePerTick))
@@ -130,12 +136,10 @@ namespace AthenaFramework
                 }
             }
 
-            if (sustainer == null)
+            if (beamSustainer != null)
             {
-                return;
+                beamSustainer.Maintain();
             }
-
-            sustainer.Maintain();
         }
 
         public override void WarmupComplete()
@@ -145,16 +149,50 @@ namespace AthenaFramework
             currentPos = targeted.DrawPos + (caster.DrawPos - targeted.DrawPos).normalized * 3;
             beamMote = MoteMaker.MakeInteractionOverlay(verbProps.beamMoteDef, caster, new TargetInfo(currentPos.ToIntVec3(), caster.Map));
             beamMote.Maintain();
-        }
+            TryCastNextBurstShot();
 
-        public virtual void HitTile(IntVec3 tile)
-        {
-            return;
+            if (endEffecter != null)
+            {
+                endEffecter.Cleanup();
+            }
+
+            if (verbProps.soundCastBeam != null)
+            {
+                beamSustainer = verbProps.soundCastBeam.TrySpawnSustainer(SoundInfo.InMap(caster, MaintenanceType.PerTick));
+            }
         }
 
         public virtual bool CanHit(Thing thing)
         {
             return thing.Spawned && !CoverUtility.ThingCovered(thing, caster.Map);
+        }
+
+        public virtual void HitTile(IntVec3 tile)
+        {
+            if (verbProps.beamDamageDef == null)
+            {
+                return;
+            }
+
+            Thing hitThing = VerbUtility.ThingsToHit(tile, caster.Map, new Func<Thing, bool>(CanHit)).RandomElementWithFallback(null);
+
+            if (hitThing == null)
+            {
+                return;
+            }
+
+            BattleLogEntry_RangedImpact impactLog = new BattleLogEntry_RangedImpact(caster, hitThing, currentTarget.Thing, base.EquipmentSource.def, null, null);
+            DamageInfo damageInfo = new DamageInfo(verbProps.beamDamageDef, verbProps.beamDamageDef.defaultDamage, verbProps.beamDamageDef.defaultArmorPenetration, (hitThing.Position - caster.Position).AngleFlat, caster, null, EquipmentSource.def, DamageInfo.SourceCategory.ThingOrUnknown, currentTarget.Thing);
+            hitThing.TakeDamage(damageInfo).AssociateWithLog(impactLog);
+
+            if (hitThing.CanEverAttachFire() && Rand.Chance(verbProps.beamChanceToAttachFire))
+            {
+                hitThing.TryAttachFire(verbProps.beamFireSizeRange.RandomInRange);
+            }
+            else if (Rand.Chance(verbProps.beamChanceToStartFire))
+            {
+                FireUtility.TryStartFireIn(currentBeamTile, caster.Map, verbProps.beamFireSizeRange.RandomInRange);
+            }
         }
 
         public override void ExposeData()

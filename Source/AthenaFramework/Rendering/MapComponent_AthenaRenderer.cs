@@ -26,13 +26,19 @@ namespace AthenaFramework
         {
             base.MapComponentTick();
             tickHappened = true;
+            List<BeamInfo> deleteBeams = new List<BeamInfo>();
 
             foreach (BeamInfo beamInfo in activeBeams)
             {
                 if (beamInfo.beamStart.MapHeld != beamInfo.beamEnd.MapHeld || beamInfo.beamStart.Destroyed || beamInfo.beamEnd.Destroyed)
                 {
-                    DestroyBeam(beamInfo);
+                    deleteBeams.Add(beamInfo);
                 }
+            }
+
+            while (deleteBeams.Count > 0)
+            {
+                DestroyBeam(deleteBeams[0]);
             }
         }
 
