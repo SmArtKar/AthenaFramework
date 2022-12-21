@@ -23,9 +23,10 @@ namespace AthenaFramework
         public int currentFrameTick = 0;
 
         public int sizeTextureAmount = 0;
-        public int currentSize = 1;
+        public int currentSize = 0;
 
         public int ticksLeft = -1;
+        public int fadeoutTicks = -1;
 
         public float maxRange = 25.9f;
         public bool multipleTex = false;
@@ -100,6 +101,12 @@ namespace AthenaFramework
 
         public override void Draw()
         {
+            if (ticksLeft <= fadeoutTicks && fadeoutTicks > 0)
+            {
+                Color color = currentMaterial.color;
+                color.a = ticksLeft / (fadeoutTicks + 1);
+            }
+            
             Graphics.DrawMesh(MeshPool.plane10, matrix, currentMaterial, 0);
         }
 
@@ -163,7 +170,7 @@ namespace AthenaFramework
                         return;
                     }
 
-                    currentSize = (int)Math.Min(Math.Ceiling(distance / (maxRange / sizeTextureAmount)) - 1, sizeTextureAmount);
+                    currentSize = (int)Math.Min(Math.Ceiling(distance / (maxRange / sizeTextureAmount)) - 1, sizeTextureAmount - 1);
                 }
 
                 currentMaterial = materials[currentSize][currentFrame];

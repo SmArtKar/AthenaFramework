@@ -8,9 +8,9 @@ using Verse;
 
 namespace AthenaFramework
 {
-    public class HediffComp_DamageAmplifier : HediffComp
+    public class Comp_DamageAmplifier : ThingComp
     {
-        private HediffCompProperties_DamageAmplifier Props => props as HediffCompProperties_DamageAmplifier;
+        private CompProperties_DamageAmplifier Props => props as CompProperties_DamageAmplifier;
 
         public virtual float DamageMultiplier
         {
@@ -25,7 +25,7 @@ namespace AthenaFramework
             float modifier = 1f;
             List<string> excluded = new List<string>();
 
-            foreach (AmplificationType modGroup in Props.modifiers)
+            foreach(AmplificationType modGroup in Props.modifiers)
             {
                 if (modGroup.excluded != null)
                 {
@@ -47,7 +47,7 @@ namespace AthenaFramework
 
                 if (modGroup.fleshTypes != null || modGroup.pawnKinds != null || modGroup.hediffDefs != null)
                 {
-                    if (target is not Verse.Pawn)
+                    if (target is not Pawn)
                     {
                         continue;
                     }
@@ -94,16 +94,34 @@ namespace AthenaFramework
         }
     }
 
-    public class HediffCompProperties_DamageAmplifier : HediffCompProperties
+    public class CompProperties_DamageAmplifier: CompProperties
     {
-        public HediffCompProperties_DamageAmplifier()
+        public CompProperties_DamageAmplifier()
         {
-            this.compClass = typeof(HediffComp_DamageAmplifier);
+            this.compClass = typeof(Comp_DamageAmplifier);
         }
 
         // List of possible amplification effects
         public List<AmplificationType> modifiers = new List<AmplificationType>();
         // Passive damage modifier that's always applied
         public float damageMultiplier = 1f;
+    }
+
+    public class AmplificationType
+    {
+        // List of FleshTypeDefs that are required to trigger the effect
+        public List<FleshTypeDef> fleshTypes;
+        // List of PawnKinds that are required to trigger the effect
+        public List<PawnKindDef> pawnKinds;
+        // List of ThingDefs that are required to trigger the effect
+        public List<ThingDef> thingDefs;
+        // List of HediffDefs that are required to trigger the effect
+        public List<HediffDef> hediffDefs;
+        // Faction that's required to trigger the effect
+        public FactionDef factionDef;
+        // List of mutually exclusive effects. If any effect with a common element in this field has been applied, this effect won't apply
+        public List<string> excluded;
+        // Number by which the damage is modified when the conditions above are met
+        public float modifier = 1f;
     }
 }

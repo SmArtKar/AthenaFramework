@@ -39,6 +39,7 @@ namespace AthenaFramework
             while (deleteBeams.Count > 0)
             {
                 DestroyBeam(deleteBeams[0]);
+                deleteBeams.Remove(deleteBeams[0]);
             }
         }
 
@@ -100,19 +101,23 @@ namespace AthenaFramework
 
         public bool DestroyBeam(BeamInfo beamInfo)
         {
-            beamInfo.beam.PreDestroyBeam();
             activeBeams.Remove(beamInfo);
+
+            beamInfo.beam.PreDestroyBeam();
             beamInfo.beam.Destroy();
             beamInfo.beam = null;
+
             return true;
         }
 
         public bool DestroyBeam(StaticBeamInfo beamInfo)
         {
-            beamInfo.beam.PreDestroyBeam();
             staticBeams.Remove(beamInfo);
+            
+            beamInfo.beam.PreDestroyBeam();
             beamInfo.beam.Destroy();
             beamInfo.beam = null;
+
             return true;
         }
 

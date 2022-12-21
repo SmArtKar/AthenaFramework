@@ -226,18 +226,100 @@ namespace AthenaFramework
 
         // Damage patches
 
+        [HarmonyPatch(typeof(Thing), nameof(Thing.PreApplyDamage))]
+        public static class Thing_PrePreApplyDamage
+        {
+            static void Prefix(Thing __instance, ref DamageInfo dinfo, ref bool absorbed)
+            {
+                if (dinfo.Instigator == null)
+                {
+                    return;
+                }
+
+                float modifier = 1f;
+
+                if (dinfo.Instigator is not Pawn)
+                {
+                    if (dinfo.Instigator is not ThingWithComps)
+                    {
+                        return;
+                    }
+
+                    foreach (Comp_DamageAmplifier amplifier in (dinfo.Instigator as ThingWithComps).AllComps.OfType<Comp_DamageAmplifier>())
+                    {
+                        modifier *= amplifier.GetDamageModifier(__instance);
+                    }
+
+                    return;
+                }
+
+                Pawn pawn = dinfo.Instigator as Pawn;
+                foreach (HediffComp_DamageAmplifier amplifier in pawn.health.hediffSet.hediffs.OfType<HediffWithComps>().SelectMany((HediffWithComps x) => x.comps).OfType<HediffComp_DamageAmplifier>())
+                {
+                    modifier *= amplifier.GetDamageModifier(__instance);
+                }
+
+                foreach (Comp_DamageAmplifier amplifier in pawn.apparel.WornApparel.SelectMany((Apparel x) => x.AllComps).OfType<Comp_DamageAmplifier>().Concat(pawn.AllComps.OfType<Comp_DamageAmplifier>()))
+                {
+                    modifier *= amplifier.GetDamageModifier(__instance);
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(Bullet), "Impact")]
+        public static class Bullet_PreImpact
+        {
+            static void Prefix(Bullet __instance, Thing hitThing, ref bool blockedByShield)
+            {
+                if (hitThing == null)
+                {
+                    return;
+                }
+
+                float multiplier = 1f;
+
+                foreach (Comp_DamageAmplifier amplifier in __instance.AllComps.OfType<Comp_DamageAmplifier>())
+                {
+                    multiplier *= amplifier.GetDamageModifier(hitThing);
+                }
+
+                FieldInfo damageModifier = typeof(Bullet).GetField("weaponDamageMultiplier", BindingFlags.NonPublic | BindingFlags.Instance);
+                damageModifier.SetValue(__instance, (float)damageModifier.GetValue(__instance) * multiplier);
+            }
+        }
+
         [HarmonyPatch(typeof(DamageInfo), nameof(DamageInfo.Amount), MethodType.Getter)]
         public static class DamageInfo_AmountGetter
         {
             static void Postfix(DamageInfo __instance, ref float __result)
             {
-                if (__instance.Instigator == null || !(__instance.Instigator is Pawn))
+                if (__instance.Instigator == null)
                 {
+                    return;
+                }
+
+                if (__instance.Instigator is not Pawn)
+                {
+                    if (__instance.Instigator is not ThingWithComps)
+                    {
+                        return;
+                    }
+
+                    foreach (Comp_DamageAmplifier amplifier in (__instance.Instigator as ThingWithComps).AllComps.OfType<Comp_DamageAmplifier>())
+                    {
+                        __result *= amplifier.DamageMultiplier;
+                    }
+
                     return;
                 }
 
                 Pawn pawn = __instance.Instigator as Pawn;
                 foreach (HediffComp_DamageAmplifier amplifier in pawn.health.hediffSet.hediffs.OfType<HediffWithComps>().SelectMany((HediffWithComps x) => x.comps).OfType<HediffComp_DamageAmplifier>())
+                {
+                    __result *= amplifier.DamageMultiplier;
+                }
+
+                foreach (Comp_DamageAmplifier amplifier in pawn.apparel.WornApparel.SelectMany((Apparel x) => x.AllComps).OfType<Comp_DamageAmplifier>().Concat(pawn.AllComps.OfType<Comp_DamageAmplifier>()))
                 {
                     __result *= amplifier.DamageMultiplier;
                 }
