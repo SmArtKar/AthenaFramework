@@ -40,7 +40,6 @@ namespace AthenaFramework
         public virtual void setupValues()
         {
             BeamExtension extension = def.GetModExtension<BeamExtension>();
-            materials = new List<List<Material>>();
 
             sizeTextureAmount = extension.sizeTextureAmount;
             frameAmount = extension.textureFrameAmount;
@@ -50,40 +49,45 @@ namespace AthenaFramework
 
             string texPath = def.graphicData.texPath;
 
-            if (extension.textureFrameAmount == 1 && extension.sizeTextureAmount == 1)
+            LongEventHandler.ExecuteWhenFinished(delegate
             {
-                currentMaterial = MaterialPool.MatFrom(texPath, ShaderDatabase.MoteGlow);
-                multipleTex = false;
-                return;
-            }
+                materials = new List<List<Material>>();
 
-            multipleTex = true;
-
-            for (int i = 0; i < sizeTextureAmount; i++)
-            {
-                List<Material> sizeMaterials = new List<Material>();
-
-                for (int j = 0; j < frameAmount; j++)
+                if (extension.textureFrameAmount == 1 && extension.sizeTextureAmount == 1)
                 {
-                    sizeMaterials.Add(MaterialPool.MatFrom(texPath + (extension.sizeTextureAmount > 1 ? ((char)(i + 65)).ToString() : "") + (extension.textureFrameAmount > 1 ? (j + 1) : ""), ShaderDatabase.MoteGlow));
+                    currentMaterial = MaterialPool.MatFrom(texPath, ShaderDatabase.MoteGlow);
+                    multipleTex = false;
+                    return;
                 }
 
-                materials.Add(sizeMaterials);
-            }
+                multipleTex = true;
 
-            frameDelayAmount = extension.textureChangeDelay;
-            currentMaterial = materials[0][0];
-
-            foreach (ThingComp thingComp in AllComps)
-            {
-                if (!(thingComp is CompBeam))
+                for (int i = 0; i < sizeTextureAmount; i++)
                 {
-                    continue;
+                    List<Material> sizeMaterials = new List<Material>();
+
+                    for (int j = 0; j < frameAmount; j++)
+                    {
+                        sizeMaterials.Add(MaterialPool.MatFrom(texPath + (extension.sizeTextureAmount > 1 ? ((char)(i + 65)).ToString() : "") + (extension.textureFrameAmount > 1 ? (j + 1) : ""), ShaderDatabase.MoteGlow));
+                    }
+
+                    materials.Add(sizeMaterials);
                 }
 
-                CompBeam beamComp = thingComp as CompBeam;
-                beamComp.PostValuesSetup();
-            }
+                frameDelayAmount = extension.textureChangeDelay;
+                currentMaterial = materials[0][0];
+
+                foreach (ThingComp thingComp in AllComps)
+                {
+                    if (!(thingComp is CompBeam))
+                    {
+                        continue;
+                    }
+
+                    CompBeam beamComp = thingComp as CompBeam;
+                    beamComp.PostValuesSetup();
+                }
+            });
         }
 
         public override void ExposeData()
@@ -102,6 +106,11 @@ namespace AthenaFramework
 
         public override void Draw()
         {
+            if (currentMaterial == null)
+            {
+                return;
+            }
+
             if (ticksLeft <= fadeoutTicks && fadeoutTicks > 0 && ticksLeft > 0)
             {
                 Color color = currentMaterial.color;
@@ -127,7 +136,7 @@ namespace AthenaFramework
                 }
             }
 
-            if (!multipleTex)
+            if (!multipleTex || materials == null)
             {
                 return;
             }

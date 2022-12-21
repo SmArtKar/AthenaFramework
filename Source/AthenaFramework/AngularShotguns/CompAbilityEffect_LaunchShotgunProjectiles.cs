@@ -154,11 +154,6 @@ namespace AthenaFramework
 
             GenDraw.DrawFieldEdges(GenSight.PointsOnLineOfSight(cachedCasterPosition, cachedTargetPosition).ToList());
 
-            Log.Message(new Vector2(target.Cell.x, target.Cell.z) + "");
-            Log.Message(new Vector2(parent.pawn.Position.x, parent.pawn.Position.z) + "");
-
-            
-
             float angle = (float)Math.Acos(Vector2.Dot((new Vector2(target.Cell.x, target.Cell.z) - new Vector2(parent.pawn.Position.x, parent.pawn.Position.z)).normalized, new Vector2(1, 0)));
             float pelletAngle = (float)(Props.pelletAngle * (Math.PI) / 180);
 
@@ -174,7 +169,6 @@ namespace AthenaFramework
                 }
                 IntVec3 rangeEndPosition = endPosition + parent.pawn.Position;
 
-                Log.Message(endPosition + " " + parent.pawn.Position);
                 List<IntVec3> targetedCells = GenSight.PointsOnLineOfSight(parent.pawn.Position, rangeEndPosition).Concat(endPosition).ToList(); //GetHitTiles(parent.pawn.Position, rangeEndPosition, parent.pawn.Map);
                 cachedTargetCells = cachedTargetCells.Concat(targetedCells).ToList();
             }

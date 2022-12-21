@@ -20,7 +20,7 @@ namespace AthenaFramework
             }
         }
 
-        public virtual float GetDamageModifier(Thing target)
+        public virtual float GetDamageModifier(Thing target, ref List<string> excludedGlobal, Thing instigator = null)
         {
             float modifier = 1f;
             List<string> excluded = new List<string>();
@@ -30,6 +30,14 @@ namespace AthenaFramework
                 if (modGroup.excluded != null)
                 {
                     if (excluded.Intersect(modGroup.excluded).ToList().Count > 0)
+                    {
+                        continue;
+                    }
+                }
+
+                if (modGroup.excludedGlobal != null)
+                {
+                    if (excludedGlobal.Intersect(modGroup.excludedGlobal).ToList().Count > 0)
                     {
                         continue;
                     }
@@ -87,6 +95,27 @@ namespace AthenaFramework
                     excluded = excluded.Concat(modGroup.excluded).ToList();
                 }
 
+                if (modGroup.excludedGlobal != null)
+                {
+                    excludedGlobal = excludedGlobal.Concat(modGroup.excludedGlobal).ToList();
+                }
+
+                if (modGroup.targetStatDefs != null)
+                {
+                    foreach (StatDef statDef in modGroup.targetStatDefs)
+                    {
+                        modifier *= target.GetStatValue(statDef);
+                    }
+                }
+
+                if (modGroup.attackerStatDefs != null && instigator != null)
+                {
+                    foreach (StatDef statDef in modGroup.attackerStatDefs)
+                    {
+                        modifier *= instigator.GetStatValue(statDef);
+                    }
+                }
+
                 modifier *= modGroup.modifier;
             }
 
@@ -121,6 +150,12 @@ namespace AthenaFramework
         public FactionDef factionDef;
         // List of mutually exclusive effects. If any effect with a common element in this field has been applied, this effect won't apply
         public List<string> excluded;
+        // Same as above, but applies to all damage amplification from this pawn/object, it's apparel, it's hediffs, etc. Does not intersect with excluded.
+        public List<string> excludedGlobal;
+        // List of target's StatDefs that affect the damage
+        public List<StatDef> targetStatDefs;
+        // List of attacker's StatDefs that affect the damage
+        public List<StatDef> attackerStatDefs;
         // Number by which the damage is modified when the conditions above are met
         public float modifier = 1f;
     }

@@ -20,7 +20,7 @@ namespace AthenaFramework
             }
         }
 
-        public virtual float GetDamageModifier(Thing target)
+        public virtual float GetDamageModifier(Thing target, ref List<string> excludedGlobal, Thing instigator = null)
         {
             float modifier = 1f;
             List<string> excluded = new List<string>();
@@ -30,6 +30,14 @@ namespace AthenaFramework
                 if (modGroup.excluded != null)
                 {
                     if (excluded.Intersect(modGroup.excluded).ToList().Count > 0)
+                    {
+                        continue;
+                    }
+                }
+
+                if (modGroup.excludedGlobal != null)
+                {
+                    if (excludedGlobal.Intersect(modGroup.excludedGlobal).ToList().Count > 0)
                     {
                         continue;
                     }
@@ -85,6 +93,27 @@ namespace AthenaFramework
                 if (modGroup.excluded != null)
                 {
                     excluded = excluded.Concat(modGroup.excluded).ToList();
+                }
+
+                if (modGroup.excludedGlobal != null)
+                {
+                    excludedGlobal = excludedGlobal.Concat(modGroup.excludedGlobal).ToList();
+                }
+
+                if (modGroup.targetStatDefs != null)
+                {
+                    foreach (StatDef statDef in modGroup.targetStatDefs)
+                    {
+                        modifier *= target.GetStatValue(statDef);
+                    }
+                }
+
+                if (modGroup.attackerStatDefs != null && instigator != null)
+                {
+                    foreach (StatDef statDef in modGroup.attackerStatDefs)
+                    {
+                        modifier *= instigator.GetStatValue(statDef);
+                    }
                 }
 
                 modifier *= modGroup.modifier;

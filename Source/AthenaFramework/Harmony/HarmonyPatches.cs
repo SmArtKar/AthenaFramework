@@ -237,6 +237,7 @@ namespace AthenaFramework
                 }
 
                 float modifier = 1f;
+                List<string> excludedGlobal = new List<string>();
 
                 if (dinfo.Instigator is not Pawn)
                 {
@@ -247,7 +248,7 @@ namespace AthenaFramework
 
                     foreach (Comp_DamageAmplifier amplifier in (dinfo.Instigator as ThingWithComps).AllComps.OfType<Comp_DamageAmplifier>())
                     {
-                        modifier *= amplifier.GetDamageModifier(__instance);
+                        modifier *= amplifier.GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
                     }
 
                     return;
@@ -256,12 +257,12 @@ namespace AthenaFramework
                 Pawn pawn = dinfo.Instigator as Pawn;
                 foreach (HediffComp_DamageAmplifier amplifier in pawn.health.hediffSet.hediffs.OfType<HediffWithComps>().SelectMany((HediffWithComps x) => x.comps).OfType<HediffComp_DamageAmplifier>())
                 {
-                    modifier *= amplifier.GetDamageModifier(__instance);
+                    modifier *= amplifier.GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
                 }
 
                 foreach (Comp_DamageAmplifier amplifier in pawn.apparel.WornApparel.SelectMany((Apparel x) => x.AllComps).OfType<Comp_DamageAmplifier>().Concat(pawn.AllComps.OfType<Comp_DamageAmplifier>()))
                 {
-                    modifier *= amplifier.GetDamageModifier(__instance);
+                    modifier *= amplifier.GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
                 }
             }
         }
@@ -277,10 +278,11 @@ namespace AthenaFramework
                 }
 
                 float multiplier = 1f;
+                List<string> excludedGlobal = new List<string>();
 
                 foreach (Comp_DamageAmplifier amplifier in __instance.AllComps.OfType<Comp_DamageAmplifier>())
                 {
-                    multiplier *= amplifier.GetDamageModifier(hitThing);
+                    multiplier *= amplifier.GetDamageModifier(hitThing, ref excludedGlobal, __instance.Launcher);
                 }
 
                 FieldInfo damageModifier = typeof(Bullet).GetField("weaponDamageMultiplier", BindingFlags.NonPublic | BindingFlags.Instance);
