@@ -46,6 +46,7 @@ namespace AthenaFramework
             frameAmount = extension.textureFrameAmount;
             maxRange = extension.maxRange;
             ticksLeft = extension.beamDuration;
+            fadeoutTicks = extension.fadeoutDuration;
 
             string texPath = def.graphicData.texPath;
 
@@ -101,10 +102,12 @@ namespace AthenaFramework
 
         public override void Draw()
         {
-            if (ticksLeft <= fadeoutTicks && fadeoutTicks > 0)
+            if (ticksLeft <= fadeoutTicks && fadeoutTicks > 0 && ticksLeft > 0)
             {
                 Color color = currentMaterial.color;
-                color.a = ticksLeft / (fadeoutTicks + 1);
+                float alpha = ticksLeft / (fadeoutTicks + 1f);
+                color.a = alpha;
+                currentMaterial.SetColor(ShaderPropertyIDs.Color, color);
             }
             
             Graphics.DrawMesh(MeshPool.plane10, matrix, currentMaterial, 0);

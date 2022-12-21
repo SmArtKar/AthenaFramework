@@ -21,6 +21,8 @@ namespace AthenaFramework
         public int sizeTextureAmount = 1;
         // Duration after which beam will be destroyed. Disabled if set to -1
         public int beamDuration = -1;
+        // Duration for which the beam fades out before being destroyed. Disabled if set to -1 or if beamDuration is disabled
+        public int fadeoutDuration = -1;
     }
 
     public class BeamInfo : IExposable
