@@ -243,7 +243,7 @@ namespace AthenaFramework
                 scale *= tickScaleModifier;
             }
 
-            matrix.SetTRS(drawPos, Quaternion.AngleAxis(Rand.Range(0, 360), Vector3.up), new Vector3(scale, 1f, scale));
+            matrix.SetTRS(drawPos, Quaternion.AngleAxis(Props.spinning ? Rand.Range(0, 360) : 0, Vector3.up), new Vector3(scale, 1f, scale));
             Graphics.DrawMesh(MeshPool.plane10, matrix, Props.graphicData.Graphic.MatSingle, 0);
         }
 
@@ -336,5 +336,7 @@ namespace AthenaFramework
         public float maxDrawSize = 1.55f;
         // Whenever the shield should scale with owner's draw size
         public bool scaleWithOwner = true;
+        // Whenever should have the vanilla spinning effect
+        public bool spinning = true;
     }
 }

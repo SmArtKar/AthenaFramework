@@ -20,106 +20,20 @@ namespace AthenaFramework
             }
         }
 
-        public virtual float GetDamageModifier(Thing target, ref List<string> excludedGlobal, Thing instigator = null)
+        public virtual (float, float) GetDamageModifier(Thing target, ref List<string> excludedGlobal, Thing instigator = null)
         {
             float modifier = 1f;
+            float offset = 0f;
             List<string> excluded = new List<string>();
 
             foreach (AmplificationType modGroup in Props.modifiers)
             {
-                if (modGroup.excluded != null)
-                {
-                    if (excluded.Intersect(modGroup.excluded).ToList().Count > 0)
-                    {
-                        continue;
-                    }
-                }
-
-                if (modGroup.excludedGlobal != null)
-                {
-                    if (excludedGlobal.Intersect(modGroup.excludedGlobal).ToList().Count > 0)
-                    {
-                        continue;
-                    }
-                }
-
-                if (modGroup.thingDefs != null && !modGroup.thingDefs.Contains(target.def))
-                {
-                    continue;
-                }
-
-                if (modGroup.factionDef != null && (target.Faction == null || target.Faction.def != modGroup.factionDef))
-                {
-                    continue;
-                }
-
-                if (modGroup.fleshTypes != null || modGroup.pawnKinds != null || modGroup.hediffDefs != null)
-                {
-                    if (target is not Verse.Pawn)
-                    {
-                        continue;
-                    }
-
-                    Pawn pawn = target as Pawn;
-
-                    if (modGroup.fleshTypes != null && !modGroup.fleshTypes.Contains(pawn.def.race.FleshType))
-                    {
-                        continue;
-                    }
-
-                    if (modGroup.pawnKinds != null && !modGroup.pawnKinds.Contains(pawn.kindDef))
-                    {
-                        continue;
-                    }
-
-                    if (modGroup.hediffDefs != null)
-                    {
-                        List<HediffDef> hediffDefs = new List<HediffDef>(modGroup.hediffDefs);
-                        foreach (Hediff hediff in pawn.health.hediffSet.hediffs)
-                        {
-                            if (hediffDefs.Contains(hediff.def))
-                            {
-                                hediffDefs.Remove(hediff.def);
-                            }
-                        }
-
-                        if (hediffDefs.Count > 0)
-                        {
-                            continue;
-                        }
-                    }
-                }
-
-                if (modGroup.excluded != null)
-                {
-                    excluded = excluded.Concat(modGroup.excluded).ToList();
-                }
-
-                if (modGroup.excludedGlobal != null)
-                {
-                    excludedGlobal = excludedGlobal.Concat(modGroup.excludedGlobal).ToList();
-                }
-
-                if (modGroup.targetStatDefs != null)
-                {
-                    foreach (StatDef statDef in modGroup.targetStatDefs)
-                    {
-                        modifier *= target.GetStatValue(statDef);
-                    }
-                }
-
-                if (modGroup.attackerStatDefs != null && instigator != null)
-                {
-                    foreach (StatDef statDef in modGroup.attackerStatDefs)
-                    {
-                        modifier *= instigator.GetStatValue(statDef);
-                    }
-                }
-
-                modifier *= modGroup.modifier;
+                (float, float) result = modGroup.GetDamageModifiers(target, ref excluded, ref excludedGlobal, instigator);
+                modifier *= result.Item1;
+                offset += result.Item2;
             }
 
-            return modifier;
+            return (modifier, offset);
         }
     }
 

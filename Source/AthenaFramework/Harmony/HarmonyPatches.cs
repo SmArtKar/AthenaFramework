@@ -72,7 +72,7 @@ namespace AthenaFramework
         {
             static void Postfix(Projectile __instance, Thing launcher, ref Vector3 origin, LocalTargetInfo usedTarget, LocalTargetInfo intendedTarget, ProjectileHitFlags hitFlags)
             {
-                if (!__instance.def.HasModExtension<BeamProjectile>())
+                if (!__instance.def.HasModExtension<BeamProjectile>() || launcher == null)
                 {
                     return;
                 }
@@ -231,62 +231,129 @@ namespace AthenaFramework
         {
             static void Prefix(Thing __instance, ref DamageInfo dinfo, ref bool absorbed)
             {
+                float modifier = 1f;
+                float offset = 0f;
+                List<string> excludedGlobal = new List<string>();
+
+                if (dinfo.Weapon != null)
+                {
+                    foreach (DamageAmplifierExtension amplifier in dinfo.Weapon.modExtensions.OfType<DamageAmplifierExtension>())
+                    {
+                        (float, float) result = amplifier.GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
+                        modifier *= result.Item1;
+                        offset += result.Item2;
+                    }
+                }
+
                 if (dinfo.Instigator == null)
                 {
+                    dinfo.SetAmount(dinfo.Amount * modifier + offset);
                     return;
                 }
 
-                float modifier = 1f;
-                List<string> excludedGlobal = new List<string>();
-
                 if (dinfo.Instigator is not Pawn)
                 {
+                    foreach (DamageAmplifierExtension amplifier in dinfo.Instigator.def.modExtensions.OfType<DamageAmplifierExtension>())
+                    {
+                        (float, float) result = amplifier.GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
+                        modifier *= result.Item1;
+                        offset += result.Item2;
+                    }
+
                     if (dinfo.Instigator is not ThingWithComps)
                     {
+                        dinfo.SetAmount(dinfo.Amount * modifier + offset);
                         return;
                     }
 
                     foreach (Comp_DamageAmplifier amplifier in (dinfo.Instigator as ThingWithComps).AllComps.OfType<Comp_DamageAmplifier>())
                     {
-                        modifier *= amplifier.GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
+                        (float, float) result = amplifier.GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
+                        modifier *= result.Item1;
+                        offset += result.Item2;
                     }
 
+                    dinfo.SetAmount(dinfo.Amount * modifier + offset);
                     return;
                 }
 
                 Pawn pawn = dinfo.Instigator as Pawn;
                 foreach (HediffComp_DamageAmplifier amplifier in pawn.health.hediffSet.hediffs.OfType<HediffWithComps>().SelectMany((HediffWithComps x) => x.comps).OfType<HediffComp_DamageAmplifier>())
                 {
-                    modifier *= amplifier.GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
+                    (float, float) result = amplifier.GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
+                    modifier *= result.Item1;
+                    offset += result.Item2;
                 }
 
                 foreach (Comp_DamageAmplifier amplifier in pawn.apparel.WornApparel.SelectMany((Apparel x) => x.AllComps).OfType<Comp_DamageAmplifier>().Concat(pawn.AllComps.OfType<Comp_DamageAmplifier>()))
                 {
-                    modifier *= amplifier.GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
+                    (float, float) result = amplifier.GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
+                    modifier *= result.Item1;
+                    offset += result.Item2;
                 }
+
+                foreach (DamageAmplifierExtension amplifier in pawn.health.hediffSet.hediffs.SelectMany((Hediff x) => x.def.modExtensions).OfType<DamageAmplifierExtension>())
+                {
+                    (float, float) result = amplifier.GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
+                    modifier *= result.Item1;
+                    offset += result.Item2;
+                }
+
+                foreach (DamageAmplifierExtension amplifier in pawn.apparel.WornApparel.SelectMany((Apparel x) => x.def.modExtensions).OfType<DamageAmplifierExtension>().Concat(pawn.def.modExtensions.OfType<DamageAmplifierExtension>()))
+                {
+                    (float, float) result = amplifier.GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
+                    modifier *= result.Item1;
+                    offset += result.Item2;
+                }
+
+                dinfo.SetAmount(dinfo.Amount * modifier + offset);
             }
         }
 
-        [HarmonyPatch(typeof(Bullet), "Impact")]
-        public static class Bullet_PreImpact
+        [HarmonyPatch(typeof(Projectile), "Impact")]
+        public static class Projectile_PreImpact
         {
-            static void Prefix(Bullet __instance, Thing hitThing, ref bool blockedByShield)
+            static void Prefix(Projectile __instance, Thing hitThing, ref bool blockedByShield)
             {
                 if (hitThing == null)
                 {
                     return;
                 }
 
+                if (__instance.def.HasModExtension<BeamProjectile>() && __instance.Launcher != null)
+                {
+                    MapComponent_AthenaRenderer renderer = __instance.Map.GetComponent<MapComponent_AthenaRenderer>();
+
+                    foreach (BeamInfo beamInfo in renderer.activeBeams)
+                    {
+                        if (beamInfo.beamStart == __instance.Launcher && beamInfo.beamEnd == __instance)
+                        {
+                            beamInfo.beam.RenderBeam(beamInfo.beamStart.DrawPos + beamInfo.startOffset, hitThing.DrawPos + beamInfo.endOffset);
+                        }
+                    }
+                }
+
                 float multiplier = 1f;
+                float offset = 0f;
                 List<string> excludedGlobal = new List<string>();
 
                 foreach (Comp_DamageAmplifier amplifier in __instance.AllComps.OfType<Comp_DamageAmplifier>())
                 {
-                    multiplier *= amplifier.GetDamageModifier(hitThing, ref excludedGlobal, __instance.Launcher);
+                    (float, float) result = amplifier.GetDamageModifier(hitThing, ref excludedGlobal, __instance.Launcher);
+                    multiplier *= result.Item1;
+                    offset += result.Item2;
                 }
 
-                FieldInfo damageModifier = typeof(Bullet).GetField("weaponDamageMultiplier", BindingFlags.NonPublic | BindingFlags.Instance);
-                damageModifier.SetValue(__instance, (float)damageModifier.GetValue(__instance) * multiplier);
+                foreach (DamageAmplifierExtension amplifier in __instance.def.modExtensions.OfType<DamageAmplifierExtension>())
+                {
+                    (float, float) result = amplifier.GetDamageModifier(hitThing, ref excludedGlobal, __instance.Launcher);
+                    multiplier *= result.Item1;
+                    offset += result.Item2;
+                }
+
+                float passiveOffset = offset / __instance.DamageAmount;
+                FieldInfo damageModifier = typeof(Projectile).GetField("weaponDamageMultiplier", BindingFlags.NonPublic | BindingFlags.Instance);
+                damageModifier.SetValue(__instance, (float)damageModifier.GetValue(__instance) * multiplier + passiveOffset);
             }
         }
 
@@ -295,6 +362,14 @@ namespace AthenaFramework
         {
             static void Postfix(DamageInfo __instance, ref float __result)
             {
+                if (__instance.Weapon != null)
+                {
+                    foreach (DamageAmplifierExtension amplifier in __instance.Weapon.modExtensions.OfType<DamageAmplifierExtension>())
+                    {
+                        __result *= amplifier.damageMultiplier;
+                    }
+                }
+
                 if (__instance.Instigator == null)
                 {
                     return;
@@ -302,6 +377,11 @@ namespace AthenaFramework
 
                 if (__instance.Instigator is not Pawn)
                 {
+                    foreach (DamageAmplifierExtension amplifier in __instance.Instigator.def.modExtensions.OfType<DamageAmplifierExtension>())
+                    {
+                        __result *= amplifier.damageMultiplier;
+                    }
+
                     if (__instance.Instigator is not ThingWithComps)
                     {
                         return;
@@ -325,6 +405,16 @@ namespace AthenaFramework
                 {
                     __result *= amplifier.DamageMultiplier;
                 }
+
+                foreach (DamageAmplifierExtension amplifier in pawn.health.hediffSet.hediffs.SelectMany((Hediff x) => x.def.modExtensions).OfType<DamageAmplifierExtension>())
+                {
+                    __result *= amplifier.damageMultiplier;
+                }
+
+                foreach (DamageAmplifierExtension amplifier in pawn.apparel.WornApparel.SelectMany((Apparel x) => x.def.modExtensions).OfType<DamageAmplifierExtension>().Concat(pawn.def.modExtensions.OfType<DamageAmplifierExtension>()))
+                {
+                    __result *= amplifier.damageMultiplier;
+                }
             }
         }
 
@@ -346,7 +436,7 @@ namespace AthenaFramework
         }
 
         [HarmonyPatch(typeof(StunHandler), "Notify_DamageApplied")]
-        public static class ThingWithComps_PreApplyDamage
+        public static class StunHandler_PreDamageApplied
         {
             static bool Prefix(StunHandler __instance, ref DamageInfo dinfo)
             {
