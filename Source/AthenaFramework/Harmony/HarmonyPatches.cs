@@ -235,14 +235,11 @@ namespace AthenaFramework
                 float offset = 0f;
                 List<string> excludedGlobal = new List<string>();
 
-                if (dinfo.Weapon != null)
+                if (dinfo.Weapon != null && dinfo.Weapon.GetModExtension<DamageAmplifierExtension>() != null)
                 {
-                    foreach (DamageAmplifierExtension amplifier in dinfo.Weapon.modExtensions.OfType<DamageAmplifierExtension>())
-                    {
-                        (float, float) result = amplifier.GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
-                        modifier *= result.Item1;
-                        offset += result.Item2;
-                    }
+                    (float, float) result = dinfo.Weapon.GetModExtension<DamageAmplifierExtension>().GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
+                    modifier *= result.Item1;
+                    offset += result.Item2;
                 }
 
                 if (dinfo.Instigator == null)
@@ -251,59 +248,66 @@ namespace AthenaFramework
                     return;
                 }
 
-                if (dinfo.Instigator is not Pawn)
+                if (dinfo.Instigator.def.GetModExtension<DamageAmplifierExtension>() != null)
                 {
-                    foreach (DamageAmplifierExtension amplifier in dinfo.Instigator.def.modExtensions.OfType<DamageAmplifierExtension>())
-                    {
-                        (float, float) result = amplifier.GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
-                        modifier *= result.Item1;
-                        offset += result.Item2;
-                    }
+                    (float, float) result = dinfo.Instigator.def.GetModExtension<DamageAmplifierExtension>().GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
+                    modifier *= result.Item1;
+                    offset += result.Item2;
+                }
 
-                    if (dinfo.Instigator is not ThingWithComps)
-                    {
-                        dinfo.SetAmount(dinfo.Amount * modifier + offset);
-                        return;
-                    }
-
+                if (dinfo.Instigator is ThingWithComps)
+                {
                     foreach (Comp_DamageAmplifier amplifier in (dinfo.Instigator as ThingWithComps).AllComps.OfType<Comp_DamageAmplifier>())
                     {
                         (float, float) result = amplifier.GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
                         modifier *= result.Item1;
                         offset += result.Item2;
                     }
+                }
 
+                if (dinfo.Instigator is not Pawn)
+                {
                     dinfo.SetAmount(dinfo.Amount * modifier + offset);
                     return;
                 }
 
                 Pawn pawn = dinfo.Instigator as Pawn;
-                foreach (HediffComp_DamageAmplifier amplifier in pawn.health.hediffSet.hediffs.OfType<HediffWithComps>().SelectMany((HediffWithComps x) => x.comps).OfType<HediffComp_DamageAmplifier>())
+
+                foreach (Hediff hediff in pawn.health.hediffSet.hediffs)
                 {
-                    (float, float) result = amplifier.GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
-                    modifier *= result.Item1;
-                    offset += result.Item2;
+                    if (hediff.def.GetModExtension<DamageAmplifierExtension>() != null)
+                    {
+                        (float, float) result = hediff.def.GetModExtension<DamageAmplifierExtension>().GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
+                        modifier *= result.Item1;
+                        offset += result.Item2;
+                    }
+
+                    if (hediff is HediffWithComps)
+                    {
+                        foreach (HediffComp_DamageAmplifier amplifier in (hediff as HediffWithComps).comps.OfType<HediffComp_DamageAmplifier>())
+                        {
+                            (float, float) result = amplifier.GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
+                            modifier *= result.Item1;
+                            offset += result.Item2;
+                        }
+                    }
                 }
 
-                foreach (Comp_DamageAmplifier amplifier in pawn.apparel.WornApparel.SelectMany((Apparel x) => x.AllComps).OfType<Comp_DamageAmplifier>().Concat(pawn.AllComps.OfType<Comp_DamageAmplifier>()))
+                foreach (Apparel apparel in pawn.apparel.WornApparel)
                 {
-                    (float, float) result = amplifier.GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
-                    modifier *= result.Item1;
-                    offset += result.Item2;
-                }
+                    foreach (Comp_DamageAmplifier amplifier in apparel.AllComps.OfType<Comp_DamageAmplifier>())
+                    {
+                        (float, float) result = amplifier.GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
+                        modifier *= result.Item1;
+                        offset += result.Item2;
+                    }
 
-                foreach (DamageAmplifierExtension amplifier in pawn.health.hediffSet.hediffs.SelectMany((Hediff x) => x.def.modExtensions).OfType<DamageAmplifierExtension>())
-                {
-                    (float, float) result = amplifier.GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
-                    modifier *= result.Item1;
-                    offset += result.Item2;
-                }
-
-                foreach (DamageAmplifierExtension amplifier in pawn.apparel.WornApparel.SelectMany((Apparel x) => x.def.modExtensions).OfType<DamageAmplifierExtension>().Concat(pawn.def.modExtensions.OfType<DamageAmplifierExtension>()))
-                {
-                    (float, float) result = amplifier.GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
-                    modifier *= result.Item1;
-                    offset += result.Item2;
+                    if (apparel.def.GetModExtension<DamageAmplifierExtension>() != null)
+                    {
+                        (float, float) result = apparel.def.GetModExtension<DamageAmplifierExtension>().GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
+                        modifier *= result.Item1;
+                        offset += result.Item2;
+                    }
                 }
 
                 dinfo.SetAmount(dinfo.Amount * modifier + offset);
@@ -344,9 +348,9 @@ namespace AthenaFramework
                     offset += result.Item2;
                 }
 
-                foreach (DamageAmplifierExtension amplifier in __instance.def.modExtensions.OfType<DamageAmplifierExtension>())
+                if (__instance.def.GetModExtension<DamageAmplifierExtension>() != null)
                 {
-                    (float, float) result = amplifier.GetDamageModifier(hitThing, ref excludedGlobal, __instance.Launcher);
+                    (float, float) result = __instance.def.GetModExtension<DamageAmplifierExtension>().GetDamageModifier(hitThing, ref excludedGlobal, __instance.Launcher);
                     multiplier *= result.Item1;
                     offset += result.Item2;
                 }
@@ -362,12 +366,9 @@ namespace AthenaFramework
         {
             static void Postfix(DamageInfo __instance, ref float __result)
             {
-                if (__instance.Weapon != null)
+                if (__instance.Weapon != null && __instance.Weapon.GetModExtension<DamageAmplifierExtension>() != null)
                 {
-                    foreach (DamageAmplifierExtension amplifier in __instance.Weapon.modExtensions.OfType<DamageAmplifierExtension>())
-                    {
-                        __result *= amplifier.damageMultiplier;
-                    }
+                    __result *= __instance.Weapon.GetModExtension<DamageAmplifierExtension>().damageMultiplier;
                 }
 
                 if (__instance.Instigator == null)
@@ -375,45 +376,53 @@ namespace AthenaFramework
                     return;
                 }
 
-                if (__instance.Instigator is not Pawn)
+                if (__instance.Instigator.def.GetModExtension<DamageAmplifierExtension>() != null)
                 {
-                    foreach (DamageAmplifierExtension amplifier in __instance.Instigator.def.modExtensions.OfType<DamageAmplifierExtension>())
-                    {
-                        __result *= amplifier.damageMultiplier;
-                    }
+                    __result *= __instance.Instigator.def.GetModExtension<DamageAmplifierExtension>().damageMultiplier;
+                }
 
-                    if (__instance.Instigator is not ThingWithComps)
-                    {
-                        return;
-                    }
-
+                if (__instance.Instigator is ThingWithComps)
+                {
                     foreach (Comp_DamageAmplifier amplifier in (__instance.Instigator as ThingWithComps).AllComps.OfType<Comp_DamageAmplifier>())
                     {
                         __result *= amplifier.DamageMultiplier;
                     }
+                }
 
+                if (__instance.Instigator is not Pawn)
+                {
                     return;
                 }
 
                 Pawn pawn = __instance.Instigator as Pawn;
-                foreach (HediffComp_DamageAmplifier amplifier in pawn.health.hediffSet.hediffs.OfType<HediffWithComps>().SelectMany((HediffWithComps x) => x.comps).OfType<HediffComp_DamageAmplifier>())
+
+                foreach (Hediff hediff in pawn.health.hediffSet.hediffs)
                 {
-                    __result *= amplifier.DamageMultiplier;
+                    if (hediff.def.GetModExtension<DamageAmplifierExtension>() != null)
+                    {
+                        __result *= hediff.def.GetModExtension<DamageAmplifierExtension>().damageMultiplier;
+                    }
+
+                    if (hediff is HediffWithComps)
+                    {
+                        foreach (HediffComp_DamageAmplifier amplifier in (hediff as HediffWithComps).comps.OfType<HediffComp_DamageAmplifier>())
+                        {
+                            __result *= amplifier.DamageMultiplier;
+                        }
+                    }
                 }
 
-                foreach (Comp_DamageAmplifier amplifier in pawn.apparel.WornApparel.SelectMany((Apparel x) => x.AllComps).OfType<Comp_DamageAmplifier>().Concat(pawn.AllComps.OfType<Comp_DamageAmplifier>()))
+                foreach (Apparel apparel in pawn.apparel.WornApparel)
                 {
-                    __result *= amplifier.DamageMultiplier;
-                }
+                    foreach (Comp_DamageAmplifier amplifier in apparel.AllComps.OfType<Comp_DamageAmplifier>())
+                    {
+                        __result *= amplifier.DamageMultiplier;
+                    }
 
-                foreach (DamageAmplifierExtension amplifier in pawn.health.hediffSet.hediffs.SelectMany((Hediff x) => x.def.modExtensions).OfType<DamageAmplifierExtension>())
-                {
-                    __result *= amplifier.damageMultiplier;
-                }
-
-                foreach (DamageAmplifierExtension amplifier in pawn.apparel.WornApparel.SelectMany((Apparel x) => x.def.modExtensions).OfType<DamageAmplifierExtension>().Concat(pawn.def.modExtensions.OfType<DamageAmplifierExtension>()))
-                {
-                    __result *= amplifier.damageMultiplier;
+                    if (apparel.def.GetModExtension<DamageAmplifierExtension>() != null)
+                    {
+                        __result *= apparel.def.GetModExtension<DamageAmplifierExtension>().damageMultiplier;
+                    }
                 }
             }
         }
