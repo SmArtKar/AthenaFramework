@@ -336,7 +336,7 @@ namespace AthenaFramework
         public float maxDrawSize = 1.55f;
         // Whenever the shield should scale with owner's draw size
         public bool scaleWithOwner = true;
-        // Whenever should have the vanilla spinning effect
+        // Whenever the shield should have the vanilla spinning effect. Turn off in case you're using custom asymmetric textures
         public bool spinning = true;
     }
 }

@@ -68,7 +68,6 @@ namespace AthenaFramework
         public Vector3 beamStart;
         public Vector3 beamEnd;
         public BeamRenderer beam;
-        public int ticksLeft = -1;
 
         public StaticBeamInfo() { }
 
