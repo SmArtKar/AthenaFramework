@@ -319,11 +319,6 @@ namespace AthenaFramework
         {
             static void Prefix(Projectile __instance, Thing hitThing, ref bool blockedByShield)
             {
-                if (hitThing == null)
-                {
-                    return;
-                }
-
                 if (__instance.def.HasModExtension<BeamProjectile>() && __instance.Launcher != null)
                 {
                     MapComponent_AthenaRenderer renderer = __instance.Map.GetComponent<MapComponent_AthenaRenderer>();
@@ -332,9 +327,21 @@ namespace AthenaFramework
                     {
                         if (beamInfo.beamStart == __instance.Launcher && beamInfo.beamEnd == __instance)
                         {
-                            beamInfo.beam.RenderBeam(beamInfo.beamStart.DrawPos + beamInfo.startOffset, hitThing.DrawPos + beamInfo.endOffset);
+                            if (hitThing != null)
+                            {
+                                beamInfo.beam.RenderBeam(beamInfo.beamStart.DrawPos + beamInfo.startOffset, hitThing.DrawPos + beamInfo.endOffset);
+                            }
+                            else
+                            {
+                                beamInfo.beam.RenderBeam(beamInfo.beamStart.DrawPos + beamInfo.startOffset, __instance.Position.ToVector3Shifted() + beamInfo.endOffset);
+                            }
                         }
                     }
+                }
+
+                if (hitThing == null)
+                {
+                    return;
                 }
 
                 float multiplier = 1f;
