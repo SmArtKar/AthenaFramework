@@ -419,6 +419,11 @@ namespace AthenaFramework
                     }
                 }
 
+                if (pawn.apparel == null)
+                {
+                    return;
+                }
+
                 foreach (Apparel apparel in pawn.apparel.WornApparel)
                 {
                     foreach (Comp_DamageAmplifier amplifier in apparel.AllComps.OfType<Comp_DamageAmplifier>())
