@@ -170,7 +170,7 @@ namespace AthenaFramework
         {
             static void Postfix(PawnGraphicSet __instance)
             {
-                if (!__instance.pawn.RaceProps.Humanlike)
+                if (!__instance.pawn.RaceProps.Humanlike || __instance.pawn.apparel == null)
                 {
                     return;
                 }
@@ -291,6 +291,11 @@ namespace AthenaFramework
                             offset += result.Item2;
                         }
                     }
+                }
+
+                if (pawn.apparel == null)
+                {
+                    return;
                 }
 
                 foreach (Apparel apparel in pawn.apparel.WornApparel)

@@ -53,10 +53,17 @@ namespace AthenaFramework
             AngularShotgunExtension extension = EquipmentSource.def.GetModExtension<AngularShotgunExtension>();
             float angle = (float)Math.Acos(Vector2.Dot((new Vector2(target.Cell.x, target.Cell.z) - new Vector2(caster.Position.x, caster.Position.z)).normalized, new Vector2(1, 0)));
             float pelletAngle = (float)(extension.pelletAngle * (Math.PI) / 180);
+            float pelletAngleAmount = (extension.pelletCount - 1) / 2;
 
-            for (int i = 0; i < extension.pelletCount - 1; i++)
+            for (int i = 0; i < extension.pelletCount; i++)
             {
-                float newAngle = angle - pelletAngle * (extension.pelletCount - 1) / 2 + i * pelletAngle;
+                float newAngle = angle - pelletAngle * pelletAngleAmount + i * pelletAngle;
+
+                if (extension.pelletCount % 2 == 0 && i == (int)pelletAngleAmount)
+                {
+                    newAngle = angle;
+                }
+
                 IntVec3 endPosition = (new IntVec3((int)(Math.Cos(newAngle) * verbProps.range), 0, (int)(Math.Sin(newAngle) * verbProps.range)));
                 if (target.Cell.z < caster.Position.z)
                 {
@@ -133,14 +140,17 @@ namespace AthenaFramework
 
             float angle = (float)Math.Acos(Vector2.Dot((new Vector2(currentTarget.Cell.x, currentTarget.Cell.z) - new Vector2(caster.Position.x, caster.Position.z)).normalized, new Vector2(1, 0)));
             float pelletAngle = (float)(extension.pelletAngle * (Math.PI) / 180);
+            float pelletAngleAmount = (extension.pelletCount - 1) / 2;
 
-            for (int i = 0; i < extension.pelletCount - 1; i++)
+            for (int i = 0; i < extension.pelletCount; i++)
             {
-                if (i == (extension.pelletCount - 1) / 2 + 1) //Skipping the central pellet that was already shot
+                float newAngle = angle - pelletAngle * pelletAngleAmount + i * pelletAngle;
+
+                if (i == (int)pelletAngleAmount)
                 {
                     continue;
                 }
-                float newAngle = angle - pelletAngle * (extension.pelletCount - 1) / 2 + i * pelletAngle;
+
                 IntVec3 endPosition = (new IntVec3((int)(Math.Cos(newAngle) * verbProps.range), 0, (int)(Math.Sin(newAngle) * verbProps.range)));
                 if (currentTarget.Cell.z < caster.Position.z)
                 {
