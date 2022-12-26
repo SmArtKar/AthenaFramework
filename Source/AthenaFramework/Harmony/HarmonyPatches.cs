@@ -295,6 +295,7 @@ namespace AthenaFramework
 
                 if (pawn.apparel == null)
                 {
+                    dinfo.SetAmount(dinfo.Amount * modifier + offset);
                     return;
                 }
 
