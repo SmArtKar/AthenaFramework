@@ -69,7 +69,7 @@ namespace AthenaFramework
         // Whenever the bomb will explode upon owner's death
         public bool explodeOnDeath = true;
         // Damage type of the bomb
-        public DamageDef damageDef = DamageDefOf.Flame;
+        public DamageDef damageDef;
         // When set to true,
         public bool gasExplosion = false;
         // You can set this to whatever type of gas you want. ToxGas will require user to have biotech installed.
