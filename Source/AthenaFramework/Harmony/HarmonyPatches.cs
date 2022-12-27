@@ -8,6 +8,7 @@ using Verse;
 using RimWorld;
 using UnityEngine;
 using System.Reflection;
+using static HarmonyLib.Code;
 
 namespace AthenaFramework
 {
@@ -81,6 +82,38 @@ namespace AthenaFramework
                 renderer.CreateActiveBeam(launcher, __instance, __instance.def.GetModExtension<BeamProjectile>().beamType, origin - launcher.DrawPos, new Vector3());
             }
         }
+
+        [HarmonyPatch(typeof(Pawn), "SpawnSetup")]
+        public static class Pawn_PostSpawnSetup
+        {
+            static void Postfix(Pawn __instance, Map map, bool respawningAfterLoad)
+            {
+                if (respawningAfterLoad || __instance.def.GetModExtension<HediffGiverExtension>() == null)
+                {
+                    return;
+                }
+
+                HediffGiverExtension extension = __instance.def.GetModExtension<HediffGiverExtension>();
+
+                foreach (HediffBodypartPair pair in extension.bodypartPairs)
+                {
+                    if (pair.bodyPartDef == null)
+                    {
+                        Hediff hediff = HediffMaker.MakeHediff(pair.hediffDef, __instance, null);
+                        __instance.health.AddHediff(hediff, null, null, null);
+                        continue;
+                    }
+
+                    List<BodyPartRecord> partRecords = __instance.RaceProps.body.GetPartsWithDef(pair.bodyPartDef);
+                    foreach (BodyPartRecord partRecord in partRecords)
+                    {
+                        Hediff hediff = HediffMaker.MakeHediff(pair.hediffDef, __instance, partRecord);
+                        __instance.health.AddHediff(hediff, partRecord, null, null);
+                    }
+                }
+            }
+        }
+
 
         [HarmonyPatch(typeof(CompTurretGun), "PostDraw")]
         public static class CompTurretGun_PrePostDraw

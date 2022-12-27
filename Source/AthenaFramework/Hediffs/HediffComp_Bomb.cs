@@ -17,6 +17,11 @@ namespace AthenaFramework
         {
             base.CompPostPostRemoved();
 
+            if (Pawn == null)
+            {
+                return;
+            }
+
             if (!Props.explodeOnRemoval)
             {
                 return;
@@ -32,7 +37,7 @@ namespace AthenaFramework
                 return;
             }
 
-            GenExplosion.DoExplosion(Pawn.Position, Pawn.Map, Props.radius, Props.damageDef, Pawn, postExplosionGasType: (Props.gasExplosion ? new GasType ?(Props.gasType) : null));
+            GenExplosion.DoExplosion(Pawn.Position, Pawn.Map, Props.radius, Props.damageDef, Pawn, postExplosionGasType: (Props.gasExplosion ? new GasType?(Props.gasType) : null));
         }
 
         public override void Notify_PawnKilled()
@@ -46,6 +51,8 @@ namespace AthenaFramework
             GenExplosion.DoExplosion(Pawn.Position, Pawn.Map, Props.radius, Props.damageDef, Pawn, postExplosionGasType: (Props.gasExplosion ? new GasType?(Props.gasType) : null));
             Pawn.health.RemoveHediff(parent);
         }
+
+        public HediffComp_Bomb() { }
     }
 
     public class HediffCompProperties_Bomb : HediffCompProperties
