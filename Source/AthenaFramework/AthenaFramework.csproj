@@ -76,6 +76,7 @@
     <Compile Include="ThinkNodes\ThinkNodeConditional_UnderGroupCombatPressure.cs" />
     <Compile Include="Utilities\PawnGroupUtility.cs" />
     <Compile Include="Weapons\CompAbilityEffect_LaunchProjectileBurst.cs" />
+    <Compile Include="Weapons\CompAbilityEffect_ShootRunningBeam.cs" />
     <Compile Include="Weapons\Verb_ShootRunningBeam.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
