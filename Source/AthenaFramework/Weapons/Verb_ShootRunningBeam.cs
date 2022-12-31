@@ -50,16 +50,6 @@ namespace AthenaFramework
                 return false;
             }
 
-            ShootLine shootLine;
-            bool flag = TryFindShootLineFromTo(caster.Position, currentTarget, out shootLine);
-
-            IntVec3 targetTile = currentPos.Yto0().ToIntVec3();
-
-            if (!flag)
-            {
-                targetTile = shootLine.Dest;
-            }
-
             if (EquipmentSource != null)
             {
                 CompChangeableProjectile compChangable = EquipmentSource.GetComp<CompChangeableProjectile>();
@@ -77,10 +67,17 @@ namespace AthenaFramework
 
             if (beamSustainer != null)
             {
-                beamSustainer.Maintain();
+                if (beamSustainer.Ended)
+                {
+                    beamSustainer = null;
+                }
+                else
+                {
+                    beamSustainer.Maintain();
+                }
             }
 
-            HitTile(targetTile);
+            HitTile(currentBeamTile);
             return true;
         }
 
@@ -138,7 +135,14 @@ namespace AthenaFramework
 
             if (beamSustainer != null)
             {
-                beamSustainer.Maintain();
+                if (beamSustainer.Ended)
+                {
+                    beamSustainer = null;
+                }
+                else
+                {
+                    beamSustainer.Maintain();
+                }
             }
         }
 
@@ -147,6 +151,20 @@ namespace AthenaFramework
             base.WarmupComplete();
             targeted = currentTarget.Thing;
             currentPos = targeted.DrawPos + (caster.DrawPos - targeted.DrawPos).normalized * 3;
+
+            Vector3 offsetVector = (currentPos - caster.Position.ToVector3Shifted()).Yto0();
+            IntVec3 beamPos = currentPos.ToIntVec3();
+            IntVec3 cutoffPos = GenSight.LastPointOnLineOfSight(caster.Position, beamPos, (IntVec3 x) => x.CanBeSeenOverFast(caster.Map), true);
+            float normalOffset = offsetVector.MagnitudeHorizontal();
+
+            if (cutoffPos.IsValid)
+            {
+                normalOffset -= (beamPos - cutoffPos).LengthHorizontal;
+                currentPos = caster.Position.ToVector3Shifted() + offsetVector.normalized * normalOffset;
+            }
+
+            currentBeamTile = currentPos.ToIntVec3();
+
             beamMote = MoteMaker.MakeInteractionOverlay(verbProps.beamMoteDef, caster, new TargetInfo(currentPos.ToIntVec3(), caster.Map));
             beamMote.Maintain();
             TryCastNextBurstShot();

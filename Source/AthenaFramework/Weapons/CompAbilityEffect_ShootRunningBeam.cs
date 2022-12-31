@@ -87,14 +87,9 @@ namespace AthenaFramework
                 return;
             }
 
-            ShootLine shootLine;
-            bool flag = TryFindShootLineFromTo(parent.pawn.Position, target, out shootLine);
-
-            IntVec3 targetTile = currentPos.Yto0().ToIntVec3();
-
-            if (!flag)
+            if (beamSustainer.Ended)
             {
-                targetTile = shootLine.Dest;
+                beamSustainer = null;
             }
 
             if (beamSustainer != null)
@@ -102,65 +97,7 @@ namespace AthenaFramework
                 beamSustainer.Maintain();
             }
 
-            HitTile(targetTile);
-        }
-
-        public bool TryFindShootLineFromTo(IntVec3 root, LocalTargetInfo targ, out ShootLine resultingLine)
-        {
-            if (targ.HasThing && targ.Thing.Map != parent.pawn.Map)
-            {
-                resultingLine = default(ShootLine);
-                return false;
-            }
-
-            CellRect cellRect = (targ.HasThing ? targ.Thing.OccupiedRect() : CellRect.SingleCell(targ.Cell));
-            if (cellRect.ClosestDistSquaredTo(root) > parent.VerbProperties[0].range * parent.VerbProperties[0].range)
-            {
-                resultingLine = new ShootLine(root, targ.Cell);
-                return false;
-            }
-
-            if (!parent.VerbProperties[0].requireLineOfSight)
-            {
-                resultingLine = new ShootLine(root, targ.Cell);
-                return true;
-            }
-
-            foreach (IntVec3 targetPosition in GenSight.PointsOnLineOfSight(root, targ.Cell).Concat(targ.Cell))
-            {
-                if (targetPosition == root)
-                {
-                    continue;
-                }
-
-                Thing targetBuilding = targetPosition.GetRoofHolderOrImpassable(parent.pawn.Map);
-                if (targetBuilding != null)
-                {
-                    break;
-                }
-
-                bool foundPawn = false;
-
-                foreach (Pawn pawnTarget in GridsUtility.GetThingList(targetPosition, parent.pawn.Map).OfType<Pawn>())
-                {
-                    if (!pawnTarget.Downed && !pawnTarget.Dead)
-                    {
-                        foundPawn = true;
-                        break;
-                    }
-                }
-
-                if (foundPawn)
-                {
-                    break;
-                }
-
-                resultingLine = new ShootLine(root, targetPosition);
-                return true;
-            }
-
-            resultingLine = new ShootLine(root, targ.Cell);
-            return false;
+            HitTile(currentBeamTile);
         }
 
         public virtual void BeamTick(LocalTargetInfo target)
@@ -232,6 +169,11 @@ namespace AthenaFramework
                     }
                     counter++;
                 }
+            }
+
+            if (beamSustainer.Ended)
+            {
+                beamSustainer = null;
             }
 
             if (beamSustainer != null)
