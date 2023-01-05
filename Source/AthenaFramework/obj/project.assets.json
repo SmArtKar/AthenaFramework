@@ -443,7 +443,7 @@
   },
   "projectFileDependencyGroups": {
     ".NETFramework,Version=v4.7.2": [
-      "Krafs.Rimworld.Ref >= 1.4.*"
+      "Krafs.Rimworld.Ref >= 1.4.3580"
     ]
   },
   "packageFolders": {
@@ -486,7 +486,7 @@
         "dependencies": {
           "Krafs.Rimworld.Ref": {
             "target": "Package",
-            "version": "[1.4.*, )"
+            "version": "[1.4.3580, )"
           }
         }
       }

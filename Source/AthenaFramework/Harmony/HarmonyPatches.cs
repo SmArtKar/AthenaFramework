@@ -118,6 +118,8 @@ namespace AthenaFramework
         [HarmonyPatch(typeof(CompTurretGun), "PostDraw")]
         public static class CompTurretGun_PrePostDraw
         {
+            static FieldInfo curRotationField = typeof(CompTurretGun).GetField("curRotation", BindingFlags.NonPublic | BindingFlags.Instance);
+
             static bool Prefix(CompTurretGun __instance)
             {
                 if (!__instance.gun.def.HasModExtension<TurretGraphicOverride>())
@@ -148,7 +150,7 @@ namespace AthenaFramework
                 }
                 Matrix4x4 matrix4x = default(Matrix4x4);
                 Vector2 drawSize = props.turretDef.graphicData.drawSize;
-                matrix4x.SetTRS(__instance.parent.DrawPos + vector, ((float)typeof(CompTurretGun).GetField("curRotation", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(__instance)).ToQuat(), new Vector3(drawSize.x, 0, drawSize.y));
+                matrix4x.SetTRS(__instance.parent.DrawPos + vector, ((float)curRotationField.GetValue(__instance)).ToQuat(), new Vector3(drawSize.x, 0, drawSize.y));
                 Graphics.DrawMesh(MeshPool.plane10, matrix4x, __instance.turretMat, 0);
                 return false;
             }
@@ -356,6 +358,7 @@ namespace AthenaFramework
         [HarmonyPatch(typeof(Projectile), "Impact")]
         public static class Projectile_PreImpact
         {
+            static FieldInfo damageModifier = typeof(Projectile).GetField("weaponDamageMultiplier", BindingFlags.NonPublic | BindingFlags.Instance);
             static void Prefix(Projectile __instance, Thing hitThing, ref bool blockedByShield)
             {
                 if (__instance.def.HasModExtension<BeamProjectile>() && __instance.Launcher != null)
@@ -402,7 +405,6 @@ namespace AthenaFramework
                 }
 
                 float passiveOffset = offset / __instance.DamageAmount;
-                FieldInfo damageModifier = typeof(Projectile).GetField("weaponDamageMultiplier", BindingFlags.NonPublic | BindingFlags.Instance);
                 damageModifier.SetValue(__instance, (float)damageModifier.GetValue(__instance) * multiplier + passiveOffset);
             }
         }
