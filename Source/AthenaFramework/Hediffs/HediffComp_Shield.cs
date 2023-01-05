@@ -310,11 +310,11 @@ namespace AthenaFramework
         public float energyPerStunModifier = 0.5f;
 
         // What types of damage should cause the shield to instantly shatter
-        public List<DamageDef> shatterOn = new List<DamageDef>() { DamageDefOf.EMP };
+        public List<DamageDef> shatterOn;
         // If the shield should create an explosion upon being destroyed
         public bool explosionOnShieldBreak = false;
         // Damage type and radius of the explosion
-        public DamageDef explosionDef = DamageDefOf.Flame;
+        public DamageDef explosionDef;
         public float explosionRadius = 2.9f;
 
         // Shield sounds and flecks
@@ -324,7 +324,7 @@ namespace AthenaFramework
         public FleckDef absorbFleck;
         public FleckDef breakFleck;
         // Effecter that's used upon shield shattering
-        public EffecterDef shieldBreakEffecter = EffecterDefOf.Shield_Break;
+        public EffecterDef shieldBreakEffecter;
 
         // Whenever the shield should display a charge gizmo and what text and hover tip should it have
         public bool displayGizmo = true;
