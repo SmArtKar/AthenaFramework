@@ -375,9 +375,28 @@ namespace AthenaFramework
                             }
                             else
                             {
-                                beamInfo.beam.RenderBeam(beamInfo.beamStart.DrawPos + beamInfo.startOffset, __instance.Position.ToVector3Shifted() + beamInfo.endOffset);
+                                beamInfo.beam.RenderBeam(beamInfo.beamStart.DrawPos + beamInfo.startOffset, __instance.DrawPos + beamInfo.endOffset);
                             }
                         }
+                    }
+                }
+
+                if (__instance.def.HasModExtension<ProjectileEffectExtension>())
+                {
+                    ProjectileEffectExtension effectExtension = __instance.def.GetModExtension<ProjectileEffectExtension>();
+
+                    if (effectExtension.fleck != null)
+                    {
+                        FleckMaker.Static(__instance.DrawPos, __instance.Map, effectExtension.fleck, 1f);
+                    }
+
+                    if (effectExtension.mote != null)
+                    {
+                        MoteMaker.MakeStaticMote(__instance.DrawPos, __instance.Map, effectExtension.mote, 1f);
+                    }
+                    if (effectExtension.effecter != null)
+                    {
+                        effectExtension.effecter.Spawn(__instance.Position, __instance.Map, 1f).Cleanup();
                     }
                 }
 

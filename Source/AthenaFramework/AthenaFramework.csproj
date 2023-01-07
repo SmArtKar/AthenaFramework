@@ -73,6 +73,7 @@
     <Compile Include="Weapons\CompAbilityEffect_LaunchProjectileBurst.cs" />
     <Compile Include="Weapons\CompAbilityEffect_RevivalConversion.cs" />
     <Compile Include="Weapons\CompAbilityEffect_ShootRunningBeam.cs" />
+    <Compile Include="Weapons\ProjectileEffectExtension.cs" />
     <Compile Include="Weapons\Verb_ShootRunningBeam.cs" />
   </ItemGroup>
   <ItemGroup>

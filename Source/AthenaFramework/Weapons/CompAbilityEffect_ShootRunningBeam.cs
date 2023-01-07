@@ -26,6 +26,18 @@ namespace AthenaFramework
         public Sustainer beamSustainer;
         public IntVec3 currentBeamTile;
 
+        public override void PostExposeData()
+        {
+            base.PostExposeData();
+            Scribe_Values.Look(ref ticksToShot, "ticksToShot");
+            Scribe_Values.Look(ref shotsLeft, "shotsLeft");
+            Scribe_Values.Look(ref currentPos, "currentPos");
+            Scribe_Values.Look(ref currentBeamTile, "currentBeamTile");
+            Scribe_Deep.Look(ref ticksToShot, "ticksToShot");
+            Scribe_References.Look(ref beamMote, "beamMote");
+            Scribe_TargetInfo.Look(ref curTarget, "curTarget");
+        }
+
         public override void Apply(LocalTargetInfo target, LocalTargetInfo dest)
         {
             base.Apply(target, dest);
@@ -179,6 +191,10 @@ namespace AthenaFramework
             if (beamSustainer != null)
             {
                 beamSustainer.Maintain();
+            }
+            else if(parent.VerbProperties[0].soundCastBeam != null)
+            {
+                beamSustainer = parent.VerbProperties[0].soundCastBeam.TrySpawnSustainer(SoundInfo.InMap(parent.pawn, MaintenanceType.PerTick));
             }
         }
 

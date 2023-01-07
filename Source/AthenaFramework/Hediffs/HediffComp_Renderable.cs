@@ -14,6 +14,12 @@ namespace AthenaFramework
         private HediffCompProperties_Renderable Props => props as HediffCompProperties_Renderable;
         public Mote attachedMote;
 
+        public override void CompExposeData()
+        {
+            base.CompExposeData();
+            Scribe_References.Look(ref attachedMote, "attachedMote");
+        }
+
         public virtual void DrawAt(Vector3 drawPos)
         {
             if (Props.graphicData == null)

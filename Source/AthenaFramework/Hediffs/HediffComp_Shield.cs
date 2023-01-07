@@ -33,6 +33,17 @@ namespace AthenaFramework
             }
         }
 
+        public override void CompExposeData()
+        {
+            base.CompExposeData();
+            Scribe_Values.Look(ref energy, "energy");
+            Scribe_Values.Look(ref ticksToReset, "ticksToReset");
+            Scribe_Values.Look(ref lastImpactTick, "lastImpactTick");
+            Scribe_Values.Look(ref lastResetTick, "lastResetTick");
+            Scribe_Values.Look(ref freeRecharge, "freeRecharge");
+            Scribe_Values.Look(ref impactAngleVect, "impactAngleVect");
+        }
+
         public override void CompPostMake()
         {
             base.CompPostMake();
@@ -263,13 +274,6 @@ namespace AthenaFramework
             }
 
             yield break;
-        }
-
-        public override void CompExposeData()
-        {
-            base.CompExposeData();
-            Scribe_Values.Look(ref energy, "energy");
-            Scribe_Values.Look(ref ticksToReset, "ticksToReset");
         }
     }
 

@@ -23,6 +23,14 @@ namespace AthenaFramework
             curTarget = target;
         }
 
+        public override void PostExposeData()
+        {
+            base.PostExposeData();
+            Scribe_Values.Look(ref ticksToShot, "ticksToShot");
+            Scribe_Values.Look(ref shotsLeft, "shotsLeft");
+            Scribe_Deep.Look(ref curTarget, "curTarget");
+        }
+
         public override void CompTick()
         {
             base.CompTick();

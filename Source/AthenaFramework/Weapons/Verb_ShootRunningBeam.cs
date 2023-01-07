@@ -30,6 +30,15 @@ namespace AthenaFramework
         public Sustainer beamSustainer;
         public IntVec3 currentBeamTile;
 
+        public override void ExposeData()
+        {
+            base.ExposeData();
+            Scribe_Values.Look(ref currentPos, "currentPos");
+            Scribe_Values.Look(ref currentBeamTile, "currentBeamTile");
+            Scribe_References.Look(ref beamMote, "beamMote");
+            Scribe_References.Look(ref targeted, "targeted");
+        }
+
         public override float? AimAngleOverride
         {
             get
@@ -144,6 +153,10 @@ namespace AthenaFramework
                     beamSustainer.Maintain();
                 }
             }
+            else if(verbProps.soundCastBeam != null)
+            {
+                beamSustainer = verbProps.soundCastBeam.TrySpawnSustainer(SoundInfo.InMap(caster, MaintenanceType.PerTick));
+            }
         }
 
         public override void WarmupComplete()
@@ -211,14 +224,6 @@ namespace AthenaFramework
             {
                 FireUtility.TryStartFireIn(currentBeamTile, caster.Map, verbProps.beamFireSizeRange.RandomInRange);
             }
-        }
-
-        public override void ExposeData()
-        {
-            base.ExposeData();
-            Scribe_Values.Look(ref currentPos, "currentPos");
-            Scribe_References.Look(ref targeted, "targeted");
-            Scribe_References.Look(ref beamMote, "beamMote");
         }
     }
 }
