@@ -10,7 +10,7 @@ namespace AthenaFramework
 {
     public class CompBeam : ThingComp
     {
-        protected virtual BeamRenderer Beam => parent as BeamRenderer;
+        public BeamRenderer Beam => parent as BeamRenderer;
 
         public virtual void PostValuesSetup() { }
 

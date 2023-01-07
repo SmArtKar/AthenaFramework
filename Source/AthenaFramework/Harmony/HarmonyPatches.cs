@@ -73,13 +73,11 @@ namespace AthenaFramework
         {
             static void Postfix(Projectile __instance, Thing launcher, ref Vector3 origin, LocalTargetInfo usedTarget, LocalTargetInfo intendedTarget, ProjectileHitFlags hitFlags)
             {
-                if (!__instance.def.HasModExtension<BeamProjectile>() || launcher == null)
+                if (__instance.def.HasModExtension<BeamProjectile>() && launcher != null)
                 {
-                    return;
+                    MapComponent_AthenaRenderer renderer = __instance.Map.GetComponent<MapComponent_AthenaRenderer>();
+                    renderer.CreateActiveBeam(launcher, __instance, __instance.def.GetModExtension<BeamProjectile>().beamType, origin - launcher.DrawPos, new Vector3());
                 }
-
-                MapComponent_AthenaRenderer renderer = __instance.Map.GetComponent<MapComponent_AthenaRenderer>();
-                renderer.CreateActiveBeam(launcher, __instance, __instance.def.GetModExtension<BeamProjectile>().beamType, origin - launcher.DrawPos, new Vector3());
             }
         }
 

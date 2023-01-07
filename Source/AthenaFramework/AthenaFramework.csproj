@@ -64,6 +64,7 @@
     <Compile Include="Things\BeamProjectile.cs" />
     <Compile Include="Things\Comp_DamageAmplifier.cs" />
     <Compile Include="Things\Comp_CustomApparelBody.cs" />
+    <Compile Include="Things\Comp_ProjectileTrail.cs" />
     <Compile Include="Things\HediffGiverExtension.cs" />
     <Compile Include="Things\DamageAmplifierExtension.cs" />
     <Compile Include="Things\TurretGraphicOverride.cs" />
