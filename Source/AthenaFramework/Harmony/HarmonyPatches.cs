@@ -436,9 +436,14 @@ namespace AthenaFramework
 
                 if (__instance.Instigator is ThingWithComps)
                 {
-                    foreach (Comp_DamageAmplifier amplifier in (__instance.Instigator as ThingWithComps).AllComps.OfType<Comp_DamageAmplifier>())
+                    for (int i = (__instance.Instigator as ThingWithComps).AllComps.Count - 1; i >= 0; i--)
                     {
-                        __result *= amplifier.DamageMultiplier;
+                        Comp_DamageAmplifier amplifier = (__instance.Instigator as ThingWithComps).AllComps[i] as Comp_DamageAmplifier;
+
+                        if (amplifier != null)
+                        {
+                            __result *= amplifier.DamageMultiplier;
+                        }
                     }
                 }
 
@@ -449,16 +454,27 @@ namespace AthenaFramework
 
                 Pawn pawn = __instance.Instigator as Pawn;
 
-                foreach (Hediff hediff in pawn.health.hediffSet.hediffs)
+                for (int i = pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
                 {
+                    Hediff hediff = pawn.health.hediffSet.hediffs[i];
+
                     if (hediff.def.GetModExtension<DamageAmplifierExtension>() != null)
                     {
                         __result *= hediff.def.GetModExtension<DamageAmplifierExtension>().damageMultiplier;
                     }
 
-                    if (hediff is HediffWithComps)
+                    HediffWithComps compHediff = hediff as HediffWithComps;
+
+                    if (hediff == null)
                     {
-                        foreach (HediffComp_DamageAmplifier amplifier in (hediff as HediffWithComps).comps.OfType<HediffComp_DamageAmplifier>())
+                        continue;
+                    }
+
+                    for (int j = compHediff.comps.Count - 1; j >= 0; j--)
+                    {
+                        HediffComp_DamageAmplifier amplifier = compHediff.comps[j] as HediffComp_DamageAmplifier;
+
+                        if (amplifier != null)
                         {
                             __result *= amplifier.DamageMultiplier;
                         }
@@ -566,8 +582,6 @@ namespace AthenaFramework
         [HarmonyPatch(typeof(Pawn), nameof(Pawn.DrawAt))]
         public static class Pawn_PostDrawAt
         {
-            public static Dictionary<Pawn, List<HediffComp_Renderable>> renderables = new Dictionary<Pawn, List<HediffComp_Renderable>>();
-
             static void Postfix(Pawn __instance, Vector3 drawLoc)
             {
                 for (int i = __instance.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
