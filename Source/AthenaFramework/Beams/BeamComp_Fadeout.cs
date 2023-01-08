@@ -20,7 +20,7 @@ namespace AthenaFramework
                 return;
             }
 
-            BeamStatic beam = BeamStatic.CreateBeam(Beam.firstPoint, Beam.secondPoint, Props.beamDef, Beam.Map);
+            Beam beam = Beam.CreateStaticBeam(Beam.firstPoint, Beam.secondPoint, Beam.def, Beam.Map);
             beam.fadeoutTicks = Props.fadeoutTicks;
             beam.ticksLeft = Props.fadeoutTicks;
             beam.GetComp<BeamComp_Fadeout>().active = false;
@@ -35,6 +35,5 @@ namespace AthenaFramework
         }
 
         public int fadeoutTicks = 10;
-        public ThingDef beamDef;
     }
 }

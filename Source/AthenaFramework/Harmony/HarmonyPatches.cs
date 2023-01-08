@@ -77,7 +77,7 @@ namespace AthenaFramework
                 Comp_BeamProjectile comp = __instance.TryGetComp<Comp_BeamProjectile>();
                 if (comp != null && launcher != null)
                 {
-                    comp.beam = BeamActive.CreateBeam(launcher, __instance, comp.Props.beamDef, origin - launcher.DrawPos);
+                    comp.beam = Beam.CreateActiveBeam(launcher, __instance, comp.Props.beamDef, origin - launcher.DrawPos);
                 }
             }
         }
@@ -465,7 +465,7 @@ namespace AthenaFramework
 
                     HediffWithComps compHediff = hediff as HediffWithComps;
 
-                    if (hediff == null)
+                    if (compHediff == null)
                     {
                         continue;
                     }

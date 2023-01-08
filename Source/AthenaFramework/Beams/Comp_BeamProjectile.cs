@@ -12,7 +12,7 @@ namespace AthenaFramework
     {
         public CompProperties_BeamProjectile Props => props as CompProperties_BeamProjectile;
 
-        public BeamActive beam;
+        public Beam beam;
 
         public override void PostExposeData()
         {
