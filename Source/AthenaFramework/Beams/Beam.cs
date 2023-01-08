@@ -11,6 +11,12 @@ using Verse.AI;
 
 namespace AthenaFramework
 {
+    [Obsolete]
+    public class MapComponent_AthenaRenderer : MapComponent
+    {
+        public MapComponent_AthenaRenderer(Map map) : base(map) { }
+    }
+
     public abstract class Beam : ThingWithComps
     {
         public Vector3 firstPoint;
