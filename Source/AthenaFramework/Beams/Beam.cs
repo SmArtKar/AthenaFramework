@@ -67,7 +67,7 @@ namespace AthenaFramework
                 {
                     List<Material> sizeMaterials = new List<Material>();
 
-                    for (int j = 0; j < sizeAmount; j++)
+                    for (int j = 0; j < frameAmount; j++)
                     {
                         sizeMaterials.Add(MaterialPool.MatFrom(texPath + (sizeAmount > 1 ? ((char)(i + 65)).ToString() : "") + (frameAmount > 1 ? (j + 1) : ""), ShaderDatabase.MoteGlow));
                     }
