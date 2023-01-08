@@ -12,13 +12,9 @@ namespace AthenaFramework
     public class HediffComp_Renderable : HediffComp
     {
         private HediffCompProperties_Renderable Props => props as HediffCompProperties_Renderable;
-        public Mote attachedMote;
+        private static readonly float altitude = AltitudeLayer.MoteOverhead.AltitudeFor();
 
-        public override void CompExposeData()
-        {
-            base.CompExposeData();
-            Scribe_References.Look(ref attachedMote, "attachedMote");
-        }
+        public Mote attachedMote;
 
         public virtual void DrawAt(Vector3 drawPos)
         {
@@ -27,17 +23,19 @@ namespace AthenaFramework
                 return;
             }
 
-            drawPos.y = AltitudeLayer.MoteOverhead.AltitudeFor(); 
+            drawPos.y = altitude; 
             Props.graphicData.Graphic.Draw(drawPos, Pawn.Rotation, Pawn);
         }
 
         public override void CompPostTick(ref float severityAdjustment)
         {
             base.CompPostTick(ref severityAdjustment);
+            
             if (attachedMote != null && !attachedMote.Destroyed)
             {
                 attachedMote.Maintain();
             }
+
             else if (Props.attachedMoteDef != null)
             {
                 attachedMote = MoteMaker.MakeAttachedOverlay(Pawn, Props.attachedMoteDef, Props.attachedMoteOffset, Props.attachedMoteScale);
@@ -47,6 +45,7 @@ namespace AthenaFramework
         public override void CompPostPostAdd(DamageInfo? dinfo)
         {
             base.CompPostPostAdd(dinfo);
+
             if (Props.attachedMoteDef != null)
             {
                 attachedMote = MoteMaker.MakeAttachedOverlay(Pawn, Props.attachedMoteDef, Props.attachedMoteOffset, Props.attachedMoteScale);
@@ -56,6 +55,7 @@ namespace AthenaFramework
         public override void CompPostPostRemoved()
         {
             base.CompPostPostRemoved();
+
             if (attachedMote != null && !attachedMote.Destroyed)
             {
                 attachedMote.Destroy();

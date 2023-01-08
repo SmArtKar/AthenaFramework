@@ -49,6 +49,13 @@
     <Compile Include="AngularShotguns\AngularShotgunExtension.cs" />
     <Compile Include="AngularShotguns\CompAbilityEffect_LaunchShotgunProjectiles.cs" />
     <Compile Include="AngularShotguns\Verb_ShootAngularShotgun.cs" />
+    <Compile Include="Beams\Beam.cs" />
+    <Compile Include="Beams\BeamActive.cs" />
+    <Compile Include="Beams\BeamComp.cs" />
+    <Compile Include="Beams\BeamExtension.cs" />
+    <Compile Include="Beams\BeamStatic.cs" />
+    <Compile Include="Beams\BeamComp_Fadeout.cs" />
+    <Compile Include="Beams\Comp_BeamProjectile.cs" />
     <Compile Include="Gizmos\Gizmo_HediffShieldStatus.cs" />
     <Compile Include="Harmony\HarmonyPatches.cs" />
     <Compile Include="Hediffs\HediffComp_Bomb.cs" />
@@ -56,12 +63,6 @@
     <Compile Include="Hediffs\HediffComp_RemoveOnSeverity.cs" />
     <Compile Include="Hediffs\HediffComp_Renderable.cs" />
     <Compile Include="Hediffs\HediffComp_Shield.cs" />
-    <Compile Include="Rendering\BeamRenderer.cs" />
-    <Compile Include="Rendering\AthenaBeams.cs" />
-    <Compile Include="Rendering\CompBeam.cs" />
-    <Compile Include="Rendering\CompBeam_Fadeout.cs" />
-    <Compile Include="Rendering\MapComponent_AthenaRenderer.cs" />
-    <Compile Include="Things\BeamProjectile.cs" />
     <Compile Include="Things\Comp_DamageAmplifier.cs" />
     <Compile Include="Things\Comp_CustomApparelBody.cs" />
     <Compile Include="Things\Comp_ProjectileTrail.cs" />

@@ -9,6 +9,7 @@ using RimWorld;
 using UnityEngine;
 using System.Reflection;
 using static HarmonyLib.Code;
+using static UnityEngine.UI.Image;
 
 namespace AthenaFramework
 {
@@ -68,15 +69,15 @@ namespace AthenaFramework
             }
         }
 
-        [HarmonyPatch(typeof(Projectile), "Launch", new Type[] { typeof(Thing), typeof(Vector3), typeof(LocalTargetInfo), typeof(LocalTargetInfo), typeof(ProjectileHitFlags), typeof(bool), typeof(Thing), typeof(ThingDef) })]
+        [HarmonyPatch(typeof(Projectile), "Launch", new System.Type[] { typeof(Thing), typeof(Vector3), typeof(LocalTargetInfo), typeof(LocalTargetInfo), typeof(ProjectileHitFlags), typeof(bool), typeof(Thing), typeof(ThingDef) })]
         public static class Projectile_PostLaunch
         {
             static void Postfix(Projectile __instance, Thing launcher, ref Vector3 origin, LocalTargetInfo usedTarget, LocalTargetInfo intendedTarget, ProjectileHitFlags hitFlags)
             {
-                if (__instance.def.HasModExtension<BeamProjectile>() && launcher != null)
+                Comp_BeamProjectile comp = __instance.TryGetComp<Comp_BeamProjectile>();
+                if (comp != null && launcher != null)
                 {
-                    MapComponent_AthenaRenderer renderer = __instance.Map.GetComponent<MapComponent_AthenaRenderer>();
-                    renderer.CreateActiveBeam(launcher, __instance, __instance.def.GetModExtension<BeamProjectile>().beamType, origin - launcher.DrawPos, new Vector3());
+                    comp.beam = BeamActive.CreateBeam(launcher, __instance, comp.Props.beamDef, origin - launcher.DrawPos);
                 }
             }
         }
@@ -357,26 +358,13 @@ namespace AthenaFramework
         public static class Projectile_PreImpact
         {
             static FieldInfo damageModifier = typeof(Projectile).GetField("weaponDamageMultiplier", BindingFlags.NonPublic | BindingFlags.Instance);
+
             static void Prefix(Projectile __instance, Thing hitThing, ref bool blockedByShield)
             {
-                if (__instance.def.HasModExtension<BeamProjectile>() && __instance.Launcher != null)
+                Comp_BeamProjectile comp = __instance.TryGetComp<Comp_BeamProjectile>();
+                if (comp != null && __instance.Launcher != null)
                 {
-                    MapComponent_AthenaRenderer renderer = __instance.Map.GetComponent<MapComponent_AthenaRenderer>();
-
-                    foreach (BeamInfo beamInfo in renderer.activeBeams)
-                    {
-                        if (beamInfo.beamStart == __instance.Launcher && beamInfo.beamEnd == __instance)
-                        {
-                            if (hitThing != null)
-                            {
-                                beamInfo.beam.RenderBeam(beamInfo.beamStart.DrawPos + beamInfo.startOffset, hitThing.DrawPos + beamInfo.endOffset);
-                            }
-                            else
-                            {
-                                beamInfo.beam.RenderBeam(beamInfo.beamStart.DrawPos + beamInfo.startOffset, __instance.DrawPos + beamInfo.endOffset);
-                            }
-                        }
-                    }
+                    comp.beam.AdjustBeam(__instance.Launcher.DrawPos + comp.beam.startOffset, __instance.DrawPos);
                 }
 
                 if (__instance.def.HasModExtension<ProjectileEffectExtension>())
@@ -502,13 +490,33 @@ namespace AthenaFramework
         {
             static void Postfix(Pawn __instance, ref DamageInfo dinfo, ref bool absorbed)
             {
-                foreach (HediffComp_Shield shield in __instance.health.hediffSet.hediffs.OfType<HediffWithComps>().SelectMany((HediffWithComps x) => x.comps).OfType<HediffComp_Shield>())
+                if (absorbed)
                 {
-                    shield.BlockDamage(ref dinfo, ref absorbed);
+                    return;
+                }
 
-                    if (absorbed)
+                for (int i = __instance.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
+                {
+                    HediffWithComps hediff = __instance.health.hediffSet.hediffs[i] as HediffWithComps;
+
+                    if (hediff == null)
                     {
-                        return;
+                        continue;
+                    }
+
+                    for (int j = hediff.comps.Count - 1; j >= 0; j--)
+                    {
+                        HediffComp_Shield shield = hediff.comps[j] as HediffComp_Shield;
+
+                        if (shield != null)
+                        {
+                            shield.BlockDamage(ref dinfo, ref absorbed);
+
+                            if (absorbed)
+                            {
+                                return;
+                            }
+                        }
                     }
                 }
             }
@@ -519,18 +527,33 @@ namespace AthenaFramework
         {
             static bool Prefix(StunHandler __instance, ref DamageInfo dinfo)
             {
-                if (!(__instance.parent is Pawn))
+                Pawn pawn = __instance.parent as Pawn;
+
+                if (pawn == null)
                 {
                     return true;
                 }
 
-                Pawn pawn = __instance.parent as Pawn;
-
-                foreach (HediffComp_Shield shield in pawn.health.hediffSet.hediffs.OfType<HediffWithComps>().SelectMany((HediffWithComps x) => x.comps).OfType<HediffComp_Shield>())
+                for (int i = pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
                 {
-                    if (shield.BlockStun(ref dinfo))
+                    HediffWithComps hediff = pawn.health.hediffSet.hediffs[i] as HediffWithComps;
+
+                    if (hediff == null)
                     {
-                        return false;
+                        continue;
+                    }
+
+                    for (int j = hediff.comps.Count - 1; j >= 0; j--)
+                    {
+                        HediffComp_Shield shield = hediff.comps[j] as HediffComp_Shield;
+
+                        if (shield != null)
+                        {
+                            if (shield.BlockStun(ref dinfo))
+                            {
+                                return false;
+                            }
+                        }
                     }
                 }
 
@@ -543,11 +566,28 @@ namespace AthenaFramework
         [HarmonyPatch(typeof(Pawn), nameof(Pawn.DrawAt))]
         public static class Pawn_PostDrawAt
         {
+            public static Dictionary<Pawn, List<HediffComp_Renderable>> renderables = new Dictionary<Pawn, List<HediffComp_Renderable>>();
+
             static void Postfix(Pawn __instance, Vector3 drawLoc)
             {
-                foreach (HediffComp_Renderable renderable in __instance.health.hediffSet.hediffs.OfType<HediffWithComps>().SelectMany((HediffWithComps x) => x.comps).OfType<HediffComp_Renderable>())
+                for (int i = __instance.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
                 {
-                    renderable.DrawAt(drawLoc);
+                    HediffWithComps hediff = __instance.health.hediffSet.hediffs[i] as HediffWithComps;
+
+                    if (hediff == null)
+                    {
+                        continue;
+                    }
+
+                    for (int j = hediff.comps.Count - 1; j >= 0; j--)
+                    {
+                        HediffComp_Renderable renderable = hediff.comps[j] as HediffComp_Renderable;
+
+                        if (renderable != null)
+                        {
+                            renderable.DrawAt(drawLoc);
+                        }
+                    }
                 }
             }
         }

@@ -17,6 +17,9 @@ namespace AthenaFramework.Gizmos
 
         public static readonly Texture2D FullShieldBarTex = SolidColorMaterials.NewSolidColorTexture(new Color(0.2f, 0.2f, 0.24f));
         public static readonly Texture2D EmptyShieldBarTex = SolidColorMaterials.NewSolidColorTexture(Color.clear);
+
+        private HediffCompProperties_Shield props => shieldHediff.props as HediffCompProperties_Shield;
+
         static Gizmo_HediffShieldStatus() { }
 
         public Gizmo_HediffShieldStatus()
@@ -31,7 +34,6 @@ namespace AthenaFramework.Gizmos
 
         public override GizmoResult GizmoOnGUI(Vector2 topLeft, float maxWidth, GizmoRenderParms parms)
         {
-            HediffCompProperties_Shield props = shieldHediff.props as HediffCompProperties_Shield;
             Rect backgroundRect = new Rect(topLeft.x, topLeft.y, GetWidth(maxWidth), 75f);
             Rect drawRect = backgroundRect.ContractedBy(6f);
             Widgets.DrawWindowBackground(backgroundRect);

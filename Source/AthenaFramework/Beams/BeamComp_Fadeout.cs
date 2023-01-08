@@ -7,24 +7,23 @@ using Verse;
 
 namespace AthenaFramework
 {
-    public class CompBeam_Fadeout : CompBeam
+    public class BeamComp_Fadeout : BeamComp
     {
         private CompProperties_BeamFadeout Props => props as CompProperties_BeamFadeout;
 
         public bool active = true;
 
-        public override void PreDestroyBeam()
+        public override void PreDestroy()
         {
             if (!active)
             {
                 return;
             }
 
-            MapComponent_AthenaRenderer renderer = Beam.Map.GetComponent<MapComponent_AthenaRenderer>();
-            StaticBeamInfo beamInfo = renderer.CreateStaticBeam(Beam.firstPoint, Beam.secondPoint, Beam.def, Beam.Map);
-            beamInfo.beam.fadeoutTicks = Props.fadeoutTicks;
-            beamInfo.beam.ticksLeft = Props.fadeoutTicks;
-            beamInfo.beam.GetComp<CompBeam_Fadeout>().active = false;
+            BeamStatic beam = BeamStatic.CreateBeam(Beam.firstPoint, Beam.secondPoint, Beam.def, Beam.Map);
+            beam.fadeoutTicks = Props.fadeoutTicks;
+            beam.ticksLeft = Props.fadeoutTicks;
+            beam.GetComp<BeamComp_Fadeout>().active = false;
         }
     }
 
@@ -32,7 +31,7 @@ namespace AthenaFramework
     {
         public CompProperties_BeamFadeout()
         {
-            compClass = typeof(CompBeam_Fadeout);
+            compClass = typeof(BeamComp_Fadeout);
         }
 
         public int fadeoutTicks = 10;

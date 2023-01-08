@@ -22,6 +22,8 @@ namespace AthenaFramework
         public Vector3 impactAngleVect;
 
         private HediffCompProperties_Shield Props => props as HediffCompProperties_Shield;
+        private static readonly float altitude = AltitudeLayer.MoteOverhead.AltitudeFor();
+
         public Matrix4x4 matrix;
         public Gizmo_HediffShieldStatus gizmo;
 
@@ -60,9 +62,10 @@ namespace AthenaFramework
             if (Props.shatterOn.Contains(dinfo.Def))
             {
                 Shatter(ref dinfo);
+                return;
             }
 
-            if (!(dinfo.Def.isRanged && Props.blocksRangedDamage) && !((!dinfo.Def.isRanged && !dinfo.Def.isExplosive) && Props.blocksMeleeDamage) && !(dinfo.Def.isExplosive && Props.blocksExplosions))
+            if ((dinfo.Def.isRanged && !Props.blocksRangedDamage) || (dinfo.Def.isExplosive && !Props.blocksExplosions) || (!dinfo.Def.isRanged && !dinfo.Def.isExplosive && !Props.blocksMeleeDamage))
             {
                 return;
             }
@@ -75,9 +78,12 @@ namespace AthenaFramework
                 }
             }
 
-            if (energy <= dinfo.Amount * Props.energyPerDamageModifier)
+            energy -= dinfo.Amount * Props.energyPerDamageModifier;
+
+            if (energy <= 0)
             {
                 Shatter(ref dinfo);
+
                 if (Props.blockOverdamage)
                 {
                     absorbed = true;
@@ -86,13 +92,12 @@ namespace AthenaFramework
 
                 if (Props.consumeOverdamage)
                 {
-                    dinfo.SetAmount(dinfo.Amount - energy / Props.energyPerDamageModifier);
+                    dinfo.SetAmount(-1 * energy / Props.energyPerDamageModifier);
                 }
                 
                 return;
             }
 
-            energy -= dinfo.Amount * Props.energyPerDamageModifier;
             absorbed = true;
             OnDamageAbsorb(ref dinfo);
         }
@@ -125,9 +130,12 @@ namespace AthenaFramework
                 return false;
             }
 
-            if (energy <= dinfo.Amount * Props.energyPerStunModifier)
+            energy -= dinfo.Amount * Props.energyPerStunModifier;
+
+            if (energy <= 0)
             {
                 Shatter(ref dinfo);
+
                 if (Props.blockOverdamage)
                 {
                     return true;
@@ -135,13 +143,12 @@ namespace AthenaFramework
 
                 if (Props.consumeOverdamage)
                 {
-                    dinfo.SetAmount(dinfo.Amount - energy / Props.energyPerStunModifier);
+                    dinfo.SetAmount(-1 * energy / Props.energyPerStunModifier);
                 }
 
                 return false;
             }
 
-            energy -= dinfo.Amount * Props.energyPerStunModifier;
             OnDamageAbsorb(ref dinfo);
             return true;
         }
@@ -163,8 +170,17 @@ namespace AthenaFramework
                     scale = (scale - 1) + Pawn.ageTracker.CurKindLifeStage.bodyGraphicData.drawSize.x;
                 }
             }
-            Props.shieldBreakEffecter.SpawnAttached(Pawn, Pawn.MapHeld, scale * 0.5f);
-            FleckMaker.Static(Pawn.DrawPos, Pawn.Map, Props.breakFleck, 12f);
+
+            if (Props.shieldBreakEffecter != null)
+            {
+                Props.shieldBreakEffecter.SpawnAttached(Pawn, Pawn.MapHeld, scale * 0.5f);
+            }
+
+            if (Props.breakFleck != null)
+            {
+                FleckMaker.Static(Pawn.DrawPos, Pawn.Map, Props.breakFleck, 12f);
+            }
+
             for (int i = 0; i < 6; i++)
             {
                 FleckMaker.ThrowDustPuff(Pawn.DrawPos + Vector3Utility.HorizontalVectorFromAngle(Rand.Range(0, 360)) * Rand.Range(0.3f, 0.6f), Pawn.MapHeld, Rand.Range(0.8f, 1.2f));
@@ -201,13 +217,21 @@ namespace AthenaFramework
         public override void CompPostTick(ref float severityAdjustment)
         {
             base.CompPostTick(ref severityAdjustment);
+
             if (ticksToReset > 0)
             {
                 ticksToReset--;
+
                 if (ticksToReset <= 0)
                 {
                     this.Reset();
                 }
+
+                return;
+            }
+
+            if (energy >= Props.maxEnergy)
+            {
                 return;
             }
 
@@ -226,7 +250,7 @@ namespace AthenaFramework
                 return;
             }
 
-            drawPos.y = AltitudeLayer.MoteOverhead.AltitudeFor();
+            drawPos.y = altitude;
             float scale = Props.minDrawSize + (Props.maxDrawSize - Props.minDrawSize) * EnergyPercent;
 
             if (Props.scaleWithOwner)
@@ -244,14 +268,14 @@ namespace AthenaFramework
             if (lastImpactTick > Find.TickManager.TicksGame - 8)
             {
                 float tickScaleModifier = (8 - Find.TickManager.TicksGame + lastImpactTick) / 8f * 0.05f;
-                drawPos += this.impactAngleVect * tickScaleModifier;
+                drawPos += impactAngleVect * tickScaleModifier;
                 scale -= tickScaleModifier;
-            }
 
-            if (lastResetTick > Find.TickManager.TicksGame - 20)
-            {
-                float tickScaleModifier = 1 - (20 - Find.TickManager.TicksGame + lastResetTick) / 20f;
-                scale *= tickScaleModifier;
+                if (lastResetTick > Find.TickManager.TicksGame - 20)
+                {
+                    tickScaleModifier = 1 - (20 - Find.TickManager.TicksGame + lastResetTick) / 20f;
+                    scale *= tickScaleModifier;
+                }
             }
 
             matrix.SetTRS(drawPos, Quaternion.AngleAxis(Props.spinning ? Rand.Range(0, 360) : 0, Vector3.up), new Vector3(scale, 1f, scale));
@@ -269,6 +293,7 @@ namespace AthenaFramework
                         gizmo = new Gizmo_HediffShieldStatus();
                         gizmo.shieldHediff = this;
                     }
+
                     yield return gizmo;
                 }
             }
