@@ -17,7 +17,7 @@ namespace AthenaFramework
         public MapComponent_AthenaRenderer(Map map) : base(map) { }
     }
 
-    public abstract class Beam : ThingWithComps
+    public class Beam : ThingWithComps
     {
         public Vector3 firstPoint;
         public Vector3 secondPoint;
@@ -47,6 +47,8 @@ namespace AthenaFramework
         public Vector3 startOffset;
         public Vector3 endOffset;
 
+        public Beam() { }
+
         public static Beam CreateActiveBeam(Thing beamStart, Thing beamEnd, ThingDef beamDef, Vector3 startOffset = new Vector3(), Vector3 endOffset = new Vector3())
         {
             Beam beam = ThingMaker.MakeThing(beamDef) as Beam;
@@ -55,8 +57,8 @@ namespace AthenaFramework
             beam.beamEnd = beamEnd;
             beam.startOffset = startOffset;
             beam.endOffset = endOffset;
-            beam.AdjustBeam(beamStart.DrawPos + startOffset, beamEnd.DrawPos + endOffset);
             beam.activeBeam = true;
+            beam.AdjustBeam(beamStart.DrawPos + startOffset, beamEnd.DrawPos + endOffset);
             return beam;
         }
 
@@ -193,23 +195,26 @@ namespace AthenaFramework
                 }
             }
 
-            if (materials == null || frameAmount <= 1)
+            if (materials == null)
             {
                 return;
             }
 
-            currentFrameTick++;
-            if (currentFrameTick > frameDelayAmount)
+            if (frameAmount > 1)
             {
-                currentFrameTick = 0;
-                currentFrame++;
-
-                if (currentFrame >= frameAmount)
+                currentFrameTick++;
+                if (currentFrameTick > frameDelayAmount)
                 {
-                    currentFrame = 0;
-                }
+                    currentFrameTick = 0;
+                    currentFrame++;
 
-                curMat = materials[sizeIndex][currentFrame];
+                    if (currentFrame >= frameAmount)
+                    {
+                        currentFrame = 0;
+                    }
+
+                    curMat = materials[sizeIndex][currentFrame];
+                }
             }
 
             if (!activeBeam)
