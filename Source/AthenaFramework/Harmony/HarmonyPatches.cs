@@ -94,8 +94,10 @@ namespace AthenaFramework
 
                 HediffGiverExtension extension = __instance.def.GetModExtension<HediffGiverExtension>();
 
-                foreach (HediffBodypartPair pair in extension.bodypartPairs)
+                for (int i = extension.bodypartPairs.Count- 1; i >= 0; i--)
                 {
+                    HediffBodypartPair pair = extension.bodypartPairs[i];
+
                     if (pair.bodyPartDef == null)
                     {
                         Hediff hediff = HediffMaker.MakeHediff(pair.hediffDef, __instance, null);
@@ -104,8 +106,9 @@ namespace AthenaFramework
                     }
 
                     List<BodyPartRecord> partRecords = __instance.RaceProps.body.GetPartsWithDef(pair.bodyPartDef);
-                    foreach (BodyPartRecord partRecord in partRecords)
+                    for (int j = partRecords.Count-1; j >= 0; j--)
                     {
+                        BodyPartRecord partRecord = partRecords[j];
                         Hediff hediff = HediffMaker.MakeHediff(pair.hediffDef, __instance, partRecord);
                         __instance.health.AddHediff(hediff, partRecord, null, null);
                     }
@@ -160,41 +163,68 @@ namespace AthenaFramework
         {
             static bool Prefix(ref Apparel apparel, ref BodyTypeDef bodyType, ref ApparelGraphicRecord rec, ref bool __result)
             {
-                Comp_CustomApparelBody customBody = apparel.GetComp<Comp_CustomApparelBody>();
-                if (customBody == null || !customBody.getPreventBodytype)
+                for (int i = apparel.AllComps.Count - 1; i >= 0; i--)
                 {
-                    if (apparel.Wearer != null)
+                    Comp_CustomApparelBody customBody = apparel.AllComps[i] as Comp_CustomApparelBody;
+
+                    if (customBody == null)
                     {
-                        foreach (Apparel wornApparel in apparel.Wearer.apparel.WornApparel)
-                        {
-                            Comp_CustomApparelBody wornCustomBody = wornApparel.GetComp<Comp_CustomApparelBody>();
-                            if (wornCustomBody != null && wornCustomBody.getBodytype != null)
-                            {
-                                bodyType = wornCustomBody.getBodytype;
-                                return true;
-                            }
-                        }
+                        continue;
                     }
 
-                    return true;
+                    if (customBody.PreventBodytype(bodyType, rec))
+                    {
+                        if (apparel.WornGraphicPath.NullOrEmpty())
+                        {
+                            return true;
+                        }
+
+                        Shader shader = ShaderDatabase.Cutout;
+                        if (apparel.def.apparel.useWornGraphicMask)
+                        {
+                            shader = ShaderDatabase.CutoutComplex;
+                        }
+
+                        Graphic graphic = GraphicDatabase.Get<Graphic_Multi>(apparel.WornGraphicPath, shader, apparel.def.graphicData.drawSize, apparel.DrawColor);
+                        rec = new ApparelGraphicRecord(graphic, apparel);
+
+                        __result = true;
+                        return false;
+                    }
+
+                    BodyTypeDef newBodyType = customBody.CustomBodytype(apparel, bodyType, rec);
+
+                    if (newBodyType != null)
+                    {
+                        bodyType= newBodyType;
+                        return true;
+                    }
                 }
 
-                if (apparel.WornGraphicPath.NullOrEmpty())
+                for (int i = apparel.Wearer.apparel.WornApparelCount - 1; i >= 0; i--)
                 {
-                    return true;
+                    Apparel otherApparel = apparel.Wearer.apparel.WornApparel[i];
+
+                    for (int j = otherApparel.AllComps.Count - 1; j >= 0; j--)
+                    {
+                        Comp_CustomApparelBody customBody = otherApparel.AllComps[j] as Comp_CustomApparelBody;
+
+                        if (customBody == null)
+                        {
+                            continue;
+                        }
+
+                        BodyTypeDef newBodyType = customBody.CustomBodytype(apparel, bodyType, rec);
+
+                        if (newBodyType != null)
+                        {
+                            bodyType = newBodyType;
+                            return true;
+                        }
+                    }
                 }
 
-                Shader shader = ShaderDatabase.Cutout;
-                if (apparel.def.apparel.useWornGraphicMask)
-                {
-                    shader = ShaderDatabase.CutoutComplex;
-                }
-
-                Graphic graphic = GraphicDatabase.Get<Graphic_Multi>(apparel.WornGraphicPath, shader, apparel.def.graphicData.drawSize, apparel.DrawColor);
-                rec = new ApparelGraphicRecord(graphic, apparel);
-
-                __result = true;
-                return false;
+                return true;
             }
         }
 
@@ -212,26 +242,41 @@ namespace AthenaFramework
                 bool graphicsSet = false;
                 BodyTypeDef customUserBody = null;
 
-                foreach (Comp_CustomApparelBody customBody in __instance.pawn.apparel.WornApparel.SelectMany((Apparel x) => x.AllComps).OfType<Comp_CustomApparelBody>())
+                for (int i = __instance.pawn.apparel.WornApparelCount - 1; i >= 0; i--)
                 {
-                    Graphic customBodyGraphic = customBody.getBodyGraphic;
-                    if (customBodyGraphic != null)
-                    {
-                        __instance.nakedGraphic = customBodyGraphic;
-                        graphicsSet = true;
-                    }
+                    Apparel apparel = __instance.pawn.apparel.WornApparel[i];
 
-                    Graphic customHeadGraphic = customBody.getHeadGraphic;
-                    if (customHeadGraphic != null)
+                    for (int j = apparel.AllComps.Count - 1; j >= 0; j--)
                     {
-                        __instance.headGraphic = customHeadGraphic;
-                        graphicsSet = true;
-                    }
+                        Comp_CustomApparelBody customBody = apparel.AllComps[j] as Comp_CustomApparelBody;
+                        
+                        if (customBody == null)
+                        {
+                            continue;
+                        }
 
-                    BodyTypeDef customBodytype = customBody.getBodytype;
-                    if (customBodytype != null)
-                    {
-                        customUserBody = customBodytype;
+                        Graphic customBodyGraphic = customBody.GetBodyGraphic;
+
+                        if (customBodyGraphic != null)
+                        {
+                            __instance.nakedGraphic = customBodyGraphic;
+                            graphicsSet = true;
+                        }
+
+                        Graphic customHeadGraphic = customBody.GetHeadGraphic;
+
+                        if (customHeadGraphic != null)
+                        {
+                            __instance.headGraphic = customHeadGraphic;
+                            graphicsSet = true;
+                        }
+
+                        BodyTypeDef customBodytype = customBody.CustomBodytype(apparel, __instance.pawn.story.bodyType);
+
+                        if (customBodytype != null)
+                        {
+                            customUserBody = customBodytype;
+                        }
                     }
                 }
 
@@ -289,26 +334,40 @@ namespace AthenaFramework
                     offset += result.Item2;
                 }
 
-                if (dinfo.Instigator is ThingWithComps)
-                {
-                    foreach (Comp_DamageAmplifier amplifier in (dinfo.Instigator as ThingWithComps).AllComps.OfType<Comp_DamageAmplifier>())
-                    {
-                        (float, float) result = amplifier.GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
-                        modifier *= result.Item1;
-                        offset += result.Item2;
-                    }
-                }
+                ThingWithComps compThing = dinfo.Instigator as ThingWithComps;
 
-                if (dinfo.Instigator is not Pawn)
+                if (compThing == null)
                 {
                     dinfo.SetAmount(dinfo.Amount * modifier + offset);
                     return;
                 }
 
+                for (int i = compThing.AllComps.Count - 1; i >= 0; i--)
+                {
+                    Comp_DamageAmplifier amplifier = compThing.AllComps[i] as Comp_DamageAmplifier;
+
+                    if (amplifier == null)
+                    {
+                        continue;
+                    }
+
+                    (float, float) result = amplifier.GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
+                    modifier *= result.Item1;
+                    offset += result.Item2;
+                }
+
                 Pawn pawn = dinfo.Instigator as Pawn;
 
-                foreach (Hediff hediff in pawn.health.hediffSet.hediffs)
+                if (pawn == null)
                 {
+                    dinfo.SetAmount(dinfo.Amount * modifier + offset);
+                    return;
+                }
+
+                for (int i = pawn.health.hediffSet.hediffs.Count - 1; i >= 1; i--)
+                {
+                    Hediff hediff = pawn.health.hediffSet.hediffs[i];
+
                     if (hediff.def.GetModExtension<DamageAmplifierExtension>() != null)
                     {
                         (float, float) result = hediff.def.GetModExtension<DamageAmplifierExtension>().GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
@@ -316,14 +375,26 @@ namespace AthenaFramework
                         offset += result.Item2;
                     }
 
-                    if (hediff is HediffWithComps)
+                    HediffWithComps compHediff = hediff as HediffWithComps;
+
+                    if (compHediff == null)
                     {
-                        foreach (HediffComp_DamageAmplifier amplifier in (hediff as HediffWithComps).comps.OfType<HediffComp_DamageAmplifier>())
+                        continue;
+
+                    }
+
+                    for (int j = compHediff.comps.Count- 1; j >= 0; j--)
+                    {
+                        HediffComp_DamageAmplifier amplifier = compHediff.comps[j] as HediffComp_DamageAmplifier;
+
+                        if (amplifier == null)
                         {
-                            (float, float) result = amplifier.GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
-                            modifier *= result.Item1;
-                            offset += result.Item2;
+                            continue;
                         }
+
+                        (float, float) result = amplifier.GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
+                        modifier *= result.Item1;
+                        offset += result.Item2;
                     }
                 }
 
@@ -333,10 +404,19 @@ namespace AthenaFramework
                     return;
                 }
 
-                foreach (Apparel apparel in pawn.apparel.WornApparel)
+                for (int i = pawn.apparel.WornApparelCount - 1; i >= 0; i--)
                 {
-                    foreach (Comp_DamageAmplifier amplifier in apparel.AllComps.OfType<Comp_DamageAmplifier>())
+                    Apparel apparel = pawn.apparel.WornApparel[i];
+
+                    for (int j = apparel.AllComps.Count- 1; j >= 0; j--)
                     {
+                        Comp_DamageAmplifier amplifier = apparel.AllComps[j] as Comp_DamageAmplifier;
+
+                        if (amplifier == null)
+                        {
+                            continue;
+                        }
+
                         (float, float) result = amplifier.GetDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator);
                         modifier *= result.Item1;
                         offset += result.Item2;
@@ -395,8 +475,15 @@ namespace AthenaFramework
                 float offset = 0f;
                 List<string> excludedGlobal = new List<string>();
 
-                foreach (Comp_DamageAmplifier amplifier in __instance.AllComps.OfType<Comp_DamageAmplifier>())
+                for (int i = __instance.AllComps.Count - 1; i >= 0; i--)
                 {
+                    Comp_DamageAmplifier amplifier = __instance.AllComps[i] as Comp_DamageAmplifier;
+
+                    if (amplifier == null)
+                    {
+                        continue;
+                    }
+
                     (float, float) result = amplifier.GetDamageModifier(hitThing, ref excludedGlobal, __instance.Launcher);
                     multiplier *= result.Item1;
                     offset += result.Item2;
@@ -434,25 +521,29 @@ namespace AthenaFramework
                     __result *= __instance.Instigator.def.GetModExtension<DamageAmplifierExtension>().damageMultiplier;
                 }
 
-                if (__instance.Instigator is ThingWithComps)
-                {
-                    for (int i = (__instance.Instigator as ThingWithComps).AllComps.Count - 1; i >= 0; i--)
-                    {
-                        Comp_DamageAmplifier amplifier = (__instance.Instigator as ThingWithComps).AllComps[i] as Comp_DamageAmplifier;
+                ThingWithComps compThing = __instance.Instigator as ThingWithComps;
 
-                        if (amplifier != null)
-                        {
-                            __result *= amplifier.DamageMultiplier;
-                        }
-                    }
-                }
-
-                if (__instance.Instigator is not Pawn)
+                if (compThing == null)
                 {
                     return;
                 }
 
+                for (int i = compThing.AllComps.Count - 1; i >= 0; i--)
+                {
+                    Comp_DamageAmplifier amplifier = compThing.AllComps[i] as Comp_DamageAmplifier;
+
+                    if (amplifier != null)
+                    {
+                        __result *= amplifier.DamageMultiplier;
+                    }
+                }
+
                 Pawn pawn = __instance.Instigator as Pawn;
+
+                if(pawn == null)
+                {
+                    return;
+                }
 
                 for (int i = pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
                 {
@@ -486,10 +577,19 @@ namespace AthenaFramework
                     return;
                 }
 
-                foreach (Apparel apparel in pawn.apparel.WornApparel)
+                for (int i = pawn.apparel.WornApparel.Count - 1; i >= 0; i--)
                 {
-                    foreach (Comp_DamageAmplifier amplifier in apparel.AllComps.OfType<Comp_DamageAmplifier>())
+                    Apparel apparel = pawn.apparel.WornApparel[i];
+
+                    for (int j = apparel.AllComps.Count - 1; j >= 0; j--)
                     {
+                        Comp_DamageAmplifier amplifier = apparel.AllComps[j] as Comp_DamageAmplifier;
+
+                        if (amplifier == null)
+                        {
+                            continue;
+                        }
+
                         __result *= amplifier.DamageMultiplier;
                     }
 

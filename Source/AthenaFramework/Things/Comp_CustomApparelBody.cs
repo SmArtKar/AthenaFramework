@@ -11,8 +11,10 @@ namespace AthenaFramework
     public class Comp_CustomApparelBody : ThingComp
     {
         private CompProperties_CustomApparelBody Props => props as CompProperties_CustomApparelBody;
+        protected Apparel Apparel => parent as Apparel;
+        protected Pawn Wearer => Apparel.Wearer;
 
-        public virtual Graphic getBodyGraphic
+        public virtual Graphic GetBodyGraphic
         {
             get
             {
@@ -25,7 +27,7 @@ namespace AthenaFramework
             }
         }
 
-        public virtual Graphic getHeadGraphic
+        public virtual Graphic GetHeadGraphic
         {
             get
             {
@@ -37,25 +39,36 @@ namespace AthenaFramework
                 return Props.headGraphicData.Graphic;
             }
         }
-        public virtual bool getPreventBodytype
+        public virtual bool PreventBodytype (BodyTypeDef bodyType, ApparelGraphicRecord rec)
         {
-            get
-            {
-                return Props.preventBodytype;
-            }
+            return Props.preventBodytype;
         }
 
-        public virtual BodyTypeDef getBodytype
+        public virtual BodyTypeDef CustomBodytype(Apparel apparel, BodyTypeDef bodyType)
         {
-            get
+            if (Props.forcedBodytype != null)
             {
-                if (Props.forcedBodytype == null)
-                {
-                    return null;
-                }
-
                 return Props.forcedBodytype;
             }
+
+            if (Props.bodytypePairs != null)
+            {
+                for (int i = Props.bodytypePairs.Count - 1; i >= 0; i--)
+                {
+                    BodytypeSwitch pair = Props.bodytypePairs[i];
+                    if (pair.initialBodytype == bodyType)
+                    {
+                        return pair.newBodytype;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public virtual BodyTypeDef CustomBodytype(Apparel apparel, BodyTypeDef bodyType, ApparelGraphicRecord rec)
+        {
+            return CustomBodytype(apparel, bodyType);
         }
 
         public override void Notify_Equipped(Pawn pawn)
@@ -84,7 +97,17 @@ namespace AthenaFramework
         public GraphicData headGraphicData = null;
         // If bodygear should ignore bodytype in their texture paths similarly to headgear.
         public bool preventBodytype = true;
-        // If set to a certain bodytype it will force that bodytype onto all apparel that user is wearing
+        // If set to a certain bodytype it will force that bodytype onto all apparel that user is wearing. Overrides bodytypePairs
         public BodyTypeDef forcedBodytype;
+        // List of bodytype pairs that will be swapped. Allows to do stuff like making all fatties into hulks and thins into normals
+        public List<BodytypeSwitch> bodytypePairs;
+    }
+
+    public class BodytypeSwitch
+    {
+        // Bodytype that will be switched
+        public BodyTypeDef initialBodytype;
+        // What bodytype are we switching from
+        public BodyTypeDef newBodytype;
     }
 }
