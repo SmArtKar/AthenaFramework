@@ -176,8 +176,8 @@ namespace AthenaFramework
                 {
                     if (Rand.Chance(parent.VerbProperties[0].beamLineFleckChanceCurve.Evaluate(counter / normalOffsetCounter)))
                     {
-                        Vector3 vector5 = counter * offsetVector.normalized - offsetVector.normalized * Rand.Value + offsetVector.normalized / 2;
-                        FleckMaker.Static(parent.pawn.Position.ToVector3Shifted() + vector5, parent.pawn.Map, parent.VerbProperties[0].beamLineFleckDef, 1f);
+                        Vector3 fleckDistance = counter * offsetVector.normalized - offsetVector.normalized * Rand.Value + offsetVector.normalized / 2;
+                        FleckMaker.Static(parent.pawn.Position.ToVector3Shifted() + fleckDistance, parent.pawn.Map, parent.VerbProperties[0].beamLineFleckDef, 1f);
                     }
                     counter++;
                 }

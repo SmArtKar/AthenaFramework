@@ -40,15 +40,21 @@ namespace AthenaFramework
             GenExplosion.DoExplosion(Pawn.Position, Pawn.Map, Props.radius, Props.damageDef, Pawn, postExplosionGasType: (Props.gasExplosion ? new GasType?(Props.gasType) : null));
         }
 
-        public override void Notify_PawnKilled()
+        public override void Notify_PawnDied()
         {
-            base.Notify_PawnKilled();
+            base.Notify_PawnDied();
+
             if (!Props.explodeOnDeath)
             {
                 return;
             }
 
-            GenExplosion.DoExplosion(Pawn.Position, Pawn.Map, Props.radius, Props.damageDef, Pawn, postExplosionGasType: (Props.gasExplosion ? new GasType?(Props.gasType) : null));
+            if (Props.gasType == GasType.ToxGas && !ModLister.BiotechInstalled)
+            {
+                return;
+            }
+
+            GenExplosion.DoExplosion(Pawn.Position, Pawn.MapHeld, Props.radius, Props.damageDef, Pawn, postExplosionGasType: (Props.gasExplosion ? new GasType?(Props.gasType) : null));
             Pawn.health.RemoveHediff(parent);
         }
 
