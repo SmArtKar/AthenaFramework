@@ -99,12 +99,12 @@ namespace AthenaFramework
 
             LongEventHandler.ExecuteWhenFinished(delegate
             {
-                materials = new List<List<Material>>();
+                materials = new List<List<Material>>(sizeAmount);
                 string texPath = def.graphicData.texPath;
 
                 for (int i = 0; i < sizeAmount; i++)
                 {
-                    List<Material> sizeMaterials = new List<Material>();
+                    List<Material> sizeMaterials = new List<Material>(frameAmount);
 
                     for (int j = 0; j < frameAmount; j++)
                     {

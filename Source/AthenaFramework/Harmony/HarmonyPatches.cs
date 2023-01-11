@@ -196,14 +196,20 @@ namespace AthenaFramework
 
                     if (newBodyType != null)
                     {
-                        bodyType= newBodyType;
+                        bodyType = newBodyType;
                         return true;
                     }
                 }
 
-                for (int i = apparel.Wearer.apparel.WornApparelCount - 1; i >= 0; i--)
+                if (apparel.Wearer == null || apparel.Wearer.apparel == null) //Somehow, this happened, be that another mod's intervention or something else.
                 {
-                    Apparel otherApparel = apparel.Wearer.apparel.WornApparel[i];
+                    return true;
+                }
+
+                List<Apparel> wornApparel = apparel.Wearer.apparel.WornApparel;
+                for (int i = wornApparel.Count - 1; i >= 0; i--)
+                {
+                    Apparel otherApparel = wornApparel[i];
 
                     for (int j = otherApparel.AllComps.Count - 1; j >= 0; j--)
                     {
@@ -228,9 +234,8 @@ namespace AthenaFramework
             }
         }
 
-
         [HarmonyPatch(typeof(PawnGraphicSet), "ResolveAllGraphics")]
-        public static class PawnGraphicSet_PostResolveAllGraphics_Postfix
+        public static class PawnGraphicSet_PostResolveAllGraphics
         {
             static void Postfix(PawnGraphicSet __instance)
             {
@@ -242,9 +247,10 @@ namespace AthenaFramework
                 bool graphicsSet = false;
                 BodyTypeDef customUserBody = null;
 
-                for (int i = __instance.pawn.apparel.WornApparelCount - 1; i >= 0; i--)
+                List<Apparel> wornApparel = __instance.pawn.apparel.WornApparel;
+                for (int i = wornApparel.Count - 1; i >= 0; i--)
                 {
-                    Apparel apparel = __instance.pawn.apparel.WornApparel[i];
+                    Apparel apparel = wornApparel[i];
 
                     for (int j = apparel.AllComps.Count - 1; j >= 0; j--)
                     {
@@ -404,9 +410,10 @@ namespace AthenaFramework
                     return;
                 }
 
-                for (int i = pawn.apparel.WornApparelCount - 1; i >= 0; i--)
+                List<Apparel> wornApparel = pawn.apparel.WornApparel;
+                for (int i = wornApparel.Count - 1; i >= 0; i--)
                 {
-                    Apparel apparel = pawn.apparel.WornApparel[i];
+                    Apparel apparel = wornApparel[i];
 
                     for (int j = apparel.AllComps.Count- 1; j >= 0; j--)
                     {
@@ -431,6 +438,32 @@ namespace AthenaFramework
                 }
 
                 dinfo.SetAmount(dinfo.Amount * modifier + offset);
+            }
+        }
+
+        [HarmonyPatch(typeof(PawnRenderer), "DrawEquipmentAiming")]
+        public static class PawnRenderer_DrawEquipmentAiming_Offset
+        {
+            public static void Prefix(PawnRenderer __instance, Thing eq, ref Vector3 drawLoc, ref float aimAngle)
+            {
+                ThingWithComps thing = eq as ThingWithComps;
+
+                if (thing == null)
+                {
+                    return;
+                }
+
+                for (int i = thing.AllComps.Count - 1; i >= 0; i--)
+                {
+                    Comp_AimAngleOffset angleOffset = thing.AllComps[i] as Comp_AimAngleOffset;
+
+                    if (angleOffset == null)
+                    {
+                        continue;
+                    }
+
+                    aimAngle += angleOffset.Props.angleOffset;
+                }
             }
         }
 
@@ -473,7 +506,7 @@ namespace AthenaFramework
 
                 float multiplier = 1f;
                 float offset = 0f;
-                List<string> excludedGlobal = new List<string>();
+                List<string> excludedGlobal =  new List<string>();
 
                 for (int i = __instance.AllComps.Count - 1; i >= 0; i--)
                 {
@@ -577,9 +610,10 @@ namespace AthenaFramework
                     return;
                 }
 
-                for (int i = pawn.apparel.WornApparel.Count - 1; i >= 0; i--)
+                List<Apparel> wornApparel = pawn.apparel.WornApparel;
+                for (int i = wornApparel.Count - 1; i >= 0; i--)
                 {
-                    Apparel apparel = pawn.apparel.WornApparel[i];
+                    Apparel apparel = wornApparel[i];
 
                     for (int j = apparel.AllComps.Count - 1; j >= 0; j--)
                     {
@@ -703,6 +737,22 @@ namespace AthenaFramework
                         }
                     }
                 }
+
+                /*List<Apparel> wornApparel = __instance.apparel.WornApparel;
+                for (int i = __instance.apparel.WornApparelCount - 1; i >= 0; i--)
+                {
+                    Apparel apparel = wornApparel[i];
+
+                    for (int j = hediff.comps.Count - 1; j >= 0; j--)
+                    {
+                        HediffComp_Renderable renderable = hediff.comps[j] as HediffComp_Renderable;
+
+                        if (renderable != null)
+                        {
+                            renderable.DrawAt(drawLoc);
+                        }
+                    }
+                }*/
             }
         }
     }
