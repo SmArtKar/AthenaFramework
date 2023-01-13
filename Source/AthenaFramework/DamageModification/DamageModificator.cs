@@ -41,7 +41,7 @@ namespace AthenaFramework
         // Number by which the damage is passively offset when the conditions above are met. Applied after all modifiers.
         public float offset = 0f;
 
-        public virtual (float, float) GetDamageModifiers(Thing target, ref List<string> excludedLocal, ref List<string> excludedGlobalInput, Thing instigator, DamageInfo? dinfo = null, bool projectile = false)
+        public virtual (float, float) GetDamageModifiers(Thing target, ref List<string> excludedLocal, ref List<string> excludedGlobalInput, Thing instigator, DamageInfo? dinfo = null, bool projectile = false, bool incoming = false)
         {
             if (excluded != null)
             {
@@ -147,7 +147,7 @@ namespace AthenaFramework
             {
                 foreach (StatDef statDef in targetStatDefs)
                 {
-                    modifierStat *= target.GetStatValue(statDef);
+                    modifierStat *= (incoming ? instigator : target).GetStatValue(statDef);
                 }
             }
 
@@ -155,7 +155,7 @@ namespace AthenaFramework
             {
                 foreach (StatDef statDef in attackerStatDefs)
                 {
-                    modifierStat *= instigator.GetStatValue(statDef);
+                    modifierStat *= (incoming ? target : instigator).GetStatValue(statDef);
                 }
             }
 

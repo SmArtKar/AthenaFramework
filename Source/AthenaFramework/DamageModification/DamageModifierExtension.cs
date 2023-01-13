@@ -42,7 +42,7 @@ namespace AthenaFramework
 
             foreach (DamageModificator modGroup in incomingModifiers)
             {
-                (float, float) result = modGroup.GetDamageModifiers(instigator, ref excluded, ref excludedGlobal, target, dinfo, projectile);
+                (float, float) result = modGroup.GetDamageModifiers(instigator, ref excluded, ref excludedGlobal, target, dinfo, projectile, true);
                 modifier *= result.Item1;
                 offset += result.Item2;
             }
