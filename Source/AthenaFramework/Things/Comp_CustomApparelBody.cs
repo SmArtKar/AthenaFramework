@@ -39,6 +39,7 @@ namespace AthenaFramework
                 return Props.headGraphicData.Graphic;
             }
         }
+
         public virtual bool PreventBodytype (BodyTypeDef bodyType, ApparelGraphicRecord rec)
         {
             return Props.preventBodytype;

@@ -53,23 +53,27 @@
     <Compile Include="Beams\BeamComp.cs" />
     <Compile Include="Beams\BeamExtension.cs" />
     <Compile Include="Beams\BeamComp_Fadeout.cs" />
-    <Compile Include="Beams\Comp_BeamProjectile.cs" />
+    <Compile Include="DamageModification\DamageModificator.cs" />
+    <Compile Include="DamageModification\DamageModifierExtension.cs" />
     <Compile Include="Gizmos\Gizmo_HediffShieldStatus.cs" />
     <Compile Include="Harmony\HarmonyPatches.cs" />
+    <Compile Include="Harmony\HarmonyPatches_Damage.cs" />
+    <Compile Include="Harmony\HarmonyPatches_Graphic.cs" />
+    <Compile Include="Harmony\HarmonyPatches_Misc.cs" />
+    <Compile Include="Harmony\HarmonyPatches_Projectile.cs" />
+    <Compile Include="Harmony\HarmonyPatches_Turret.cs" />
     <Compile Include="Hediffs\HediffComp_Bomb.cs" />
-    <Compile Include="Hediffs\HediffComp_DamageAmplifier.cs" />
-    <Compile Include="Hediffs\HediffComp_StunReduction.cs" />
+    <Compile Include="DamageModification\HediffComp_DamageModifier.cs" />
     <Compile Include="Hediffs\HediffComp_RemoveOnSeverity.cs" />
     <Compile Include="Hediffs\HediffComp_Renderable.cs" />
     <Compile Include="Hediffs\HediffComp_Shield.cs" />
+    <Compile Include="Projectiles\ProjectileComp.cs" />
     <Compile Include="Things\Comp_AdditionalApparelGraphics.cs" />
-    <Compile Include="Things\Comp_DamageAmplifier.cs" />
+    <Compile Include="DamageModification\Comp_DamageModifier.cs" />
     <Compile Include="Things\Comp_CustomApparelBody.cs" />
     <Compile Include="Things\MinPreySizeExtension.cs" />
-    <Compile Include="Things\Comp_ProjectileTrail.cs" />
-    <Compile Include="Things\Comp_StunReduction.cs" />
+    <Compile Include="Projectiles\ProjectileComp_Trail.cs" />
     <Compile Include="Things\HediffGiverExtension.cs" />
-    <Compile Include="Things\DamageAmplifierExtension.cs" />
     <Compile Include="Things\TurretGraphicOverride.cs" />
     <Compile Include="Things\TurretRoofBlocked.cs" />
     <Compile Include="ThinkNodes\ThinkNodeConditional_UnderGroupCombatPressure.cs" />
@@ -77,8 +81,8 @@
     <Compile Include="Weapons\CompAbilityEffect_LaunchProjectileBurst.cs" />
     <Compile Include="Weapons\CompAbilityEffect_RevivalConversion.cs" />
     <Compile Include="Weapons\CompAbilityEffect_ShootRunningBeam.cs" />
-    <Compile Include="Weapons\Comp_AimAngleOffset.cs" />
-    <Compile Include="Weapons\ProjectileEffectExtension.cs" />
+    <Compile Include="Weapons\AimAngleOffsetExtension.cs" />
+    <Compile Include="Projectiles\ProjectileComp_ImpactEffect.cs" />
     <Compile Include="Weapons\Verb_ShootRunningBeam.cs" />
   </ItemGroup>
   <ItemGroup>

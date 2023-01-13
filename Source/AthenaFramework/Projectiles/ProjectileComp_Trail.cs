@@ -11,22 +11,22 @@ using Verse.Sound;
 
 namespace AthenaFramework
 {
-
-    public class Comp_ProjectileTrail : ThingComp
+    public class ProjectileComp_Trail : ProjectileComp
     {
         private CompProperties_ProjectileTrail Props => props as CompProperties_ProjectileTrail;
-        private Projectile projectile => parent as Projectile;
 
         public Effecter attachedEffecter;
         public MoteAttached attachedMote;
         public MoteDualAttached dualMote;
         public Sustainer sustainer;
+        public Beam beam;
 
         public override void PostExposeData()
         {
             base.PostExposeData();
             Scribe_References.Look(ref attachedMote, "attachedMote");
             Scribe_References.Look(ref dualMote, "dualMote");
+            Scribe_References.Look(ref beam, "beam");
         }
 
         public override void CompTick()
@@ -37,7 +37,7 @@ namespace AthenaFramework
             {
                 if (attachedMote == null || attachedMote.Destroyed)
                 {
-                    attachedMote = MoteMaker.MakeAttachedOverlay(parent, Props.attachedMote, projectile.ExactRotation * Props.attachedMoteOffset) as MoteAttached;
+                    attachedMote = MoteMaker.MakeAttachedOverlay(parent, Props.attachedMote, Projectile.ExactRotation * Props.attachedMoteOffset) as MoteAttached;
                 }
 
                 attachedMote.Maintain();
@@ -53,11 +53,11 @@ namespace AthenaFramework
                 attachedEffecter.EffectTick(parent, parent);
             }
 
-            if (Props.dualMote != null && projectile.Launcher != null)
+            if (Props.dualMote != null && Projectile.Launcher != null)
             {
                 if (dualMote == null || dualMote.Destroyed)
                 {
-                    dualMote = MoteMaker.MakeInteractionOverlay(Props.attachedMote, projectile, projectile.Launcher, projectile.ExactRotation * Props.dualMoteOffsetA, Props.dualMoteOffsetB);
+                    dualMote = MoteMaker.MakeInteractionOverlay(Props.attachedMote, Projectile, Projectile.Launcher, Projectile.ExactRotation * Props.dualMoteOffsetA, Props.dualMoteOffsetB);
                 }
                 
                 dualMote.Maintain();
@@ -75,27 +75,41 @@ namespace AthenaFramework
 
             if (Props.trailFleck != null)
             {
-                if (Rand.Chance(Props.effectSpawnCurve.Evaluate(projectile.DistanceCoveredFraction)))
+                if (Rand.Chance(Props.effectSpawnCurve.Evaluate(Projectile.DistanceCoveredFraction)))
                 {
-                    FleckMaker.Static(projectile.DrawPos, projectile.Map, Props.trailFleck);
+                    FleckMaker.Static(Projectile.DrawPos, Projectile.Map, Props.trailFleck);
                 }
             }
 
             if (Props.trailMote != null)
             {
-                if (Rand.Chance(Props.effectSpawnCurve.Evaluate(projectile.DistanceCoveredFraction)))
+                if (Rand.Chance(Props.effectSpawnCurve.Evaluate(Projectile.DistanceCoveredFraction)))
                 {
-                    MoteMaker.MakeStaticMote(projectile.DrawPos, projectile.Map, Props.trailMote);
+                    MoteMaker.MakeStaticMote(Projectile.DrawPos, Projectile.Map, Props.trailMote);
                 }
             }
 
             if (Props.trailEffecter != null)
             {
-                if (Rand.Chance(Props.effectSpawnCurve.Evaluate(projectile.DistanceCoveredFraction)))
+                if (Rand.Chance(Props.effectSpawnCurve.Evaluate(Projectile.DistanceCoveredFraction)))
                 {
-                    Props.trailEffecter.Spawn(projectile, projectile.Map).Cleanup();
+                    Props.trailEffecter.Spawn(Projectile, Projectile.Map).Cleanup();
                 }
             }
+        }
+
+        public override void Launch(Thing launcher, Vector3 origin, LocalTargetInfo usedTarget, LocalTargetInfo intendedTarget, ProjectileHitFlags hitFlags, bool preventFriendlyFire, Thing equipment, ThingDef targetCoverDef)
+        {
+            base.Launch(launcher, origin, usedTarget, intendedTarget, hitFlags, preventFriendlyFire, equipment, targetCoverDef);
+
+            beam = Beam.CreateActiveBeam(launcher, parent, Props.beamDef, origin - launcher.DrawPos);
+        }
+
+        public override void Impact(Thing hitThing, ref bool blockedByShield)
+        {
+            base.Impact(hitThing, ref blockedByShield);
+
+            beam.AdjustBeam(Projectile.Launcher.DrawPos + beam.startOffset, parent.DrawPos);
         }
     }
 
@@ -103,7 +117,7 @@ namespace AthenaFramework
     {
         public CompProperties_ProjectileTrail()
         {
-            this.compClass = typeof(Comp_ProjectileTrail);
+            this.compClass = typeof(ProjectileComp_Trail);
         }
 
         // Def for flecks that will be continiously spawned
@@ -114,6 +128,8 @@ namespace AthenaFramework
         public EffecterDef trailEffecter;
         // Def for an effecter that will be attached to the projectile
         public EffecterDef projectileEffecter;
+        // Def for an Athena beam
+        public ThingDef beamDef;
         // Chance curve for spawning effects
         public SimpleCurve effectSpawnCurve = new SimpleCurve
         {

@@ -15,33 +15,8 @@ namespace AthenaFramework
         private Apparel Apparel => parent as Apparel;
         private Pawn Pawn => Apparel.Wearer as Pawn;
 
-        public virtual void DrawAt(Vector3 drawPos)
+        public virtual void DrawAt(Vector3 drawPos, BodyTypeDef bodyType)
         {
-            List<Apparel> wornApparel = Pawn.apparel.WornApparel;
-            BodyTypeDef bodyType = Pawn.story.bodyType;
-
-            for (int i = wornApparel.Count - 1; i >= 0; i--)
-            {
-                Apparel otherApparel = wornApparel[i];
-
-                for (int j = otherApparel.AllComps.Count - 1; j >= 0; j--)
-                {
-                    Comp_CustomApparelBody customBody = otherApparel.AllComps[j] as Comp_CustomApparelBody;
-
-                    if (customBody == null)
-                    {
-                        continue;
-                    }
-
-                    BodyTypeDef newBodyType = customBody.CustomBodytype(Apparel, bodyType);
-
-                    if (newBodyType != null)
-                    {
-                        bodyType = newBodyType;
-                    }
-                }
-            }
-
             for (int i = Props.additionalGraphics.Count - 1; i >= 0; i--)
             {
                 ApparelGraphicPackage package = Props.additionalGraphics[i];

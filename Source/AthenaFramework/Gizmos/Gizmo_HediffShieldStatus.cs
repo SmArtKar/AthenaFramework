@@ -8,7 +8,7 @@ using UnityEngine;
 using Verse;
 using static HarmonyLib.Code;
 
-namespace AthenaFramework.Gizmos
+namespace AthenaFramework
 {
     [StaticConstructorOnStartup]
     public class Gizmo_HediffShieldStatus : Gizmo

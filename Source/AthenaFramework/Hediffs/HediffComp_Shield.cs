@@ -7,7 +7,6 @@ using Verse;
 using RimWorld;
 using static HarmonyLib.Code;
 using UnityEngine;
-using AthenaFramework.Gizmos;
 using Verse.Sound;
 
 namespace AthenaFramework
@@ -65,14 +64,41 @@ namespace AthenaFramework
                 return;
             }
 
-            if ((dinfo.Def.isRanged && !Props.blocksRangedDamage) || (dinfo.Def.isExplosive && !Props.blocksExplosions) || (!dinfo.Def.isRanged && !dinfo.Def.isExplosive && !Props.blocksMeleeDamage))
+            bool overrideTypechecks = false;
+
+            if (Props.damageInfoPacks != null)
             {
-                return;
+                for (int i = Props.damageInfoPacks.Count - 1; i >= 0; i--)
+                {
+                    DamageInfoPack pack = Props.damageInfoPacks[i];
+
+                    if (pack.damageDef != dinfo.Def)
+                    {
+                        continue;
+                    }
+
+                    overrideTypechecks = true;
+
+                    if ((dinfo.Def.isRanged && !pack.blocksRangedDamage) || (dinfo.Def.isExplosive && !pack.blocksExplosions) || (!dinfo.Def.isRanged && !dinfo.Def.isExplosive && !pack.blocksMeleeDamage))
+                    {
+                        return;
+                    }
+                }
             }
 
-            if (Props.blockDamageDefs != null)
+            if (!overrideTypechecks)
             {
-                if (!Props.blockDamageDefs.Contains(dinfo.Def))
+                if ((dinfo.Def.isRanged && !Props.blocksRangedDamage) || (dinfo.Def.isExplosive && !Props.blocksExplosions) || (!dinfo.Def.isRanged && !dinfo.Def.isExplosive && !Props.blocksMeleeDamage))
+                {
+                    return;
+                }
+
+                if (Props.whitelistedDamageDefs != null && !Props.whitelistedDamageDefs.Contains(dinfo.Def))
+                {
+                    return;
+                }
+
+                if (Props.blacklistedDamageDefs != null && Props.blacklistedDamageDefs.Contains(dinfo.Def))
                 {
                     return;
                 }
@@ -116,41 +142,6 @@ namespace AthenaFramework
             }
 
             lastImpactTick = Find.TickManager.TicksGame;
-        }
-
-        public virtual bool BlockStun(ref DamageInfo dinfo)
-        {
-            if (ticksToReset > 0 || Props.absorbStuns == null)
-            {
-                return false;
-            }
-
-            if (!Props.absorbStuns.Contains(dinfo.Def))
-            {
-                return false;
-            }
-
-            energy -= dinfo.Amount * Props.energyPerStunModifier;
-
-            if (energy <= 0)
-            {
-                Shatter(ref dinfo);
-
-                if (Props.blockOverdamage)
-                {
-                    return true;
-                }
-
-                if (Props.consumeOverdamage)
-                {
-                    dinfo.SetAmount(-1 * energy / Props.energyPerStunModifier);
-                }
-
-                return false;
-            }
-
-            OnDamageAbsorb(ref dinfo);
-            return true;
         }
 
         public virtual void Shatter(ref DamageInfo dinfo)
@@ -331,12 +322,13 @@ namespace AthenaFramework
         public bool blocksExplosions = true;
         public bool blocksMeleeDamage = false;
 
-        // If the shield should only block particular damage defs or not
-        public List<DamageDef> blockDamageDefs;
-        // What types of stuns the shield should block. If set to false no stuns will be blocked
-        public List<DamageDef> absorbStuns;
-        // How much energy is lost per unit of stun.
-        public float energyPerStunModifier = 0.5f;
+        // List of whitelisted DamageDefs. When set, DamageDefs that are not in this list won't be affected.
+        public List<DamageDef> whitelistedDamageDefs;
+        // List of blacklisted DamageDefs. When set, DamageDefs that are in this list won't be affected.
+        public List<DamageDef> blacklistedDamageDefs;
+
+        // List of ShieldInfoPacks with additional energy cosumption modifiers and overrides for block types for certain DamageDefs
+        public List<DamageInfoPack> damageInfoPacks;
 
         // What types of damage should cause the shield to instantly shatter
         public List<DamageDef> shatterOn;
@@ -367,5 +359,17 @@ namespace AthenaFramework
         public bool scaleWithOwner = true;
         // Whenever the shield should have the vanilla spinning effect. Turn off in case you're using custom asymmetric textures
         public bool spinning = true;
+    }
+
+    public struct DamageInfoPack
+    {
+        public DamageDef damageDef;
+        public float energyModifier = 1f;
+
+        public bool blocksRangedDamage = true;
+        public bool blocksExplosions = true;
+        public bool blocksMeleeDamage = false;
+
+        public DamageInfoPack() { }
     }
 }

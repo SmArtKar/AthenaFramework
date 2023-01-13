@@ -1,53 +1,14 @@
 ﻿using RimWorld;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Verse;
 
 namespace AthenaFramework
 {
-    public class Comp_DamageAmplifier : ThingComp
-    {
-        private CompProperties_DamageAmplifier Props => props as CompProperties_DamageAmplifier;
-
-        public virtual float DamageMultiplier
-        {
-            get
-            {
-                return Props.damageMultiplier;
-            }
-        }
-
-        public virtual (float, float) GetDamageModifier(Thing target, ref List<string> excludedGlobal, Thing instigator = null)
-        {
-            float modifier = 1f;
-            float offset = 0f;
-            List<string> excluded = new List<string>();
-
-            foreach(AmplificationType modGroup in Props.modifiers)
-            {
-                (float, float) result = modGroup.GetDamageModifiers(target, ref excluded, ref excludedGlobal, instigator);
-                modifier *= result.Item1;
-                offset += result.Item2;
-            }
-
-            return (modifier, offset);
-        }
-    }
-
-    public class CompProperties_DamageAmplifier: CompProperties
-    {
-        public CompProperties_DamageAmplifier()
-        {
-            this.compClass = typeof(Comp_DamageAmplifier);
-        }
-
-        // List of possible amplification effects
-        public List<AmplificationType> modifiers = new List<AmplificationType>();
-        // Passive damage modifier that's always applied
-        public float damageMultiplier = 1f;
-    }
-
-    public class AmplificationType
+    public class DamageModificator
     {
         // List of FleshTypeDefs that are required to trigger the effect
         public List<FleshTypeDef> fleshTypes;
@@ -61,18 +22,26 @@ namespace AthenaFramework
         public FactionDef factionDef;
         // List of mutually exclusive effects. If any effect with a common element in this field has been applied, this effect won't apply
         public List<string> excluded;
-        // Same as above, but applies to all damage amplification from this pawn/object, it's apparel, it's hediffs, etc. Does not intercept with excluded.
+        // Same as above, but applies to all damage modification from this pawn/object, it's apparel, it's hediffs, etc. Does not intercept with excluded.
         public List<string> excludedGlobal;
         // List of target's StatDefs that multiply the damage
         public List<StatDef> targetStatDefs;
         // List of attacker's StatDefs that multiply the damage
         public List<StatDef> attackerStatDefs;
+        // List of whitelisted DamageDefs. When set, DamageDefs that are not in this list won't be affected.
+        public List<DamageDef> whitelistedDamageDefs;
+        // List of blacklisted DamageDefs. When set, DamageDefs that are in this list won't be affected.
+        public List<DamageDef> blacklistedDamageDefs;
+        // Whenever the effect changes ranged/explosive/melee damage
+        public bool affectRangedDamage = true;
+        public bool affectExplosions = true;
+        public bool affectMeleeDamage = true;
         // Number by which the damage is modified when the conditions above are met
         public float modifier = 1f;
         // Number by which the damage is passively offset when the conditions above are met. Applied after all modifiers.
         public float offset = 0f;
 
-        public virtual (float, float) GetDamageModifiers(Thing target, ref List<string> excludedLocal, ref List<string> excludedGlobalInput, Thing instigator)
+        public virtual (float, float) GetDamageModifiers(Thing target, ref List<string> excludedLocal, ref List<string> excludedGlobalInput, Thing instigator, DamageInfo? dinfo = null, bool projectile = false)
         {
             if (excluded != null)
             {
@@ -88,6 +57,31 @@ namespace AthenaFramework
                 {
                     return (1f, 0f);
                 }
+            }
+
+            if (dinfo != null)
+            {
+                DamageInfo trueDinfo = (DamageInfo)dinfo;
+                if ((trueDinfo.Def.isRanged && !affectRangedDamage) || (trueDinfo.Def.isExplosive && !affectExplosions) || (!trueDinfo.Def.isRanged && !trueDinfo.Def.isExplosive && !affectMeleeDamage))
+                {
+                    return (1f, 0f);
+                }
+
+                if (whitelistedDamageDefs != null && !whitelistedDamageDefs.Contains(trueDinfo.Def))
+                {
+                    return (1f, 0f);
+                }
+
+                if (blacklistedDamageDefs != null && blacklistedDamageDefs.Contains(trueDinfo.Def))
+                {
+                    return (1f, 0f);
+                }
+
+            }
+
+            if (projectile && !affectRangedDamage)
+            {
+                return (1f, 0f);
             }
 
             if (thingDefs != null && !thingDefs.Contains(target.def))
@@ -121,7 +115,7 @@ namespace AthenaFramework
 
                 if (hediffDefs != null)
                 {
-                    List <HediffDef> localHediffDefs = new List<HediffDef>(hediffDefs);
+                    List<HediffDef> localHediffDefs = new List<HediffDef>(hediffDefs);
                     foreach (Hediff hediff in pawn.health.hediffSet.hediffs)
                     {
                         if (localHediffDefs.Contains(hediff.def))
