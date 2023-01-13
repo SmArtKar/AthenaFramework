@@ -110,8 +110,8 @@ namespace AthenaFramework
         LabelColor,
         FactionColor,
         IdeoColor,
-        SkinColor,
         FavoriteColor,
+        SkinColor,
         SeverityGradient,
         HealthGradient
     }
@@ -125,6 +125,7 @@ namespace AthenaFramework
         public List<Vector3> offsets;
 
         // Coloring for the first and second masks respectively. Only firstMask supports gradients
+        // In case chosen shader does not support masks, first mask acts as color
         public HediffPackageColor firstMask = HediffPackageColor.None;
         public HediffPackageColor secondMask = HediffPackageColor.None;
 
@@ -140,27 +141,22 @@ namespace AthenaFramework
         private Color cachedFirstColor;
         private Color cachedSecondColor;
 
-        public Graphic GetGraphic(Hediff hediff)
+        public virtual Graphic GetGraphic(Hediff hediff)
         {
-            if (!ShaderUtility.SupportsMaskTex(graphicData.Graphic.Shader))
-            {
-                return graphicData.Graphic;
-            }
-
             if (secondMask == HediffPackageColor.SeverityGradient || secondMask == HediffPackageColor.HealthGradient)
             {
                 Log.Error("HediffGraphicPackage secondMask set to a gradient. Only firstMask supports gradients");
                 return graphicData.Graphic;
             }
 
-            Color secondColor = GetColor(secondMask, hediff); //Getting second color first for the gradient creation
+            Color secondColor = GetColor(secondMask, hediff) ?? graphicData.colorTwo; //Getting second color first for the gradient creation
 
             if (gradientGraphics == null && (firstMask == HediffPackageColor.SeverityGradient || firstMask == HediffPackageColor.HealthGradient))
             {
                 CreateGradient(secondColor);
             }
 
-            Color firstColor = GetColor(firstMask, hediff);
+            Color firstColor = GetColor(firstMask, hediff) ?? graphicData.color;
 
             if (firstColor == cachedFirstColor && secondColor == cachedSecondColor)
             {
@@ -186,7 +182,7 @@ namespace AthenaFramework
             return cachedGraphic;
         }
 
-        public void CreateGradient(Color secondColor)
+        public virtual void CreateGradient(Color secondColor)
         {
             gradientGraphics = new List<Graphic>();
 
@@ -196,7 +192,7 @@ namespace AthenaFramework
             }
         }
 
-        public Color GetColor(HediffPackageColor type, Hediff hediff)
+        public virtual Color? GetColor(HediffPackageColor type, Hediff hediff)
         {
             switch (type)
             {
@@ -206,7 +202,7 @@ namespace AthenaFramework
                 case HediffPackageColor.FactionColor:
                     if (hediff.pawn.Faction == null)
                     {
-                        return Color.white;
+                        return null;
                     }
 
                     return hediff.pawn.Faction.Color;
@@ -214,26 +210,26 @@ namespace AthenaFramework
                 case HediffPackageColor.IdeoColor:
                     if (!ModLister.IdeologyInstalled || hediff.pawn.ideo == null)
                     {
-                        return Color.white;
+                        return null;
                     }
 
                     return hediff.pawn.ideo.Ideo.Color;
 
+                case HediffPackageColor.FavoriteColor:
+                    if (!ModLister.IdeologyInstalled || hediff.pawn.story == null)
+                    {
+                        return null;
+                    }
+
+                    return hediff.pawn.story.favoriteColor;
+
                 case HediffPackageColor.SkinColor:
                     if (hediff.pawn.story == null)
                     {
-                        return Color.white;
+                        return null;
                     }
 
                     return hediff.pawn.story.SkinColor;
-
-                case HediffPackageColor.FavoriteColor:
-                    if (!ModLister.IdeologyInstalled || hediff.pawn.story == null || hediff.pawn.story.favoriteColor == null)
-                    {
-                        return Color.white;
-                    }
-
-                    return (Color)hediff.pawn.story.favoriteColor;
 
                 case HediffPackageColor.SeverityGradient:
                     return gradientList[Math.Min((int)Math.Floor(hediff.Severity * gradientVariants), gradientVariants)];
@@ -242,10 +238,10 @@ namespace AthenaFramework
                     return gradientList[Math.Min((int)Math.Floor(hediff.pawn.health.summaryHealth.SummaryHealthPercent * gradientVariants), gradientVariants)];
             }
 
-            return Color.white;
+            return null;
         }
 
-        public List<Color> ColorGradient
+        public virtual List<Color> ColorGradient
         {
             get
             {
@@ -263,7 +259,7 @@ namespace AthenaFramework
             }
         }
 
-        public List<Color> CreateGradientPoints()
+        public virtual List<Color> CreateGradientPoints()
         {
             List<Color> curGradient = new List<Color>();
             GradientCurve curve = new GradientCurve(gradient);
@@ -288,7 +284,7 @@ namespace AthenaFramework
             GenerateCurves();
         }
 
-        public void GenerateCurves()
+        public virtual void GenerateCurves()
         {
             List<CurvePoint> pointsR = new List<CurvePoint>();
             List<CurvePoint> pointsG = new List<CurvePoint>();
@@ -310,7 +306,7 @@ namespace AthenaFramework
             curves.Add(new SimpleCurve(pointsA));
         }
 
-        public Color Evaluate(float position)
+        public virtual Color Evaluate(float position)
         {
             return new Color(curves[0].Evaluate(position), curves[1].Evaluate(position), curves[2].Evaluate(position), curves[3].Evaluate(position));
         }

@@ -58,13 +58,16 @@
     <Compile Include="Harmony\HarmonyPatches.cs" />
     <Compile Include="Hediffs\HediffComp_Bomb.cs" />
     <Compile Include="Hediffs\HediffComp_DamageAmplifier.cs" />
+    <Compile Include="Hediffs\HediffComp_StunReduction.cs" />
     <Compile Include="Hediffs\HediffComp_RemoveOnSeverity.cs" />
     <Compile Include="Hediffs\HediffComp_Renderable.cs" />
     <Compile Include="Hediffs\HediffComp_Shield.cs" />
     <Compile Include="Things\Comp_AdditionalApparelGraphics.cs" />
     <Compile Include="Things\Comp_DamageAmplifier.cs" />
     <Compile Include="Things\Comp_CustomApparelBody.cs" />
+    <Compile Include="Things\MinPreySizeExtension.cs" />
     <Compile Include="Things\Comp_ProjectileTrail.cs" />
+    <Compile Include="Things\Comp_StunReduction.cs" />
     <Compile Include="Things\HediffGiverExtension.cs" />
     <Compile Include="Things\DamageAmplifierExtension.cs" />
     <Compile Include="Things\TurretGraphicOverride.cs" />
@@ -79,9 +82,17 @@
     <Compile Include="Weapons\Verb_ShootRunningBeam.cs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Krafs.Publicizer">
+      <Version>2.1.0</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Krafs.Rimworld.Ref">
       <Version>1.4.3580</Version>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Publicize Include="Assembly-CSharp" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

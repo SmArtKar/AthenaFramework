@@ -24,7 +24,7 @@ namespace AthenaFramework
 
         public ThinkNodeConditional_UnderGroupCombatPressure() { }
 
-        protected override bool Satisfied(Pawn pawn)
+        public override bool Satisfied(Pawn pawn)
         {
             if (!pawn.Spawned || pawn.Downed || pawn.Dead)
             {

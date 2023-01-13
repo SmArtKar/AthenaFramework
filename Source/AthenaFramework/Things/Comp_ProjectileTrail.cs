@@ -16,7 +16,6 @@ namespace AthenaFramework
     {
         private CompProperties_ProjectileTrail Props => props as CompProperties_ProjectileTrail;
         private Projectile projectile => parent as Projectile;
-        static FieldInfo distanceField = typeof(Projectile).GetField("DistanceCoveredFraction", BindingFlags.NonPublic | BindingFlags.Instance);
 
         public Effecter attachedEffecter;
         public MoteAttached attachedMote;
@@ -76,7 +75,7 @@ namespace AthenaFramework
 
             if (Props.trailFleck != null)
             {
-                if (Rand.Chance(Props.effectSpawnCurve.Evaluate((float)distanceField.GetValue(projectile))))
+                if (Rand.Chance(Props.effectSpawnCurve.Evaluate(projectile.DistanceCoveredFraction)))
                 {
                     FleckMaker.Static(projectile.DrawPos, projectile.Map, Props.trailFleck);
                 }
@@ -84,7 +83,7 @@ namespace AthenaFramework
 
             if (Props.trailMote != null)
             {
-                if (Rand.Chance(Props.effectSpawnCurve.Evaluate((float)distanceField.GetValue(projectile))))
+                if (Rand.Chance(Props.effectSpawnCurve.Evaluate(projectile.DistanceCoveredFraction)))
                 {
                     MoteMaker.MakeStaticMote(projectile.DrawPos, projectile.Map, Props.trailMote);
                 }
@@ -92,7 +91,7 @@ namespace AthenaFramework
 
             if (Props.trailEffecter != null)
             {
-                if (Rand.Chance(Props.effectSpawnCurve.Evaluate((float)distanceField.GetValue(projectile))))
+                if (Rand.Chance(Props.effectSpawnCurve.Evaluate(projectile.DistanceCoveredFraction)))
                 {
                     Props.trailEffecter.Spawn(projectile, projectile.Map).Cleanup();
                 }

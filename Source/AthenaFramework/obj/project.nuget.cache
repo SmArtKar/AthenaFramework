@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "X6OpALxig1LKOTP1U/VVOupTJ1qzTBH10XHODjIo2MCE8SIWWyJ2A53T4PcVlPQML32PWYomWUVhIDhmz2jvjQ==",
+  "dgSpecHash": "6XQXbqK7b8s3xRjgfKiJanG10VIJSctlzJBzXlgukUZeliqTu8XQABD7hKjlEssEzyfEJV8y3N52YYfvFQWZRg==",
   "success": true,
   "projectFilePath": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld\\Mods\\AthenaFramework\\Source\\AthenaFramework\\AthenaFramework.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\Artemy\\.nuget\\packages\\krafs.publicizer\\2.1.0\\krafs.publicizer.2.1.0.nupkg.sha512",
     "C:\\Users\\Artemy\\.nuget\\packages\\krafs.rimworld.ref\\1.4.3580\\krafs.rimworld.ref.1.4.3580.nupkg.sha512"
   ],
   "logs": []

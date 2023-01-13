@@ -17,7 +17,7 @@ namespace AthenaFramework
         public IntVec3 cachedTargetPosition;
         public IntVec3 cachedCasterPosition;
 
-        protected override int ShotsPerBurst => verbProps.burstShotCount;
+        public override int ShotsPerBurst => verbProps.burstShotCount;
 
         public override void WarmupComplete()
         {
@@ -117,7 +117,7 @@ namespace AthenaFramework
             return cellList;
         }
 
-        protected override bool TryCastShot()
+        public override bool TryCastShot()
         {
             if (EquipmentSource == null || currentTarget.Cell == null)
             {

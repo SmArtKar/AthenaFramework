@@ -15,7 +15,7 @@ namespace AthenaFramework
         private Apparel Apparel => parent as Apparel;
         private Pawn Pawn => Apparel.Wearer as Pawn;
 
-        public void Draw(Vector3 drawPos)
+        public virtual void DrawAt(Vector3 drawPos)
         {
             List<Apparel> wornApparel = Pawn.apparel.WornApparel;
             BodyTypeDef bodyType = Pawn.story.bodyType;
@@ -42,7 +42,25 @@ namespace AthenaFramework
                 }
             }
 
+            for (int i = Props.additionalGraphics.Count - 1; i >= 0; i--)
+            {
+                ApparelGraphicPackage package = Props.additionalGraphics[i];
+                Vector3 offset = new Vector3();
 
+                if (package.offsets != null)
+                {
+                    if (package.offsets.Count == 4)
+                    {
+                        offset = package.offsets[Pawn.Rotation.AsInt];
+                    }
+                    else
+                    {
+                        offset = package.offsets[0];
+                    }
+                }
+
+                package.GetGraphic(Apparel, bodyType).Draw(drawPos + offset, Pawn.Rotation, Pawn);
+            }
         }
     }
 
@@ -60,7 +78,7 @@ namespace AthenaFramework
     public enum ApparelPackageColor
     {
         None,
-        ApparelColor,
+        ApparelColor, //Apparel's color
         FactionColor,
         IdeoColor,
         FavoriteColor
@@ -73,39 +91,55 @@ namespace AthenaFramework
         // List of offsets. Specific for every direction if 4 are specified, else applies to all directions
         // Y dimension determines layer offset, use negative values to render the texture below the pawn
         public List<Vector3> offsets;
+        // When set to true, graphic will change with the owner's bodytype, similarly to apparel
+        public bool useBodytype = false;
 
         // Coloring for the first and second masks respectively. Only firstMask supports gradients
+        // In case chosen shader does not support masks, first mask acts as color
         public ApparelPackageColor firstMask = ApparelPackageColor.None;
         public ApparelPackageColor secondMask = ApparelPackageColor.None;
 
-        private Graphic cachedGraphic;
+        private Dictionary<BodyTypeDef, Graphic> cachedGraphics = new Dictionary<BodyTypeDef, Graphic>();
+        private Graphic cachedGraphic; //GraphicDatabase.Get<Graphic_StackCount>(this.path, newShader, this.drawSize, newColor, newColorTwo, this.data, null);
 
         private Color cachedFirstColor;
         private Color cachedSecondColor;
 
-        public Graphic GetGraphic(Apparel apparel)
+        public virtual Graphic GetGraphic(Apparel apparel, BodyTypeDef bodyType)
         {
-            if (!ShaderUtility.SupportsMaskTex(graphicData.Graphic.Shader))
+            if (!useBodytype)
             {
-                return graphicData.Graphic;
-            }
+                Color firstColor1 = GetColor(firstMask, apparel) ?? graphicData.color;
+                Color secondColor1 = GetColor(secondMask, apparel) ?? graphicData.colorTwo;
 
-            Color firstColor = GetColor(firstMask, apparel);
-            Color secondColor = GetColor(secondMask, apparel);
+                if (firstColor1 == cachedFirstColor && secondColor1 == cachedSecondColor)
+                {
+                    return cachedGraphic;
+                }
 
-            if (firstColor == cachedFirstColor && secondColor == cachedSecondColor)
-            {
+                cachedFirstColor = firstColor1;
+                cachedSecondColor = secondColor1;
+
+                cachedGraphic = graphicData.Graphic.GetColoredVersion(graphicData.Graphic.Shader, firstColor1, secondColor1);
+
                 return cachedGraphic;
             }
 
-            cachedFirstColor = firstColor;
-            cachedSecondColor = secondColor;
+            Color firstColor2 = GetColor(firstMask, apparel) ?? graphicData.color;
+            Color secondColor2 = GetColor(secondMask, apparel) ?? graphicData.colorTwo;
 
-            cachedGraphic = graphicData.Graphic.GetColoredVersion(graphicData.Graphic.Shader, firstColor, secondColor);
-            return cachedGraphic;
+            if (firstColor2 != cachedFirstColor || secondColor2 != cachedSecondColor || !cachedGraphics.ContainsKey(bodyType))
+            {
+                cachedGraphics[bodyType] = GraphicDatabase.Get(graphicData.graphicClass, graphicData.texPath + "_" + bodyType.defName, graphicData.Graphic.Shader, graphicData.drawSize, firstColor2, secondColor2);
+            }
+
+            cachedFirstColor = firstColor2;
+            cachedSecondColor = secondColor2;
+
+            return cachedGraphics[bodyType];
         }
 
-        public Color GetColor(ApparelPackageColor type, Apparel apparel)
+        public virtual Color? GetColor(ApparelPackageColor type, Apparel apparel)
         {
             switch (type)
             {
@@ -115,7 +149,7 @@ namespace AthenaFramework
                 case ApparelPackageColor.FactionColor:
                     if (apparel.Wearer == null || apparel.Wearer.Faction == null)
                     {
-                        return Color.white;
+                        return null;
                     }
 
                     return apparel.Wearer.Faction.Color;
@@ -123,21 +157,21 @@ namespace AthenaFramework
                 case ApparelPackageColor.IdeoColor:
                     if (!ModLister.IdeologyInstalled || apparel.Wearer == null || apparel.Wearer.ideo == null)
                     {
-                        return Color.white;
+                        return null;
                     }
 
                     return apparel.Wearer.ideo.Ideo.Color;
 
                 case ApparelPackageColor.FavoriteColor:
-                    if (!ModLister.IdeologyInstalled || apparel.Wearer == null || apparel.Wearer.story == null || apparel.Wearer.story.favoriteColor == null)
+                    if (!ModLister.IdeologyInstalled || apparel.Wearer == null || apparel.Wearer.story == null)
                     {
-                        return Color.white;
+                        return null;
                     }
 
-                    return (Color)apparel.Wearer.story.favoriteColor;
+                    return apparel.Wearer.story.favoriteColor;
             }
 
-            return Color.white;
+            return null;
         }
     }
 }

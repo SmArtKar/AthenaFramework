@@ -4,12 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Verse;
-using RimWorld;
-using UnityEngine;
 using System.Reflection;
 using static HarmonyLib.Code;
 using static UnityEngine.UI.Image;
+using RimWorld;
+using Verse;
+using UnityEngine;
 
 namespace AthenaFramework
 {
@@ -120,8 +120,6 @@ namespace AthenaFramework
         [HarmonyPatch(typeof(CompTurretGun), "PostDraw")]
         public static class CompTurretGun_PrePostDraw
         {
-            static FieldInfo curRotationField = typeof(CompTurretGun).GetField("curRotation", BindingFlags.NonPublic | BindingFlags.Instance);
-
             static bool Prefix(CompTurretGun __instance)
             {
                 if (!__instance.gun.def.HasModExtension<TurretGraphicOverride>())
@@ -152,7 +150,7 @@ namespace AthenaFramework
                 }
                 Matrix4x4 matrix4x = default(Matrix4x4);
                 Vector2 drawSize = props.turretDef.graphicData.drawSize;
-                matrix4x.SetTRS(__instance.parent.DrawPos + vector, ((float)curRotationField.GetValue(__instance)).ToQuat(), new Vector3(drawSize.x, 0, drawSize.y));
+                matrix4x.SetTRS(__instance.parent.DrawPos + vector, __instance.curRotation.ToQuat(), new Vector3(drawSize.x, 0, drawSize.y));
                 Graphics.DrawMesh(MeshPool.plane10, matrix4x, __instance.turretMat, 0);
                 return false;
             }
@@ -439,6 +437,40 @@ namespace AthenaFramework
 
                 dinfo.SetAmount(dinfo.Amount * modifier + offset);
             }
+
+            static void Postfix(Thing __instance, ref DamageInfo dinfo, ref bool absorbed)
+            {
+                Pawn pawn = __instance as Pawn;
+                if (pawn == null || absorbed)
+                {
+                    return;
+                }
+
+                for (int i = pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
+                {
+                    HediffWithComps hediff = pawn.health.hediffSet.hediffs[i] as HediffWithComps;
+
+                    if (hediff == null)
+                    {
+                        continue;
+                    }
+
+                    for (int j = hediff.comps.Count - 1; j >= 0; j--)
+                    {
+                        HediffComp_Shield shield = hediff.comps[j] as HediffComp_Shield;
+
+                        if (shield != null)
+                        {
+                            shield.BlockDamage(ref dinfo, ref absorbed);
+
+                            if (absorbed)
+                            {
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         [HarmonyPatch(typeof(PawnRenderer), "DrawEquipmentAiming")]
@@ -453,16 +485,11 @@ namespace AthenaFramework
                     return;
                 }
 
-                for (int i = thing.AllComps.Count - 1; i >= 0; i--)
+                AimAngleOffsetExtension ext = thing.def.GetModExtension<AimAngleOffsetExtension>();
+
+                if (ext != null)
                 {
-                    Comp_AimAngleOffset angleOffset = thing.AllComps[i] as Comp_AimAngleOffset;
-
-                    if (angleOffset == null)
-                    {
-                        continue;
-                    }
-
-                    aimAngle += angleOffset.Props.angleOffset;
+                    aimAngle += ext.angleOffset;
                 }
             }
         }
@@ -470,8 +497,6 @@ namespace AthenaFramework
         [HarmonyPatch(typeof(Projectile), "Impact")]
         public static class Projectile_PreImpact
         {
-            static FieldInfo damageModifier = typeof(Projectile).GetField("weaponDamageMultiplier", BindingFlags.NonPublic | BindingFlags.Instance);
-
             static void Prefix(Projectile __instance, Thing hitThing, ref bool blockedByShield)
             {
                 Comp_BeamProjectile comp = __instance.TryGetComp<Comp_BeamProjectile>();
@@ -498,7 +523,7 @@ namespace AthenaFramework
                         effectExtension.effecter.Spawn(__instance.Position, __instance.Map, 1f).Cleanup();
                     }
                 }
-
+                
                 if (hitThing == null)
                 {
                     return;
@@ -530,7 +555,7 @@ namespace AthenaFramework
                 }
 
                 float passiveOffset = offset / __instance.DamageAmount;
-                damageModifier.SetValue(__instance, (float)damageModifier.GetValue(__instance) * multiplier + passiveOffset);
+                __instance.weaponDamageMultiplier = __instance.weaponDamageMultiplier * multiplier + passiveOffset;
             }
         }
 
@@ -635,43 +660,6 @@ namespace AthenaFramework
             }
         }
 
-        [HarmonyPatch(typeof(Pawn), nameof(Pawn.PreApplyDamage))]
-        public static class Pawn_PostPreApplyDamage
-        {
-            static void Postfix(Pawn __instance, ref DamageInfo dinfo, ref bool absorbed)
-            {
-                if (absorbed)
-                {
-                    return;
-                }
-
-                for (int i = __instance.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
-                {
-                    HediffWithComps hediff = __instance.health.hediffSet.hediffs[i] as HediffWithComps;
-
-                    if (hediff == null)
-                    {
-                        continue;
-                    }
-
-                    for (int j = hediff.comps.Count - 1; j >= 0; j--)
-                    {
-                        HediffComp_Shield shield = hediff.comps[j] as HediffComp_Shield;
-
-                        if (shield != null)
-                        {
-                            shield.BlockDamage(ref dinfo, ref absorbed);
-
-                            if (absorbed)
-                            {
-                                return;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         [HarmonyPatch(typeof(StunHandler), "Notify_DamageApplied")]
         public static class StunHandler_PreDamageApplied
         {
@@ -682,6 +670,27 @@ namespace AthenaFramework
                 if (pawn == null)
                 {
                     return true;
+                }
+
+                float modifier = 1f;
+                float offset = 0f;
+
+                for (int i = pawn.AllComps.Count - 1; i >= 0; i--)
+                {
+                    Comp_StunReduction stun = pawn.AllComps[i] as Comp_StunReduction;
+
+                    if (stun != null)
+                    {
+                        if (stun.BlockStun(dinfo))
+                        {
+                            return false;
+                        }
+
+                        (float, float) result = stun.GetStunModifiers(dinfo);
+
+                        offset += result.Item1;
+                        modifier *= result.Item2;
+                    }
                 }
 
                 for (int i = pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
@@ -704,14 +713,75 @@ namespace AthenaFramework
                                 return false;
                             }
                         }
+
+                        HediffComp_StunReduction stun = hediff.comps[j] as HediffComp_StunReduction;
+
+                        if (stun != null)
+                        {
+                            if (stun.BlockStun(dinfo))
+                            {
+                                return false;
+                            }
+
+                            (float, float) result = stun.GetStunModifiers(dinfo);
+
+                            offset += result.Item1;
+                            modifier *= result.Item2;
+                        }
                     }
                 }
+
+                if (pawn.apparel != null)
+                {
+                    List<Apparel> wornApparel = pawn.apparel.WornApparel;
+                    for (int i = wornApparel.Count - 1; i >= 0; i--)
+                    {
+                        Apparel apparel = wornApparel[i];
+                        for (int j = apparel.AllComps.Count - 1; j >= 0; j--)
+                        {
+                            Comp_StunReduction stun = apparel.AllComps[j] as Comp_StunReduction;
+
+                            if (stun != null)
+                            {
+                                if (stun.BlockStun(dinfo))
+                                {
+                                    return false;
+                                }
+
+                                (float, float) result = stun.GetStunModifiers(dinfo);
+
+                                offset += result.Item1;
+                                modifier *= result.Item2;
+                            }
+                        }
+                    }
+                }
+
+                dinfo.SetAmount(dinfo.Amount * modifier + offset);
 
                 return true;
             }
         }
 
-        // Rendering patches
+
+        [HarmonyPatch(typeof(FoodUtility), "IsAcceptablePreyFor")]
+        public static class FoodUtility_PreAcceptablePrey
+        {
+            static void Postfix(Pawn predator, Pawn prey, ref bool __result)
+            {
+                if (!__result)
+                {
+                    return;
+                }
+
+                MinPreySizeExtension ext = predator.def.GetModExtension<MinPreySizeExtension>();
+
+                if (ext != null && prey.BodySize < ext.minPreyBodySize)
+                {
+                    __result = false;
+                }
+            }
+        }
 
         [HarmonyPatch(typeof(Pawn), nameof(Pawn.DrawAt))]
         public static class Pawn_PostDrawAt
@@ -738,21 +808,24 @@ namespace AthenaFramework
                     }
                 }
 
-                /*List<Apparel> wornApparel = __instance.apparel.WornApparel;
-                for (int i = __instance.apparel.WornApparelCount - 1; i >= 0; i--)
+                if (__instance.apparel != null)
                 {
-                    Apparel apparel = wornApparel[i];
-
-                    for (int j = hediff.comps.Count - 1; j >= 0; j--)
+                    List<Apparel> wornApparel = __instance.apparel.WornApparel;
+                    for (int i = __instance.apparel.WornApparelCount - 1; i >= 0; i--)
                     {
-                        HediffComp_Renderable renderable = hediff.comps[j] as HediffComp_Renderable;
+                        Apparel apparel = wornApparel[i];
 
-                        if (renderable != null)
+                        for (int j = apparel.comps.Count - 1; j >= 0; j--)
                         {
-                            renderable.DrawAt(drawLoc);
+                            Comp_AdditionalApparelGraphics additionalGraphics = apparel.comps[j] as Comp_AdditionalApparelGraphics;
+
+                            if (additionalGraphics != null)
+                            {
+                                additionalGraphics.DrawAt(drawLoc);
+                            }
                         }
                     }
-                }*/
+                }
             }
         }
     }

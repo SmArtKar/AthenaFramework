@@ -15,7 +15,7 @@ namespace AthenaFramework
 {
     public class Verb_ShootRunningBeam : Verb
     {
-        protected override int ShotsPerBurst
+        public override int ShotsPerBurst
         {
             get
             {
@@ -52,7 +52,7 @@ namespace AthenaFramework
             }
         }
 
-        protected override bool TryCastShot()
+        public override bool TryCastShot()
         {
             if (currentTarget.HasThing && currentTarget.Thing.Map != caster.Map)
             {
