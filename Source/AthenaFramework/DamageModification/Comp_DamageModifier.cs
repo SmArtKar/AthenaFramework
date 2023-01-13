@@ -36,7 +36,7 @@ namespace AthenaFramework
 
         public virtual (float, float) GetIncomingDamageModifier(Thing target, ref List<string> excludedGlobal, Thing instigator, DamageInfo? dinfo, bool projectile = false)
         {
-            float modifier = 1f;
+            float modifier = Props.incomingDamageMultiplier;
             float offset = 0f;
             List<string> excluded = new List<string>();
 
@@ -64,5 +64,7 @@ namespace AthenaFramework
         public List<DamageModificator> incomingModifiers = new List<DamageModificator>();
         // Passive outgoing damage modifier that's always applied
         public float outgoingDamageMultiplier = 1f;
+        // Passive incoming damage modifier that's always applied
+        public float incomingDamageMultiplier = 1f;
     }
 }
