@@ -116,6 +116,11 @@ namespace AthenaFramework
     {
         static void Prefix(Thing __instance, ref DamageInfo dinfo, ref bool absorbed)
         {
+            if (absorbed)
+            {
+                return;
+            }
+
             float modifier = 1f;
             float offset = 0f;
             List<string> excludedGlobal = new List<string>();
@@ -255,9 +260,7 @@ namespace AthenaFramework
 
             if (pawn2 != null)
             {
-                List<HediffComp_Shield> shieldCache = new List<HediffComp_Shield>();
-
-                for (int i = pawn2.health.hediffSet.hediffs.Count - 1; i >= 1; i--)
+                for (int i = pawn2.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
                 {
                     Hediff hediff = pawn2.health.hediffSet.hediffs[i];
 
@@ -285,13 +288,6 @@ namespace AthenaFramework
                             (float, float) result = modifierComp.GetIncomingDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator, dinfo);
                             modifier *= result.Item1;
                             offset += result.Item2;
-                        }
-
-                        HediffComp_Shield shieldComp = compHediff.comps[j] as HediffComp_Shield;
-
-                        if (shieldComp != null)
-                        {
-                            shieldCache.Add(shieldComp);
                         }
                     }
                 }
@@ -322,6 +318,49 @@ namespace AthenaFramework
                             (float, float) result = apparel.def.GetModExtension<DamageModifierExtension>().GetIncomingDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator, dinfo);
                             modifier *= result.Item1;
                             offset += result.Item2;
+                        }
+                    }
+                }
+            }
+
+            dinfo.SetAmount(dinfo.Amount * modifier + offset);
+        }
+
+        static void Postfix(Thing __instance, ref DamageInfo dinfo, ref bool absorbed)
+        {
+            if (absorbed)
+            {
+                return;
+            }
+
+            Pawn pawn = __instance as Pawn;
+
+            if (pawn == null)
+            {
+                return;
+            }
+
+            for (int i = pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
+            {
+                HediffWithComps compHediff = pawn.health.hediffSet.hediffs[i] as HediffWithComps;
+
+                if (compHediff == null)
+                {
+                    continue;
+
+                }
+
+                for (int j = compHediff.comps.Count - 1; j >= 0; j--)
+                {
+                    HediffComp_Shield shield = compHediff.comps[j] as HediffComp_Shield;
+
+                    if (shield != null)
+                    {
+                        shield.BlockDamage(ref dinfo, ref absorbed);
+
+                        if (absorbed)
+                        {
+                            return;
                         }
                     }
                 }

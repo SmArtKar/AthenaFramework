@@ -183,9 +183,30 @@ namespace AthenaFramework
 
             if (__instance.apparel != null)
             {
+                List<Apparel> wornApparel = __instance.apparel.WornApparel;
+
+                if (__instance.story == null || __instance.story.bodyType == null)
+                {
+                    for (int i = wornApparel.Count - 1; i >= 0; i--)
+                    {
+                        Apparel apparel = wornApparel[i];
+
+                        for (int j = apparel.AllComps.Count - 1; j >= 0; j--)
+                        {
+                            Comp_AdditionalApparelGraphics additionalGraphics = apparel.comps[j] as Comp_AdditionalApparelGraphics;
+
+                            if (additionalGraphics != null)
+                            {
+                                additionalGraphics.DrawAt(drawLoc, null);
+                            }
+                        }
+                    }
+
+                    return;
+                }
+
                 BodyTypeDef bodyType = __instance.story.bodyType;
 
-                List<Apparel> wornApparel = __instance.apparel.WornApparel;
                 List<Comp_AdditionalApparelGraphics> compCache = new List<Comp_AdditionalApparelGraphics>();
 
                 for (int i = wornApparel.Count - 1; i >= 0; i--)

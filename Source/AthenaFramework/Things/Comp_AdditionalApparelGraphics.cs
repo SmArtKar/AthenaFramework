@@ -82,7 +82,7 @@ namespace AthenaFramework
 
         public virtual Graphic GetGraphic(Apparel apparel, BodyTypeDef bodyType)
         {
-            if (!useBodytype)
+            if (!useBodytype || bodyType == null)
             {
                 Color firstColor1 = GetColor(firstMask, apparel) ?? graphicData.color;
                 Color secondColor1 = GetColor(secondMask, apparel) ?? graphicData.colorTwo;
