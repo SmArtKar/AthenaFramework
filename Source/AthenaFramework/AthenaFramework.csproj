@@ -68,9 +68,9 @@
     <Compile Include="Hediffs\HediffComp_Renderable.cs" />
     <Compile Include="Hediffs\HediffComp_Shield.cs" />
     <Compile Include="Projectiles\ProjectileComp.cs" />
-    <Compile Include="Things\Comp_AdditionalApparelGraphics.cs" />
+    <Compile Include="Apparel\Comp_AdditionalApparelGraphics.cs" />
     <Compile Include="DamageModification\Comp_DamageModifier.cs" />
-    <Compile Include="Things\Comp_CustomApparelBody.cs" />
+    <Compile Include="Apparel\Comp_CustomApparelBody.cs" />
     <Compile Include="Things\MinPreySizeExtension.cs" />
     <Compile Include="Projectiles\ProjectileComp_Trail.cs" />
     <Compile Include="Things\HediffGiverExtension.cs" />

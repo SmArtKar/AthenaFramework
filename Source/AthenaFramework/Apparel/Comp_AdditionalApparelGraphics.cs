@@ -53,7 +53,7 @@ namespace AthenaFramework
     public enum ApparelPackageColor
     {
         None,
-        ApparelColor, //Apparel's color
+        ApparelColor, //Apparel's material color
         FactionColor,
         IdeoColor,
         FavoriteColor
@@ -69,13 +69,13 @@ namespace AthenaFramework
         // When set to true, graphic will change with the owner's bodytype, similarly to apparel
         public bool useBodytype = false;
 
-        // Coloring for the first and second masks respectively. Only firstMask supports gradients
+        // Coloring for the first and second masks respectively
         // In case chosen shader does not support masks, first mask acts as color
         public ApparelPackageColor firstMask = ApparelPackageColor.None;
         public ApparelPackageColor secondMask = ApparelPackageColor.None;
 
         private Dictionary<BodyTypeDef, Graphic> cachedGraphics = new Dictionary<BodyTypeDef, Graphic>();
-        private Graphic cachedGraphic; //GraphicDatabase.Get<Graphic_StackCount>(this.path, newShader, this.drawSize, newColor, newColorTwo, this.data, null);
+        private Graphic cachedGraphic;
 
         private Color cachedFirstColor;
         private Color cachedSecondColor;

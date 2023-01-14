@@ -327,7 +327,7 @@ namespace AthenaFramework
         // List of blacklisted DamageDefs. When set, DamageDefs that are in this list won't be affected.
         public List<DamageDef> blacklistedDamageDefs;
 
-        // List of ShieldInfoPacks with additional energy cosumption modifiers and overrides for block types for certain DamageDefs
+        // List of DamageInfoPack with additional energy cosumption modifiers and overrides for block types for certain DamageDefs
         public List<DamageInfoPack> damageInfoPacks;
 
         // What types of damage should cause the shield to instantly shatter

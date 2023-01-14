@@ -143,19 +143,46 @@ namespace AthenaFramework
 
             float modifierStat = 1f;
 
-            if (targetStatDefs != null)
+            if (incoming)
             {
-                foreach (StatDef statDef in targetStatDefs)
+                if (targetStatDefs != null)
                 {
-                    modifierStat *= (incoming ? instigator : target).GetStatValue(statDef);
+                    foreach (StatDef statDef in targetStatDefs)
+                    {
+                        modifierStat *= instigator.GetStatValue(statDef);
+                    }
+                }
+
+                if (target != null)
+                {
+                    if (attackerStatDefs != null && instigator != null)
+                    {
+                        foreach (StatDef statDef in attackerStatDefs)
+                        {
+                            modifierStat *= target.GetStatValue(statDef);
+                        }
+                    }
                 }
             }
-
-            if (attackerStatDefs != null && instigator != null)
+            else
             {
-                foreach (StatDef statDef in attackerStatDefs)
+                if (targetStatDefs != null)
                 {
-                    modifierStat *= (incoming ? target : instigator).GetStatValue(statDef);
+                    foreach (StatDef statDef in targetStatDefs)
+                    {
+                        modifierStat *= target.GetStatValue(statDef);
+                    }
+                }
+
+                if (instigator != null)
+                {
+                    if (attackerStatDefs != null && instigator != null)
+                    {
+                        foreach (StatDef statDef in attackerStatDefs)
+                        {
+                            modifierStat *= instigator.GetStatValue(statDef);
+                        }
+                    }
                 }
             }
 
