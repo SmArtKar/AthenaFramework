@@ -28,6 +28,23 @@ namespace AthenaFramework
         }
     }
 
+    [HarmonyPatch(typeof(Projectile), "CanHit")]
+    public static class Projectile_PostCanHit
+    {
+        static void Postfix(Projectile __instance, Thing thing, ref bool __result)
+        {
+            for (int i = __instance.AllComps.Count - 1; i >= 0; i--)
+            {
+                ProjectileComp comp = __instance.AllComps[i] as ProjectileComp;
+
+                if (comp != null)
+                {
+                    comp.CanHit(thing, ref __result);
+                }
+            }
+        }
+    }
+
     [HarmonyPatch(typeof(Projectile), "Impact")]
     public static class Projectile_PreImpact
     {
