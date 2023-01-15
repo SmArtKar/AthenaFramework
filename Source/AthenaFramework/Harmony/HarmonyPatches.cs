@@ -12,16 +12,11 @@ using UnityEngine;
 
 namespace AthenaFramework
 {
-    [StaticConstructorOnStartup]
-    public static class HarmonyPatches
+    public class HarmonyPatches : Mod
     {
-        public static Harmony harmonyInstance;
+        public Harmony harmonyInstance;
 
-        public static bool apparelPatched = false;
-        public static bool drawPatched = false;
-        public static bool damagesPatched = false;
-
-        static HarmonyPatches()
+        public HarmonyPatches(ModContentPack content) : base(content)
         {
             harmonyInstance = new Harmony(id: "rimworld.smartkar.athenaframework.main");
             harmonyInstance.PatchAll();
