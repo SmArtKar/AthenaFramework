@@ -150,10 +150,12 @@ namespace AthenaFramework
             }
 
             Color secondColor = GetColor(secondMask, hediff) ?? graphicData.colorTwo; //Getting second color first for the gradient creation
+            bool createdGradient = false;
 
             if (gradientGraphics == null && (firstMask == HediffPackageColor.SeverityGradient || firstMask == HediffPackageColor.HealthGradient))
             {
                 CreateGradient(secondColor);
+                createdGradient = true;
             }
 
             Color firstColor = GetColor(firstMask, hediff) ?? graphicData.color;
@@ -175,10 +177,15 @@ namespace AthenaFramework
             if (secondColor != cachedSecondColor)
             {
                 cachedSecondColor = secondColor;
-                CreateGradient(secondColor);
+
+                if (!createdGradient)
+                {
+                    CreateGradient(secondColor);
+                }
             }
 
-            cachedGraphic = gradientGraphics[Math.Min((int)Math.Floor((firstMask == HediffPackageColor.SeverityGradient ? hediff.Severity : hediff.pawn.health.summaryHealth.SummaryHealthPercent) * gradientVariants), gradientVariants)];
+            cachedGraphic = gradientGraphics[Math.Min((int)Math.Floor((firstMask == HediffPackageColor.SeverityGradient ? hediff.Severity : hediff.pawn.health.summaryHealth.SummaryHealthPercent) * gradientVariants), gradientVariants - 1)];
+
             return cachedGraphic;
         }
 
@@ -188,7 +195,7 @@ namespace AthenaFramework
 
             for (int i = 0; i < gradientVariants; i++)
             {
-                gradientGraphics.Add(graphicData.Graphic.GetColoredVersion(graphicData.Graphic.Shader, gradientList[i], secondColor));
+                gradientGraphics.Add(graphicData.Graphic.GetColoredVersion(graphicData.Graphic.Shader, ColorGradient[i], secondColor));
             }
         }
 
@@ -232,10 +239,10 @@ namespace AthenaFramework
                     return hediff.pawn.story.SkinColor;
 
                 case HediffPackageColor.SeverityGradient:
-                    return gradientList[Math.Min((int)Math.Floor(hediff.Severity * gradientVariants), gradientVariants)];
+                    return ColorGradient[Math.Min((int)Math.Floor(hediff.Severity * gradientVariants), gradientVariants - 1)];
 
                 case HediffPackageColor.HealthGradient:
-                    return gradientList[Math.Min((int)Math.Floor(hediff.pawn.health.summaryHealth.SummaryHealthPercent * gradientVariants), gradientVariants)];
+                    return ColorGradient[Math.Min((int)Math.Floor(hediff.pawn.health.summaryHealth.SummaryHealthPercent * gradientVariants), gradientVariants - 1)];
             }
 
             return null;
@@ -266,7 +273,8 @@ namespace AthenaFramework
 
             for (int i = 0; i < gradientVariants; i++)
             {
-                curGradient.Add(curve.Evaluate(1 / gradientVariants * i));
+                float pos = i / (float)gradientVariants;
+                curGradient.Add(curve.Evaluate(pos));
             }
 
             return curGradient;
@@ -276,7 +284,7 @@ namespace AthenaFramework
     public class GradientCurve
     {
         public List<GradientPoint> points;
-        public List<SimpleCurve> curves;
+        public List<SimpleCurve> curves = new List<SimpleCurve>();
 
         public GradientCurve(List<GradientPoint> points)
         {
