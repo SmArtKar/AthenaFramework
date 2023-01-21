@@ -11,7 +11,7 @@ using static UnityEngine.UI.Image;
 
 namespace AthenaFramework
 {
-    [HarmonyPatch(typeof(Projectile), "Launch", new System.Type[] { typeof(Thing), typeof(Vector3), typeof(LocalTargetInfo), typeof(LocalTargetInfo), typeof(ProjectileHitFlags), typeof(bool), typeof(Thing), typeof(ThingDef) })]
+    [HarmonyPatch(typeof(Projectile), nameof(Projectile.Launch), new System.Type[] { typeof(Thing), typeof(Vector3), typeof(LocalTargetInfo), typeof(LocalTargetInfo), typeof(ProjectileHitFlags), typeof(bool), typeof(Thing), typeof(ThingDef) })]
     public static class Projectile_PostLaunch
     {
         public static void Postfix(Projectile __instance, Thing launcher, ref Vector3 origin, LocalTargetInfo usedTarget, LocalTargetInfo intendedTarget, ProjectileHitFlags hitFlags, bool preventFriendlyFire, Thing equipment, ThingDef targetCoverDef)
@@ -28,7 +28,7 @@ namespace AthenaFramework
         }
     }
 
-    [HarmonyPatch(typeof(Projectile), "CanHit")]
+    [HarmonyPatch(typeof(Projectile), nameof(Projectile.CanHit))]
     public static class Projectile_PostCanHit
     {
         static void Postfix(Projectile __instance, Thing thing, ref bool __result)
@@ -45,7 +45,7 @@ namespace AthenaFramework
         }
     }
 
-    [HarmonyPatch(typeof(Projectile), "Impact")]
+    [HarmonyPatch(typeof(Projectile), nameof(Projectile.Impact))]
     public static class Projectile_PreImpact
     {
         static void Prefix(Projectile __instance, Thing hitThing, ref bool blockedByShield)

@@ -9,7 +9,7 @@ using Verse;
 
 namespace AthenaFramework
 {
-    [HarmonyPatch(typeof(FoodUtility), "IsAcceptablePreyFor")]
+    [HarmonyPatch(typeof(FoodUtility), nameof(FoodUtility.IsAcceptablePreyFor))]
     public static class FoodUtility_PreAcceptablePrey
     {
         public static void Postfix(Pawn predator, Pawn prey, ref bool __result)
@@ -28,7 +28,7 @@ namespace AthenaFramework
         }
     }
 
-    [HarmonyPatch(typeof(Pawn), "SpawnSetup")]
+    [HarmonyPatch(typeof(Pawn), nameof(Pawn.SpawnSetup))]
     public static class Pawn_PostSpawnSetup
     {
         public static void Postfix(Pawn __instance, Map map, bool respawningAfterLoad)

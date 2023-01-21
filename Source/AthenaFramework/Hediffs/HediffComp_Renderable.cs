@@ -10,15 +10,20 @@ using System.Reflection;
 
 namespace AthenaFramework
 {
-    public class HediffComp_Renderable : HediffComp
+    public class HediffComp_Renderable : HediffComp, IRenderable
     {
         private HediffCompProperties_Renderable Props => props as HediffCompProperties_Renderable;
         private static readonly float altitude = AltitudeLayer.MoteOverhead.AltitudeFor();
 
         public Mote attachedMote;
 
-        public virtual void DrawAt(Vector3 drawPos)
+        public virtual void DrawAt(Vector3 drawPos, BodyTypeDef bodyType)
         {
+            if (Props.onlyRenderWhenDrafted && (Pawn.drafter == null || !Pawn.drafter.Drafted))
+            {
+                return;
+            }
+
             if (Props.graphicData == null)
             {
                 return;
@@ -31,7 +36,12 @@ namespace AthenaFramework
                 HediffGraphicPackage package = Props.additionalGraphics[i];
                 Vector3 offset = new Vector3();
 
-                if (package.offsets!= null)
+                if (package.onlyRenderWhenDrafted && (Pawn.drafter == null || !Pawn.drafter.Drafted))
+                {
+                    return;
+                }
+
+                if (package.offsets != null)
                 {
                     if (package.offsets.Count == 4)
                     {
@@ -100,229 +110,9 @@ namespace AthenaFramework
         public float attachedMoteScale = 1f;
         // If set to true, attached mote will be destroyed after hediff's removal
         public bool destroyMoteOnRemoval = true;
+        // If this graphic should be rendered only when the pawn is drafted. Overriden by graphic package settings
+        public bool onlyRenderWhenDrafted = false;
         // Additional graphic layers with more precise controls. These are drawn on the same layer as pawn by default
         public List<HediffGraphicPackage> additionalGraphics = new List<HediffGraphicPackage>();
-    }
-
-    public enum HediffPackageColor
-    {
-        None,
-        LabelColor,
-        FactionColor,
-        IdeoColor,
-        FavoriteColor,
-        SkinColor,
-        SeverityGradient,
-        HealthGradient
-    }
-
-    public class HediffGraphicPackage
-    {
-        // Graphic data for this package.
-        public GraphicData graphicData;
-        // List of offsets. Specific for every direction if 4 are specified, else applies to all directions
-        // Y dimension determines layer offset, use negative values to render the texture below the pawn
-        public List<Vector3> offsets;
-
-        // Coloring for the first and second masks respectively. Only firstMask supports gradients
-        // In case chosen shader does not support masks, first mask acts as color
-        public HediffPackageColor firstMask = HediffPackageColor.None;
-        public HediffPackageColor secondMask = HediffPackageColor.None;
-
-        // Gradient points. Requires firstMask to be set to either SeverityGradient or HealthGradient
-        public List<GradientPoint> gradient;
-        // Determines the amount of graphics generated for the gradient. Higher numbers increase RAM usage but provide a smoother transition.
-        public int gradientVariants = 10;
-
-        private List<Color> gradientList;
-        private List<Graphic> gradientGraphics;
-        private Graphic cachedGraphic;
-
-        private Color cachedFirstColor;
-        private Color cachedSecondColor;
-
-        public virtual Graphic GetGraphic(Hediff hediff)
-        {
-            if (secondMask == HediffPackageColor.SeverityGradient || secondMask == HediffPackageColor.HealthGradient)
-            {
-                Log.Error("HediffGraphicPackage secondMask set to a gradient. Only firstMask supports gradients");
-                return graphicData.Graphic;
-            }
-
-            Color secondColor = GetColor(secondMask, hediff) ?? graphicData.colorTwo; //Getting second color first for the gradient creation
-            bool createdGradient = false;
-
-            if (gradientGraphics == null && (firstMask == HediffPackageColor.SeverityGradient || firstMask == HediffPackageColor.HealthGradient))
-            {
-                CreateGradient(secondColor);
-                createdGradient = true;
-            }
-
-            Color firstColor = GetColor(firstMask, hediff) ?? graphicData.color;
-
-            if (firstColor == cachedFirstColor && secondColor == cachedSecondColor)
-            {
-                return cachedGraphic;
-            }
-
-            cachedFirstColor = firstColor;
-
-            if (gradientGraphics == null)
-            {
-                cachedSecondColor = secondColor;
-                cachedGraphic = graphicData.Graphic.GetColoredVersion(graphicData.Graphic.Shader, firstColor, secondColor);
-                return cachedGraphic;
-            }
-
-            if (secondColor != cachedSecondColor)
-            {
-                cachedSecondColor = secondColor;
-
-                if (!createdGradient)
-                {
-                    CreateGradient(secondColor);
-                }
-            }
-
-            cachedGraphic = gradientGraphics[Math.Min((int)Math.Floor((firstMask == HediffPackageColor.SeverityGradient ? hediff.Severity : hediff.pawn.health.summaryHealth.SummaryHealthPercent) * gradientVariants), gradientVariants - 1)];
-
-            return cachedGraphic;
-        }
-
-        public virtual void CreateGradient(Color secondColor)
-        {
-            gradientGraphics = new List<Graphic>();
-
-            for (int i = 0; i < gradientVariants; i++)
-            {
-                gradientGraphics.Add(graphicData.Graphic.GetColoredVersion(graphicData.Graphic.Shader, ColorGradient[i], secondColor));
-            }
-        }
-
-        public virtual Color? GetColor(HediffPackageColor type, Hediff hediff)
-        {
-            switch (type)
-            {
-                case HediffPackageColor.LabelColor:
-                    return hediff.LabelColor;
-
-                case HediffPackageColor.FactionColor:
-                    if (hediff.pawn.Faction == null)
-                    {
-                        return null;
-                    }
-
-                    return hediff.pawn.Faction.Color;
-
-                case HediffPackageColor.IdeoColor:
-                    if (!ModLister.IdeologyInstalled || hediff.pawn.ideo == null)
-                    {
-                        return null;
-                    }
-
-                    return hediff.pawn.ideo.Ideo.Color;
-
-                case HediffPackageColor.FavoriteColor:
-                    if (!ModLister.IdeologyInstalled || hediff.pawn.story == null)
-                    {
-                        return null;
-                    }
-
-                    return hediff.pawn.story.favoriteColor;
-
-                case HediffPackageColor.SkinColor:
-                    if (hediff.pawn.story == null)
-                    {
-                        return null;
-                    }
-
-                    return hediff.pawn.story.SkinColor;
-
-                case HediffPackageColor.SeverityGradient:
-                    return ColorGradient[Math.Min((int)Math.Floor(hediff.Severity * gradientVariants), gradientVariants - 1)];
-
-                case HediffPackageColor.HealthGradient:
-                    return ColorGradient[Math.Min((int)Math.Floor(hediff.pawn.health.summaryHealth.SummaryHealthPercent * gradientVariants), gradientVariants - 1)];
-            }
-
-            return null;
-        }
-
-        public virtual List<Color> ColorGradient
-        {
-            get
-            {
-                if (gradientList == null)
-                {
-                    gradientList = CreateGradientPoints();
-                }
-
-                return gradientList;
-            }
-
-            set
-            {
-                gradientList = value;
-            }
-        }
-
-        public virtual List<Color> CreateGradientPoints()
-        {
-            List<Color> curGradient = new List<Color>();
-            GradientCurve curve = new GradientCurve(gradient);
-
-            for (int i = 0; i < gradientVariants; i++)
-            {
-                float pos = i / (float)gradientVariants;
-                curGradient.Add(curve.Evaluate(pos));
-            }
-
-            return curGradient;
-        }
-    }
-
-    public class GradientCurve
-    {
-        public List<GradientPoint> points;
-        public List<SimpleCurve> curves = new List<SimpleCurve>();
-
-        public GradientCurve(List<GradientPoint> points)
-        {
-            this.points = points;
-            GenerateCurves();
-        }
-
-        public virtual void GenerateCurves()
-        {
-            List<CurvePoint> pointsR = new List<CurvePoint>();
-            List<CurvePoint> pointsG = new List<CurvePoint>();
-            List<CurvePoint> pointsB = new List<CurvePoint>();
-            List<CurvePoint> pointsA = new List<CurvePoint>();
-
-            for (int i = 0; i < points.Count; i++)
-            {
-                GradientPoint point = points[i];
-                pointsR.Add(new CurvePoint(point.position, point.color.r));
-                pointsG.Add(new CurvePoint(point.position, point.color.g));
-                pointsB.Add(new CurvePoint(point.position, point.color.b));
-                pointsA.Add(new CurvePoint(point.position, point.color.a));
-            }
-
-            curves.Add(new SimpleCurve(pointsR));
-            curves.Add(new SimpleCurve(pointsG));
-            curves.Add(new SimpleCurve(pointsB));
-            curves.Add(new SimpleCurve(pointsA));
-        }
-
-        public virtual Color Evaluate(float position)
-        {
-            return new Color(curves[0].Evaluate(position), curves[1].Evaluate(position), curves[2].Evaluate(position), curves[3].Evaluate(position));
-        }
-    }
-
-    public struct GradientPoint
-    {
-        public float position;
-        public Color color;
     }
 }

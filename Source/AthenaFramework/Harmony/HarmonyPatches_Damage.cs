@@ -333,11 +333,78 @@ namespace AthenaFramework
                 return;
             }
 
+            ThingWithComps thing = __instance as ThingWithComps;
+
+            if (thing == null)
+            {
+                return;
+            }
+
             Pawn pawn = __instance as Pawn;
 
             if (pawn == null)
             {
+                for (int i = thing.AllComps.Count - 1; i >= 0; i--)
+                {
+                    IDamageResponse responder = thing.AllComps[i] as IDamageResponse;
+
+                    if (responder == null)
+                    {
+                        continue;
+                    }
+
+                    responder.PreApplyDamage(ref dinfo, ref absorbed);
+
+                    if (absorbed)
+                    {
+                        return;
+                    }
+                }
+
                 return;
+            }
+
+            if (pawn.apparel != null)
+            {
+                List<Apparel> wornApparel = pawn.apparel.WornApparel;
+                for (int i = wornApparel.Count - 1; i >= 0; i--)
+                {
+                    Apparel apparel = wornApparel[i];
+
+                    for (int j = apparel.AllComps.Count - 1; j >= 0; j--)
+                    {
+                        IDamageResponse responder = apparel.AllComps[j] as IDamageResponse;
+
+                        if (responder == null)
+                        {
+                            continue;
+                        }
+
+                        responder.PreApplyDamage(ref dinfo, ref absorbed);
+
+                        if (absorbed)
+                        {
+                            return;
+                        }
+                    }
+                }
+            }
+
+            for (int i = pawn.AllComps.Count - 1; i >= 0; i--)
+            {
+                IDamageResponse responder = pawn.AllComps[i] as IDamageResponse;
+
+                if (responder == null)
+                {
+                    continue;
+                }
+
+                responder.PreApplyDamage(ref dinfo, ref absorbed);
+
+                if (absorbed)
+                {
+                    return;
+                }
             }
 
             for (int i = pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
@@ -352,19 +419,220 @@ namespace AthenaFramework
 
                 for (int j = compHediff.comps.Count - 1; j >= 0; j--)
                 {
-                    HediffComp_Shield shield = compHediff.comps[j] as HediffComp_Shield;
+                    IDamageResponse responder = compHediff.comps[j] as IDamageResponse;
 
-                    if (shield != null)
+                    if (responder == null)
                     {
-                        shield.BlockDamage(ref dinfo, ref absorbed);
+                        return;
+                    }
 
-                        if (absorbed)
+                    responder.PreApplyDamage(ref dinfo, ref absorbed);
+
+                    if (absorbed)
+                    {
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(ThingWithComps), nameof(ThingWithComps.PostApplyDamage))]
+    public static class ThingWithComps_PostPostApplyDamage
+    {
+        static void Postfix(ThingWithComps __instance, ref DamageInfo dinfo, ref float totalDamageDealt)
+        {
+            Pawn pawn = __instance as Pawn;
+
+            if (pawn == null)
+            {
+                for (int i = __instance.AllComps.Count - 1; i >= 0; i--)
+                {
+                    IDamageResponse responder = __instance.AllComps[i] as IDamageResponse;
+
+                    if (responder == null)
+                    {
+                        continue;
+                    }
+
+                    responder.PostApplyDamage(ref dinfo, ref totalDamageDealt);
+                }
+
+                return;
+            }
+
+            if (pawn.apparel != null)
+            {
+                List<Apparel> wornApparel = pawn.apparel.WornApparel;
+                for (int i = wornApparel.Count - 1; i >= 0; i--)
+                {
+                    Apparel apparel = wornApparel[i];
+
+                    for (int j = apparel.AllComps.Count - 1; j >= 0; j--)
+                    {
+                        IDamageResponse responder = apparel.AllComps[j] as IDamageResponse;
+
+                        if (responder == null)
                         {
-                            return;
+                            continue;
+                        }
+
+                        responder.PostApplyDamage(ref dinfo, ref totalDamageDealt);
+                    }
+                }
+            }
+
+            for (int i = pawn.AllComps.Count - 1; i >= 0; i--)
+            {
+                IDamageResponse responder = pawn.AllComps[i] as IDamageResponse;
+
+                if (responder == null)
+                {
+                    continue;
+                }
+
+                responder.PostApplyDamage(ref dinfo, ref totalDamageDealt);
+            }
+
+            for (int i = pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
+            {
+                HediffWithComps compHediff = pawn.health.hediffSet.hediffs[i] as HediffWithComps;
+
+                if (compHediff == null)
+                {
+                    continue;
+
+                }
+
+                for (int j = compHediff.comps.Count - 1; j >= 0; j--)
+                {
+                    IDamageResponse responder = compHediff.comps[j] as IDamageResponse;
+
+                    if (responder == null)
+                    {
+                        return;
+                    }
+
+                    responder.PostApplyDamage(ref dinfo, ref totalDamageDealt);
+                }
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(ArmorUtility), nameof(ArmorUtility.GetPostArmorDamage))]
+    public static class ArmorUtility_PostArmorGetter
+    {
+        public static void Postfix(Pawn pawn, float amount, float armorPenetration, BodyPartRecord part, ref DamageDef damageDef, ref bool deflectedByMetalArmor, ref bool diminishedByMetalArmor, ref float __result)
+        {
+            if (__result == 0)
+            {
+                return;
+            }
+
+            StatDef armorRatingStat = damageDef.armorCategory.armorRatingStat;
+
+            if (pawn.apparel != null)
+            {
+                List<Apparel> wornApparel = pawn.apparel.WornApparel;
+                for (int i = wornApparel.Count - 1; i >= 0; i--)
+                {
+                    Apparel apparel = wornApparel[i];
+                    if (apparel.def.apparel.CoversBodyPart(part))
+                    {
+                        for (int j = apparel.AllComps.Count - 1; j >= 0; j--)
+                        {
+                            IArmored armor = apparel.AllComps[j] as IArmored;
+
+                            if (armor == null)
+                            {
+                                continue;
+                            }
+
+                            float num = __result;
+                            bool flag;
+
+                            armor.ApplyArmor(ref __result, armorPenetration, armorRatingStat, part, ref damageDef, out flag);
+
+                            if (__result < 0.001f)
+                            {
+                                deflectedByMetalArmor = flag;
+                                __result = 0f;
+                                return;
+                            }
+
+                            if (__result < num && flag)
+                            {
+                                diminishedByMetalArmor = true;
+                            }
                         }
                     }
                 }
             }
+
+            for (int i = pawn.AllComps.Count - 1; i >= 0; i--)
+            {
+                IArmored armor = pawn.AllComps[i] as IArmored;
+
+                if (armor == null)
+                {
+                    continue;
+                }
+
+                float num3 = __result;
+                bool flag3;
+
+                armor.ApplyArmor(ref __result, armorPenetration, armorRatingStat, part, ref damageDef, out flag3);
+
+                if (__result < 0.001f)
+                {
+                    deflectedByMetalArmor = flag3;
+                    __result = 0f;
+                    return;
+                }
+
+                if (__result < num3 && flag3)
+                {
+                    diminishedByMetalArmor = true;
+                }
+            }
+
+            for (int i = pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
+            {
+                HediffWithComps hediff = pawn.health.hediffSet.hediffs[i] as HediffWithComps;
+
+                if (hediff == null)
+                {
+                    continue;
+                }
+
+                for (int j = hediff.comps.Count - 1; j >= 0; j--)
+                {
+                    IArmored armor = hediff.comps[j] as IArmored;
+
+                    if (armor == null)
+                    {
+                        continue;
+                    }
+
+                    float num = __result;
+                    bool flag;
+
+                    armor.ApplyArmor(ref __result, armorPenetration, armorRatingStat, part, ref damageDef, out flag);
+                    if (__result < 0.001f)
+                    {
+                        deflectedByMetalArmor = flag;
+                        __result = 0f;
+                        return;
+                    }
+
+                    if (__result < num && flag)
+                    {
+                        diminishedByMetalArmor = true;
+                    }
+                }
+            }
+
+            __result = amount;
         }
     }
 }

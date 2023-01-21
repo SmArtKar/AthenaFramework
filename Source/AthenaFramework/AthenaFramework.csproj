@@ -41,14 +41,32 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
+    <Reference Include="VFECore">
+      <HintPath>..\..\..\..\..\..\workshop\content\294100\2023507013\1.4\Assemblies\VFECore.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AngularShotguns\AngularShotgunExtension.cs" />
-    <Compile Include="AngularShotguns\CompAbilityEffect_LaunchShotgunProjectiles.cs" />
-    <Compile Include="AngularShotguns\Verb_ShootAngularShotgun.cs" />
+    <Compile Include="Hediffs\Classes\Hediff_Modular.cs" />
+    <Compile Include="Hediffs\Classes\Hediff_ModularAddedPart.cs" />
+    <Compile Include="Hediffs\Classes\Hediff_ModularImplant.cs" />
+    <Compile Include="Hediffs\HediffComp_Armored.cs" />
+    <Compile Include="Hediffs\HediffComp_Modular.cs" />
+    <Compile Include="Hediffs\ModuleStructures\ApparelGraphicPackage.cs" />
+    <Compile Include="Hediffs\ModuleStructures\HediffGraphicPackage.cs" />
+    <Compile Include="Interfaces\IArmored.cs" />
+    <Compile Include="Interfaces\IRenderable.cs" />
+    <Compile Include="Interfaces\IStageOverride.cs" />
+    <Compile Include="Things\CompUsable_HediffModule.cs" />
+    <Compile Include="Things\CompUseEffect_HediffModule.cs" />
+    <Compile Include="Utilities\Gradient.cs" />
+    <Compile Include="Utilities\HediffStageUtility.cs" />
+    <Compile Include="Weapons\AngularShotguns\AngularShotgunExtension.cs" />
+    <Compile Include="Weapons\AngularShotguns\CompAbilityEffect_LaunchShotgunProjectiles.cs" />
+    <Compile Include="Weapons\AngularShotguns\Verb_ShootAngularShotgun.cs" />
     <Compile Include="Beams\Beam.cs" />
     <Compile Include="Beams\BeamComp.cs" />
     <Compile Include="Beams\BeamExtension.cs" />
@@ -64,25 +82,28 @@
     <Compile Include="Harmony\HarmonyPatches_Turret.cs" />
     <Compile Include="Hediffs\HediffComp_Bomb.cs" />
     <Compile Include="DamageModification\HediffComp_DamageModifier.cs" />
+    <Compile Include="Hediffs\HediffComp_HediffRestorer.cs" />
     <Compile Include="Hediffs\HediffComp_RemoveOnSeverity.cs" />
     <Compile Include="Hediffs\HediffComp_Renderable.cs" />
     <Compile Include="Hediffs\HediffComp_Shield.cs" />
-    <Compile Include="Projectiles\ProjectileComp.cs" />
+    <Compile Include="Hediffs\HediffComp_DisableOnDamage.cs" />
+    <Compile Include="Interfaces\IDamageResponse.cs" />
+    <Compile Include="Weapons\Projectiles\ProjectileComp.cs" />
     <Compile Include="Apparel\Comp_AdditionalApparelGraphics.cs" />
     <Compile Include="DamageModification\Comp_DamageModifier.cs" />
     <Compile Include="Apparel\Comp_CustomApparelBody.cs" />
     <Compile Include="Things\MinPreySizeExtension.cs" />
-    <Compile Include="Projectiles\ProjectileComp_Trail.cs" />
+    <Compile Include="Weapons\Projectiles\ProjectileComp_Trail.cs" />
     <Compile Include="Things\HediffGiverExtension.cs" />
     <Compile Include="Things\TurretGraphicOverride.cs" />
     <Compile Include="Things\TurretRoofBlocked.cs" />
-    <Compile Include="ThinkNodes\ThinkNodeConditional_UnderGroupCombatPressure.cs" />
+    <Compile Include="Utilities\ThinkNodes\ThinkNodeConditional_UnderGroupCombatPressure.cs" />
     <Compile Include="Utilities\PawnGroupUtility.cs" />
-    <Compile Include="Weapons\CompAbilityEffect_LaunchProjectileBurst.cs" />
-    <Compile Include="Weapons\CompAbilityEffect_RevivalConversion.cs" />
-    <Compile Include="Weapons\CompAbilityEffect_ShootRunningBeam.cs" />
+    <Compile Include="Weapons\Abilities\CompAbilityEffect_LaunchProjectileBurst.cs" />
+    <Compile Include="Weapons\Abilities\CompAbilityEffect_RevivalConversion.cs" />
+    <Compile Include="Weapons\Abilities\CompAbilityEffect_ShootRunningBeam.cs" />
     <Compile Include="Weapons\AimAngleOffsetExtension.cs" />
-    <Compile Include="Projectiles\ProjectileComp_ImpactEffect.cs" />
+    <Compile Include="Weapons\Projectiles\ProjectileComp_ImpactEffect.cs" />
     <Compile Include="Weapons\Verb_ShootRunningBeam.cs" />
   </ItemGroup>
   <ItemGroup>

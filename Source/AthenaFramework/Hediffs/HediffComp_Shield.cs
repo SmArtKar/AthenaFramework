@@ -11,7 +11,7 @@ using Verse.Sound;
 
 namespace AthenaFramework
 {
-    public class HediffComp_Shield : HediffComp_Renderable
+    public class HediffComp_Shield : HediffComp_Renderable, IDamageResponse
     {
         public float energy;
         public int ticksToReset = -1;
@@ -51,7 +51,7 @@ namespace AthenaFramework
             energy = Props.maxEnergy * Props.energyOnStart;
         }
 
-        public virtual void BlockDamage(ref DamageInfo dinfo, ref bool absorbed)
+        public virtual void PreApplyDamage(ref DamageInfo dinfo, ref bool absorbed)
         {
             if (ticksToReset > 0)
             {
@@ -132,7 +132,7 @@ namespace AthenaFramework
         {
             Props.absorbSound.PlayOneShot(new TargetInfo(Pawn.Position, Pawn.Map, false));
             impactAngleVect = Vector3Utility.HorizontalVectorFromAngle(dinfo.Angle);
-            Vector3 offsetVector = Pawn.DrawPos + this.impactAngleVect.RotatedBy(180f) * 0.5f;
+            Vector3 offsetVector = Pawn.DrawPos + impactAngleVect.RotatedBy(180f) * 0.5f;
             float damagePower = Mathf.Min(10f, 2f + dinfo.Amount / 10f);
             FleckMaker.Static(offsetVector, Pawn.MapHeld, Props.absorbFleck, damagePower);
 
@@ -181,6 +181,11 @@ namespace AthenaFramework
             {
                 GenExplosion.DoExplosion(Pawn.Position, Pawn.MapHeld, Props.explosionRadius, Props.explosionDef, Pawn);
             }
+
+            if (Props.removeOnBreak)
+            {
+                Pawn.health.RemoveHediff(parent);
+            }
         }
 
         public virtual void Reset()
@@ -215,7 +220,7 @@ namespace AthenaFramework
 
                 if (ticksToReset <= 0)
                 {
-                    this.Reset();
+                    Reset();
                 }
 
                 return;
@@ -229,8 +234,13 @@ namespace AthenaFramework
             energy = Math.Min(energy + Props.energyRechargeRate, Props.maxEnergy);
         }
 
-        public override void DrawAt(Vector3 drawPos)
+        public override void DrawAt(Vector3 drawPos, BodyTypeDef bodyType)
         {
+            if (Props.onlyRenderWhenDrafted && (Pawn.drafter == null || !Pawn.drafter.Drafted))
+            {
+                return;
+            }
+
             if (Props.graphicData == null)
             {
                 return;
@@ -271,6 +281,31 @@ namespace AthenaFramework
 
             matrix.SetTRS(drawPos, Quaternion.AngleAxis(Props.spinning ? Rand.Range(0, 360) : 0, Vector3.up), new Vector3(scale, 1f, scale));
             Graphics.DrawMesh(MeshPool.plane10, matrix, Props.graphicData.Graphic.MatSingle, 0);
+
+            for (int i = Props.additionalGraphics.Count - 1; i >= 0; i--)
+            {
+                HediffGraphicPackage package = Props.additionalGraphics[i];
+                Vector3 offset = new Vector3();
+
+                if (package.onlyRenderWhenDrafted && (Pawn.drafter == null || !Pawn.drafter.Drafted))
+                {
+                    return;
+                }
+
+                if (package.offsets != null)
+                {
+                    if (package.offsets.Count == 4)
+                    {
+                        offset = package.offsets[Pawn.Rotation.AsInt];
+                    }
+                    else
+                    {
+                        offset = package.offsets[0];
+                    }
+                }
+
+                package.GetGraphic(parent).Draw(drawPos + offset, Pawn.Rotation, Pawn);
+            }
         }
 
         public override IEnumerable<Gizmo> CompGetGizmos()
@@ -291,6 +326,8 @@ namespace AthenaFramework
 
             yield break;
         }
+
+        public void PostApplyDamage(ref DamageInfo dinfo, ref float totalDamageDealt) { }
     }
 
     public class HediffCompProperties_Shield : HediffCompProperties_Renderable
@@ -316,6 +353,8 @@ namespace AthenaFramework
         public bool blockOverdamage = true;
         // Whenever the shield reduces damage/stun of the attack that broke it by what energy it had left(considering energyPerDamageModifier and energyPerStunModifier)
         public bool consumeOverdamage = false;
+        // Whenever the shield hediff should be removed upon being broken
+        public bool removeOnBreak = false;
 
         // Whenever the shield blocks ranged/explosive/melee damage
         public bool blocksRangedDamage = true;

@@ -45,11 +45,17 @@ namespace AthenaFramework
             return Props.preventBodytype;
         }
 
-        public virtual BodyTypeDef CustomBodytype(Apparel apparel, BodyTypeDef bodyType)
+        public virtual void CustomBodytype(Apparel apparel, ref BodyTypeDef bodyType)
         {
+            if (bodyType == null)
+            {
+                return;
+            }
+
             if (Props.forcedBodytype != null)
             {
-                return Props.forcedBodytype;
+                bodyType = Props.forcedBodytype;
+                return;
             }
 
             if (Props.bodytypePairs != null)
@@ -59,17 +65,18 @@ namespace AthenaFramework
                     BodytypeSwitch pair = Props.bodytypePairs[i];
                     if (pair.initialBodytype == bodyType)
                     {
-                        return pair.newBodytype;
+                        bodyType = pair.newBodytype;
+                        return;
                     }
                 }
             }
 
-            return null;
+            return;
         }
 
-        public virtual BodyTypeDef CustomBodytype(Apparel apparel, BodyTypeDef bodyType, ApparelGraphicRecord rec)
+        public virtual void CustomBodytype(Apparel apparel, ref BodyTypeDef bodyType, ApparelGraphicRecord rec)
         {
-            return CustomBodytype(apparel, bodyType);
+            CustomBodytype(apparel, ref bodyType);
         }
 
         public override void Notify_Equipped(Pawn pawn)

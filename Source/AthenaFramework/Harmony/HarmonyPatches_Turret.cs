@@ -12,7 +12,7 @@ using Verse;
 
 namespace AthenaFramework
 {
-    [HarmonyPatch(typeof(CompTurretGun), "TurretMat", MethodType.Getter)]
+    [HarmonyPatch(typeof(CompTurretGun), nameof(CompTurretGun.TurretMat), MethodType.Getter)]
     public static class CompTurretGun_TurretMat_Fixer
     {
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator ilg)
@@ -45,7 +45,7 @@ namespace AthenaFramework
         }
     }
 
-    [HarmonyPatch(typeof(CompTurretGun), "CanShoot", MethodType.Getter)]
+    [HarmonyPatch(typeof(CompTurretGun), nameof(CompTurretGun.CanShoot), MethodType.Getter)]
     public static class CompTurretGun_CanShootGetter
     {
         public static void Postfix(CompTurretGun __instance, ref bool __result)
@@ -71,7 +71,7 @@ namespace AthenaFramework
         }
     }
 
-    [HarmonyPatch(typeof(CompTurretGun), "PostDraw")]
+    [HarmonyPatch(typeof(CompTurretGun), nameof(CompTurretGun.PostDraw))]
     public static class CompTurretGun_PrePostDraw
     {
         public static bool Prefix(CompTurretGun __instance)

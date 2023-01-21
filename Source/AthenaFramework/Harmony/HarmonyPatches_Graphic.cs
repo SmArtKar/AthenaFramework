@@ -10,7 +10,7 @@ using Verse;
 
 namespace AthenaFramework
 {
-    [HarmonyPatch(typeof(ApparelGraphicRecordGetter), "TryGetGraphicApparel")]
+    [HarmonyPatch(typeof(ApparelGraphicRecordGetter), nameof(ApparelGraphicRecordGetter.TryGetGraphicApparel))]
     public static class ApparelGraphic_PreGet
     {
         public static bool Prefix(ref Apparel apparel, ref BodyTypeDef bodyType, ref ApparelGraphicRecord rec, ref bool __result)
@@ -45,7 +45,7 @@ namespace AthenaFramework
                 }
             }
 
-            if (apparel.Wearer == null || apparel.Wearer.apparel == null) //Somehow, this happened, be that another mod's intervention or something else.
+            if (apparel.Wearer == null || apparel.Wearer.apparel == null) //Somehow this happened, be that another mod's intervention or something else.
             {
                 return true;
             }
@@ -64,9 +64,10 @@ namespace AthenaFramework
                         continue;
                     }
 
-                    BodyTypeDef newBodyType = customBody.CustomBodytype(apparel, bodyType, rec);
+                    BodyTypeDef newBodyType = bodyType;
+                    customBody.CustomBodytype(apparel, ref newBodyType, rec);
 
-                    if (newBodyType != null)
+                    if (newBodyType != bodyType)
                     {
                         bodyType = newBodyType;
                         return true;
@@ -78,18 +79,18 @@ namespace AthenaFramework
         }
     }
 
-    [HarmonyPatch(typeof(PawnGraphicSet), "ResolveAllGraphics")]
+    [HarmonyPatch(typeof(PawnGraphicSet), nameof(PawnGraphicSet.ResolveAllGraphics))]
     public static class PawnGraphicSet_PostResolve
     {
         public static void Postfix(PawnGraphicSet __instance)
         {
-            if (!__instance.pawn.RaceProps.Humanlike || __instance.pawn.apparel == null)
+            if (!__instance.pawn.RaceProps.Humanlike || __instance.pawn.apparel == null || __instance.pawn.story == null)
             {
                 return;
             }
 
             bool graphicsSet = false;
-            BodyTypeDef customUserBody = null;
+            BodyTypeDef customUserBody = __instance.pawn.story.bodyType;
 
             List<Apparel> wornApparel = __instance.pawn.apparel.WornApparel;
             for (int i = wornApparel.Count - 1; i >= 0; i--)
@@ -121,15 +122,7 @@ namespace AthenaFramework
                         graphicsSet = true;
                     }
 
-                    if (customUserBody == null)
-                    {
-                        BodyTypeDef customBodytype = customBody.CustomBodytype(apparel, __instance.pawn.story.bodyType);
-
-                        if (customBodytype != null)
-                        {
-                            customUserBody = customBodytype;
-                        }
-                    }
+                    customBody.CustomBodytype(apparel, ref customUserBody);
                 }
             }
 
@@ -156,11 +149,45 @@ namespace AthenaFramework
         }
     }
 
-    [HarmonyPatch(typeof(Pawn), "DrawAt")]
+    [HarmonyPatch(typeof(Pawn), nameof(Pawn.DrawAt))]
     public static class Pawn_PostDrawAt
     {
         public static void Postfix(Pawn __instance, Vector3 drawLoc)
         {
+            BodyTypeDef bodyType = null;
+            List<IRenderable> compCache = new List<IRenderable>();
+
+            if (__instance.story != null && __instance.story.bodyType != null)
+            {
+                bodyType = __instance.story.bodyType;
+
+                List<Apparel> wornApparel = __instance.apparel.WornApparel;
+                if (__instance.apparel != null)
+                {
+                    for (int i = wornApparel.Count - 1; i >= 0; i--)
+                    {
+                        Apparel apparel = wornApparel[i];
+
+                        for (int j = apparel.AllComps.Count - 1; j >= 0; j--)
+                        {
+                            Comp_CustomApparelBody customBody = apparel.AllComps[j] as Comp_CustomApparelBody;
+
+                            if (customBody != null)
+                            {
+                                customBody.CustomBodytype(apparel, ref bodyType);
+                            }
+
+                            IRenderable renderable = apparel.comps[j] as IRenderable;
+
+                            if (renderable != null)
+                            {
+                                compCache.Add(renderable);
+                            }
+                        }
+                    }
+                }
+            }
+
             for (int i = __instance.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
             {
                 HediffWithComps hediff = __instance.health.hediffSet.hediffs[i] as HediffWithComps;
@@ -172,80 +199,24 @@ namespace AthenaFramework
 
                 for (int j = hediff.comps.Count - 1; j >= 0; j--)
                 {
-                    HediffComp_Renderable renderable = hediff.comps[j] as HediffComp_Renderable;
+                    IRenderable renderable = hediff.comps[j] as IRenderable;
 
                     if (renderable != null)
                     {
-                        renderable.DrawAt(drawLoc);
+                        renderable.DrawAt(drawLoc, bodyType);
                     }
                 }
             }
 
-            if (__instance.apparel != null)
+            for (int i = compCache.Count - 1; i >= 0; i--)
             {
-                List<Apparel> wornApparel = __instance.apparel.WornApparel;
-
-                if (__instance.story == null || __instance.story.bodyType == null)
-                {
-                    for (int i = wornApparel.Count - 1; i >= 0; i--)
-                    {
-                        Apparel apparel = wornApparel[i];
-
-                        for (int j = apparel.AllComps.Count - 1; j >= 0; j--)
-                        {
-                            Comp_AdditionalApparelGraphics additionalGraphics = apparel.comps[j] as Comp_AdditionalApparelGraphics;
-
-                            if (additionalGraphics != null)
-                            {
-                                additionalGraphics.DrawAt(drawLoc, null);
-                            }
-                        }
-                    }
-
-                    return;
-                }
-
-                BodyTypeDef bodyType = __instance.story.bodyType;
-
-                List<Comp_AdditionalApparelGraphics> compCache = new List<Comp_AdditionalApparelGraphics>();
-
-                for (int i = wornApparel.Count - 1; i >= 0; i--)
-                {
-                    Apparel apparel = wornApparel[i];
-
-                    for (int j = apparel.AllComps.Count - 1; j >= 0; j--)
-                    {
-                        Comp_CustomApparelBody customBody = apparel.AllComps[j] as Comp_CustomApparelBody;
-
-                        if (customBody != null)
-                        {
-                            BodyTypeDef customBodytype = customBody.CustomBodytype(apparel, __instance.story.bodyType);
-
-                            if (customBodytype != null)
-                            {
-                                bodyType = customBodytype;
-                            }
-                        }
-
-                        Comp_AdditionalApparelGraphics additionalGraphics = apparel.comps[j] as Comp_AdditionalApparelGraphics;
-
-                        if (additionalGraphics != null)
-                        {
-                            compCache.Add(additionalGraphics);
-                        }
-                    }
-                }
-
-                for (int i = compCache.Count - 1; i >= 0; i--)
-                {
-                    Comp_AdditionalApparelGraphics additionalGraphics = compCache[i];
-                    additionalGraphics.DrawAt(drawLoc, bodyType);
-                }
+                IRenderable renderable = compCache[i];
+                renderable.DrawAt(drawLoc, bodyType);
             }
         }
     }
     
-    [HarmonyPatch(typeof(PawnRenderer), "DrawEquipmentAiming")]
+    [HarmonyPatch(typeof(PawnRenderer), nameof(PawnRenderer.DrawEquipmentAiming))]
     public static class PawnRenderer_DrawEquipmentAiming_Offset
     {
         public static void Prefix(PawnRenderer __instance, Thing eq, ref Vector3 drawLoc, ref float aimAngle)
