@@ -12,8 +12,10 @@ namespace AthenaFramework
     {
         private HediffCompProperties_DisableOnDamage Props => props as HediffCompProperties_DisableOnDamage;
 
-        public void PostApplyDamage(ref DamageInfo dinfo, ref float totalDamageDealt)
+        public override void Notify_PawnPostApplyDamage(DamageInfo dinfo, float totalDamageDealt)
         {
+            base.Notify_PawnPostApplyDamage(dinfo, totalDamageDealt);
+
             if (Props.replacementDef == null)
             {
                 Log.Error("Attempted to use HediffComp_DisableOnDamage on " + parent.def.defName + " without specifying a replacementDef");

@@ -10,7 +10,5 @@ namespace AthenaFramework
     public interface IDamageResponse
     {
         public abstract void PreApplyDamage(ref DamageInfo dinfo, ref bool absorbed);
-
-        public abstract void PostApplyDamage(ref DamageInfo dinfo, ref float totalDamageDealt);
     }
 }

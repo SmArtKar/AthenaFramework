@@ -333,78 +333,11 @@ namespace AthenaFramework
                 return;
             }
 
-            ThingWithComps thing = __instance as ThingWithComps;
-
-            if (thing == null)
-            {
-                return;
-            }
-
             Pawn pawn = __instance as Pawn;
 
             if (pawn == null)
             {
-                for (int i = thing.AllComps.Count - 1; i >= 0; i--)
-                {
-                    IDamageResponse responder = thing.AllComps[i] as IDamageResponse;
-
-                    if (responder == null)
-                    {
-                        continue;
-                    }
-
-                    responder.PreApplyDamage(ref dinfo, ref absorbed);
-
-                    if (absorbed)
-                    {
-                        return;
-                    }
-                }
-
                 return;
-            }
-
-            if (pawn.apparel != null)
-            {
-                List<Apparel> wornApparel = pawn.apparel.WornApparel;
-                for (int i = wornApparel.Count - 1; i >= 0; i--)
-                {
-                    Apparel apparel = wornApparel[i];
-
-                    for (int j = apparel.AllComps.Count - 1; j >= 0; j--)
-                    {
-                        IDamageResponse responder = apparel.AllComps[j] as IDamageResponse;
-
-                        if (responder == null)
-                        {
-                            continue;
-                        }
-
-                        responder.PreApplyDamage(ref dinfo, ref absorbed);
-
-                        if (absorbed)
-                        {
-                            return;
-                        }
-                    }
-                }
-            }
-
-            for (int i = pawn.AllComps.Count - 1; i >= 0; i--)
-            {
-                IDamageResponse responder = pawn.AllComps[i] as IDamageResponse;
-
-                if (responder == null)
-                {
-                    continue;
-                }
-
-                responder.PreApplyDamage(ref dinfo, ref absorbed);
-
-                if (absorbed)
-                {
-                    return;
-                }
             }
 
             for (int i = pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
@@ -432,88 +365,6 @@ namespace AthenaFramework
                     {
                         return;
                     }
-                }
-            }
-        }
-    }
-
-    [HarmonyPatch(typeof(ThingWithComps), nameof(ThingWithComps.PostApplyDamage))]
-    public static class ThingWithComps_PostPostApplyDamage
-    {
-        static void Postfix(ThingWithComps __instance, ref DamageInfo dinfo, ref float totalDamageDealt)
-        {
-            Pawn pawn = __instance as Pawn;
-
-            if (pawn == null)
-            {
-                for (int i = __instance.AllComps.Count - 1; i >= 0; i--)
-                {
-                    IDamageResponse responder = __instance.AllComps[i] as IDamageResponse;
-
-                    if (responder == null)
-                    {
-                        continue;
-                    }
-
-                    responder.PostApplyDamage(ref dinfo, ref totalDamageDealt);
-                }
-
-                return;
-            }
-
-            if (pawn.apparel != null)
-            {
-                List<Apparel> wornApparel = pawn.apparel.WornApparel;
-                for (int i = wornApparel.Count - 1; i >= 0; i--)
-                {
-                    Apparel apparel = wornApparel[i];
-
-                    for (int j = apparel.AllComps.Count - 1; j >= 0; j--)
-                    {
-                        IDamageResponse responder = apparel.AllComps[j] as IDamageResponse;
-
-                        if (responder == null)
-                        {
-                            continue;
-                        }
-
-                        responder.PostApplyDamage(ref dinfo, ref totalDamageDealt);
-                    }
-                }
-            }
-
-            for (int i = pawn.AllComps.Count - 1; i >= 0; i--)
-            {
-                IDamageResponse responder = pawn.AllComps[i] as IDamageResponse;
-
-                if (responder == null)
-                {
-                    continue;
-                }
-
-                responder.PostApplyDamage(ref dinfo, ref totalDamageDealt);
-            }
-
-            for (int i = pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
-            {
-                HediffWithComps compHediff = pawn.health.hediffSet.hediffs[i] as HediffWithComps;
-
-                if (compHediff == null)
-                {
-                    continue;
-
-                }
-
-                for (int j = compHediff.comps.Count - 1; j >= 0; j--)
-                {
-                    IDamageResponse responder = compHediff.comps[j] as IDamageResponse;
-
-                    if (responder == null)
-                    {
-                        return;
-                    }
-
-                    responder.PostApplyDamage(ref dinfo, ref totalDamageDealt);
                 }
             }
         }

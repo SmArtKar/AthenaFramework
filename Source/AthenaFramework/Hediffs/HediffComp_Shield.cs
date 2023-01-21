@@ -326,8 +326,6 @@ namespace AthenaFramework
 
             yield break;
         }
-
-        public void PostApplyDamage(ref DamageInfo dinfo, ref float totalDamageDealt) { }
     }
 
     public class HediffCompProperties_Shield : HediffCompProperties_Renderable
