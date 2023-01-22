@@ -15,6 +15,25 @@ namespace AthenaFramework
         private Apparel Apparel => parent as Apparel;
         private Pawn Pawn => Apparel.Wearer as Pawn;
 
+        public static Texture2D cachedPaletteTex;
+        public Color primaryColor = Color.white;
+        public Color secondaryColor = Color.white;
+        public bool? usePrimary;
+        public bool? useSecondary;
+
+        public virtual Texture2D ColorPaletteTex
+        {
+            get
+            {
+                if (cachedPaletteTex == null)
+                {
+                    cachedPaletteTex = ContentFinder<Texture2D>.Get("UI/Gizmos/ColorPalette");
+                }
+
+                return cachedPaletteTex;
+            }
+        }
+
         public virtual void DrawAt(Vector3 drawPos, BodyTypeDef bodyType)
         {
             for (int i = Props.additionalGraphics.Count - 1; i >= 0; i--)

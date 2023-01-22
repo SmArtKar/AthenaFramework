@@ -31,6 +31,22 @@ namespace AthenaFramework
             }
         }
 
+        public virtual bool Ejectable
+        {
+            get
+            {
+                return NewProps.ejectable;
+            }
+        }
+
+        public virtual SoundDef EjectSound
+        {
+            get
+            {
+                return NewProps.ejectSound;
+            }
+        }
+
         public override void DoEffect(Pawn user)
         {
             if (comp == null || comp.parent == null || comp.Pawn == null)
@@ -82,6 +98,10 @@ namespace AthenaFramework
         }
 
         public ModularHediffGroup moduleData;
+        // If this module can be ejected
+        public bool ejectable = true;
+        // Sound that is played when the module is ejected
+        public SoundDef ejectSound;
         // List of comps that are applied when this module is attached
         public List<HediffCompProperties> comps;
     }

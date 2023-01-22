@@ -56,6 +56,7 @@
     <Compile Include="Hediffs\HediffComp_Armored.cs" />
     <Compile Include="Hediffs\HediffComp_Modular.cs" />
     <Compile Include="Hediffs\ModuleStructures\ApparelGraphicPackage.cs" />
+    <Compile Include="Hediffs\ModuleStructures\Dialog_ColorPalette.cs" />
     <Compile Include="Hediffs\ModuleStructures\HediffGraphicPackage.cs" />
     <Compile Include="Interfaces\IArmored.cs" />
     <Compile Include="Interfaces\IRenderable.cs" />

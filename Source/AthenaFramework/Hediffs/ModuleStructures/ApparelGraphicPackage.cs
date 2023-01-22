@@ -94,6 +94,26 @@ namespace AthenaFramework
                     }
 
                     return apparel.Wearer.story.favoriteColor;
+
+                case ApparelPackageColor.PrimaryColor:
+                    Comp_AdditionalApparelGraphics comp = apparel.TryGetComp<Comp_AdditionalApparelGraphics>();
+
+                    if (comp == null)
+                    {
+                        return null;
+                    }
+
+                    return comp.primaryColor;
+
+                case ApparelPackageColor.SecondaryColor:
+                    Comp_AdditionalApparelGraphics comp2 = apparel.TryGetComp<Comp_AdditionalApparelGraphics>();
+
+                    if (comp2 == null)
+                    {
+                        return null;
+                    }
+
+                    return comp2.secondaryColor;
             }
 
             return null;
@@ -106,6 +126,8 @@ namespace AthenaFramework
         ApparelColor, //Apparel's material color
         FactionColor,
         IdeoColor,
-        FavoriteColor
+        FavoriteColor,
+        PrimaryColor,
+        SecondaryColor
     }
 }

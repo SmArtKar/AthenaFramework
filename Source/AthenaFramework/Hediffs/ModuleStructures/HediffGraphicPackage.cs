@@ -138,6 +138,26 @@ namespace AthenaFramework
 
                 case HediffPackageColor.HealthGradient:
                     return ColorGradient[Math.Min((int)Math.Floor(hediff.pawn.health.summaryHealth.SummaryHealthPercent * gradientVariants), gradientVariants - 1)];
+
+                case HediffPackageColor.PrimaryColor:
+                    HediffComp_Renderable comp = hediff.TryGetComp<HediffComp_Renderable>();
+
+                    if (comp == null)
+                    {
+                        return null;
+                    }
+
+                    return comp.primaryColor;
+
+                case HediffPackageColor.SecondaryColor:
+                    HediffComp_Renderable comp2 = hediff.TryGetComp<HediffComp_Renderable>();
+
+                    if (comp2 == null)
+                    {
+                        return null;
+                    }
+
+                    return comp2.secondaryColor;
             }
 
             return null;
@@ -185,6 +205,8 @@ namespace AthenaFramework
         FavoriteColor,
         SkinColor,
         SeverityGradient,
-        HealthGradient
+        HealthGradient,
+        PrimaryColor,
+        SecondaryColor
     }
 }

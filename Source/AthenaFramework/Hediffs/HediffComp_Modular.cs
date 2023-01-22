@@ -4,7 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using RimWorld;
+using UnityEngine;
+using UnityEngine.UI;
 using Verse;
+using Verse.Sound;
 
 namespace AthenaFramework
 {
@@ -15,6 +18,9 @@ namespace AthenaFramework
         public HediffStage cachedInput;
         public HediffStage cachedOutput;
         public bool resetCache = false; //Set to true after changing modules to force a recache
+        public bool recacheGizmo = false;
+        public Command_Action ejectAction;
+        public static Texture2D cachedEjectTex;
 
         public ThingOwner<ThingWithComps> moduleHolder;
 
@@ -34,6 +40,19 @@ namespace AthenaFramework
             return true;
         }
 
+        public virtual Texture2D EjectModuleTex
+        {
+            get
+            {
+                if (cachedEjectTex == null)
+                {
+                    cachedEjectTex = ContentFinder<Texture2D>.Get("UI/Gizmos/EjectModule");
+                }
+
+                return cachedEjectTex;
+            }
+        }
+
         public virtual void InstallModule(ThingWithComps thing)
         {
             CompUseEffect_HediffModule comp = thing.TryGetComp<CompUseEffect_HediffModule>();
@@ -41,6 +60,7 @@ namespace AthenaFramework
             thing.DeSpawnOrDeselect();
             moduleHolder.TryAdd(thing, false);
             resetCache = true;
+            recacheGizmo = true;
 
             if (comp.GetComps == null)
             {
@@ -75,10 +95,17 @@ namespace AthenaFramework
         {
             CompUseEffect_HediffModule comp = thing.TryGetComp<CompUseEffect_HediffModule>();
             moduleHolder.TryDrop(thing, Pawn.Position, Pawn.Map, ThingPlaceMode.Near, 1, out Thing placedThing);
+            resetCache = true;
+            recacheGizmo = true;
 
             for (int i = comp.linkedComps.Count - 1; i >= 0; i--)
             {
                 parent.comps.Remove(comp.linkedComps[i]);
+            }
+
+            if (comp.EjectSound != null)
+            {
+                comp.EjectSound.PlayOneShot(SoundInfo.InMap(Pawn, MaintenanceType.None));
             }
         }
 
@@ -174,6 +201,44 @@ namespace AthenaFramework
         {
             base.CompPostMake();
             moduleHolder = new ThingOwner<ThingWithComps>();
+        }
+
+        public override IEnumerable<Gizmo> CompGetGizmos()
+        {
+            if (ejectAction == null || recacheGizmo)
+            {
+                ejectAction = new Command_Action();
+                ejectAction.defaultLabel = "Eject module" + (parent.Part != null ? " (" + parent.Part.LabelCap + ")" : "");
+                ejectAction.defaultDesc = "Eject a module from " + parent.LabelCap + (parent.Part != null ? " (" + parent.Part.LabelCap + ")" : "");
+                ejectAction.icon = EjectModuleTex;
+                ejectAction.action = delegate ()
+                {
+                    List<FloatMenuOption> options = new List<FloatMenuOption>();
+                    for (int i = moduleHolder.Count - 1; i >= 0; i--)
+                    {
+                        ThingWithComps module = moduleHolder[i];
+                        CompUseEffect_HediffModule comp = module.TryGetComp<CompUseEffect_HediffModule>();
+
+                        if (!comp.Ejectable)
+                        {
+                            options.Add(new FloatMenuOption("Unable to eject " + module.LabelCap, null, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0));
+                            continue;
+                        }
+
+                        options.Add(new FloatMenuOption("Eject" + module.LabelCap, delegate () { RemoveModule(module); }));
+                    }
+
+                    if (options.Count == 0)
+                    {
+                        options.Add(new FloatMenuOption("No ejectable modules", null, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0));
+                    }
+
+                    Find.WindowStack.Add(new FloatMenu(options));
+                };
+            }
+
+            yield return ejectAction;
+            yield break;
         }
     }
 

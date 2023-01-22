@@ -243,6 +243,7 @@ namespace AthenaFramework
 
             if (Props.graphicData == null)
             {
+                DrawSecondaries(drawPos, bodyType);
                 return;
             }
 
@@ -282,34 +283,16 @@ namespace AthenaFramework
             matrix.SetTRS(drawPos, Quaternion.AngleAxis(Props.spinning ? Rand.Range(0, 360) : 0, Vector3.up), new Vector3(scale, 1f, scale));
             Graphics.DrawMesh(MeshPool.plane10, matrix, Props.graphicData.Graphic.MatSingle, 0);
 
-            for (int i = Props.additionalGraphics.Count - 1; i >= 0; i--)
-            {
-                HediffGraphicPackage package = Props.additionalGraphics[i];
-                Vector3 offset = new Vector3();
-
-                if (package.onlyRenderWhenDrafted && (Pawn.drafter == null || !Pawn.drafter.Drafted))
-                {
-                    return;
-                }
-
-                if (package.offsets != null)
-                {
-                    if (package.offsets.Count == 4)
-                    {
-                        offset = package.offsets[Pawn.Rotation.AsInt];
-                    }
-                    else
-                    {
-                        offset = package.offsets[0];
-                    }
-                }
-
-                package.GetGraphic(parent).Draw(drawPos + offset, Pawn.Rotation, Pawn);
-            }
+            DrawSecondaries(drawPos, bodyType);
         }
 
         public override IEnumerable<Gizmo> CompGetGizmos()
         {
+            foreach (Gizmo gizmo in base.CompGetGizmos())
+            {
+                yield return gizmo;
+            }
+
             if (Props.displayGizmo)
             {
                 if (Pawn.Faction.IsPlayer && Find.Selector.SingleSelectedThing == Pawn)
