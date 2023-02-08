@@ -10,6 +10,14 @@ namespace AthenaFramework
 {
     public interface IArmored
     {
-        public abstract void ApplyArmor(ref float amount, float armorPenetration, StatDef armorStat, BodyPartRecord part, ref DamageDef damageDef, out bool metalArmor);
+        // Return False to halt the armor calculations
+        public abstract bool PreProcessArmor(ref float amount, float armorPenetration, StatDef stat, ref float armorRating, BodyPartRecord part, ref DamageDef damageDef, Pawn pawn, ref bool metalArmor, DamageDef originalDamageDef, float originalAmount);
+
+        public abstract void PostProcessArmor(ref float amount, float armorPenetration, StatDef stat, ref float armorRating, BodyPartRecord part, ref DamageDef damageDef, Pawn pawn, ref bool metalArmor, DamageDef originalDamageDef, float originalAmount);
+
+        public abstract bool CoversBodypart(ref float amount, float armorPenetration, StatDef stat, ref float armorRating, BodyPartRecord part, ref DamageDef damageDef, Pawn pawn, bool defaultCovered, out bool forceCover, out bool forceUncover);
+
+        // Must be added to AthenaCache.armorCache to work
+        // AthenaCache.AddCache(this, AthenaCache.armorCache, pawn.thingIDNumber)
     }
 }

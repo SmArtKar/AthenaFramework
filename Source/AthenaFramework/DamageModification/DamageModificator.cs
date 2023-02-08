@@ -45,7 +45,7 @@ namespace AthenaFramework
         {
             if (excluded != null)
             {
-                if (excludedLocal.Intersect(excluded).ToList().Count > 0)
+                if (excludedLocal.Intersect(excluded).Count() > 0)
                 {
                     return (1f, 0f);
                 }
@@ -53,7 +53,7 @@ namespace AthenaFramework
 
             if (excludedGlobal != null)
             {
-                if (excludedGlobalInput.Intersect(excludedGlobal).ToList().Count > 0)
+                if (excludedGlobalInput.Intersect(excludedGlobal).Count() > 0)
                 {
                     return (1f, 0f);
                 }
@@ -116,8 +116,10 @@ namespace AthenaFramework
                 if (hediffDefs != null)
                 {
                     List<HediffDef> localHediffDefs = new List<HediffDef>(hediffDefs);
-                    foreach (Hediff hediff in pawn.health.hediffSet.hediffs)
+                    for (int i = pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
                     {
+                        Hediff hediff = pawn.health.hediffSet.hediffs[i];
+
                         if (localHediffDefs.Contains(hediff.def))
                         {
                             localHediffDefs.Remove(hediff.def);
@@ -147,8 +149,9 @@ namespace AthenaFramework
             {
                 if (targetStatDefs != null)
                 {
-                    foreach (StatDef statDef in targetStatDefs)
+                    for (int i = targetStatDefs.Count - 1; i >= 0; i--)
                     {
+                        StatDef statDef = targetStatDefs[i];
                         modifierStat *= instigator.GetStatValue(statDef);
                     }
                 }
@@ -157,8 +160,9 @@ namespace AthenaFramework
                 {
                     if (attackerStatDefs != null && instigator != null)
                     {
-                        foreach (StatDef statDef in attackerStatDefs)
+                        for (int i = attackerStatDefs.Count - 1; i >= 0; i--)
                         {
+                            StatDef statDef = attackerStatDefs[i];
                             modifierStat *= target.GetStatValue(statDef);
                         }
                     }
@@ -168,8 +172,9 @@ namespace AthenaFramework
             {
                 if (targetStatDefs != null)
                 {
-                    foreach (StatDef statDef in targetStatDefs)
+                    for (int i = targetStatDefs.Count - 1; i >= 0; i--)
                     {
+                        StatDef statDef = targetStatDefs[i];
                         modifierStat *= target.GetStatValue(statDef);
                     }
                 }
@@ -178,8 +183,9 @@ namespace AthenaFramework
                 {
                     if (attackerStatDefs != null && instigator != null)
                     {
-                        foreach (StatDef statDef in attackerStatDefs)
+                        for (int i = targetStatDefs.Count - 1; i >= 0; i--)
                         {
+                            StatDef statDef = attackerStatDefs[i];
                             modifierStat *= instigator.GetStatValue(statDef);
                         }
                     }

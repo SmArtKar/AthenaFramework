@@ -16,14 +16,15 @@ namespace AthenaFramework
     {
         public static void Postfix(Projectile __instance, Thing launcher, ref Vector3 origin, LocalTargetInfo usedTarget, LocalTargetInfo intendedTarget, ProjectileHitFlags hitFlags, bool preventFriendlyFire, Thing equipment, ThingDef targetCoverDef)
         {
-            for (int i = __instance.AllComps.Count - 1; i >= 0; i--)
+            if (!AthenaCache.projectileCache.TryGetValue(__instance.thingIDNumber, out List<IProjectile> mods))
             {
-                ProjectileComp comp = __instance.AllComps[i] as ProjectileComp;
+                return;
+            }
 
-                if (comp != null)
-                {
-                    comp.Launch(launcher, origin, usedTarget, intendedTarget, hitFlags, preventFriendlyFire, equipment, targetCoverDef);
-                }
+            for (int i = mods.Count - 1; i >= 0; i--)
+            {
+                IProjectile projectile = mods[i];
+                projectile.Launch(launcher, origin, usedTarget, intendedTarget, hitFlags, preventFriendlyFire, equipment, targetCoverDef);
             }
         }
     }
@@ -33,14 +34,15 @@ namespace AthenaFramework
     {
         static void Postfix(Projectile __instance, Thing thing, ref bool __result)
         {
-            for (int i = __instance.AllComps.Count - 1; i >= 0; i--)
+            if (!AthenaCache.projectileCache.TryGetValue(__instance.thingIDNumber, out List<IProjectile> mods))
             {
-                ProjectileComp comp = __instance.AllComps[i] as ProjectileComp;
+                return;
+            }
 
-                if (comp != null)
-                {
-                    comp.CanHit(thing, ref __result);
-                }
+            for (int i = mods.Count - 1; i >= 0; i--)
+            {
+                IProjectile projectile = mods[i];
+                projectile.CanHit(thing, ref __result);
             }
         }
     }
@@ -59,20 +61,22 @@ namespace AthenaFramework
                 multiplier *= __instance.def.GetModExtension<DamageModifierExtension>().OutgoingDamageMultiplier;
             }
 
-            for (int i = __instance.AllComps.Count - 1; i >= 0; i--)
+            if (AthenaCache.projectileCache.TryGetValue(__instance.thingIDNumber, out List<IProjectile> mods))
             {
-                ProjectileComp comp = __instance.AllComps[i] as ProjectileComp;
-
-                if (comp != null)
+                for (int i = mods.Count - 1; i >= 0; i--)
                 {
-                    comp.Impact(hitThing, ref blockedByShield);
+                    IProjectile projectile = mods[i];
+                    projectile.Impact(hitThing, ref blockedByShield);
                 }
+            }
 
-                Comp_DamageModifier dmgMod = __instance.AllComps[i] as Comp_DamageModifier;
-
-                if (dmgMod != null)
+            if (AthenaCache.damageCache.TryGetValue(__instance.thingIDNumber, out List<IDamageModifier> mods2))
+            {
+                for (int i = mods2.Count - 1; i >= 0; i--)
                 {
-                    (float, float) result = dmgMod.GetOutcomingDamageModifier(hitThing, ref excludedGlobal, __instance.Launcher, null, true);
+                    IDamageModifier modifierComp = mods2[i];
+
+                    (float, float) result = modifierComp.GetOutcomingDamageModifier(hitThing, ref excludedGlobal, __instance.Launcher, null, true);
                     multiplier *= result.Item1;
                     offset += result.Item2;
                 }

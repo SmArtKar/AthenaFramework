@@ -37,7 +37,7 @@ namespace AthenaFramework
                 return;
             }
 
-            GenExplosion.DoExplosion(Pawn.Position, Pawn.Map, Props.radius, Props.damageDef, Pawn, postExplosionGasType: (Props.gasExplosion ? new GasType?(Props.gasType) : null));
+            GenExplosion.DoExplosion(Pawn.Position, Pawn.Map, Props.radius, Props.damageDef, Pawn, Props.damageAmount, Props.armorPenetration, postExplosionGasType: (Props.gasExplosion ? new GasType?(Props.gasType) : null));
         }
 
         public override void Notify_PawnDied()
@@ -54,7 +54,7 @@ namespace AthenaFramework
                 return;
             }
 
-            GenExplosion.DoExplosion(Pawn.Position, Pawn.MapHeld, Props.radius, Props.damageDef, Pawn, postExplosionGasType: (Props.gasExplosion ? new GasType?(Props.gasType) : null));
+            GenExplosion.DoExplosion(Pawn.Position, Pawn.MapHeld, Props.radius, Props.damageDef, Pawn, Props.damageAmount, Props.armorPenetration, postExplosionGasType: (Props.gasExplosion ? new GasType?(Props.gasType) : null));
             Pawn.health.RemoveHediff(parent);
         }
 
@@ -80,5 +80,9 @@ namespace AthenaFramework
         public bool gasExplosion = false;
         // You can set this to whatever type of gas you want. ToxGas will require user to have biotech installed.
         public GasType gasType;
+        // Amount of damage dealt by the explosion
+        public int damageAmount = -1;
+        // Armor penetration of the explosion
+        public float armorPenetration = -1f;
     }
 }

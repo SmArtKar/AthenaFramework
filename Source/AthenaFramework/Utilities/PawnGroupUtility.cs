@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Verse;
 using RimWorld;
+using Verse.Noise;
 
 namespace AthenaFramework
 {
@@ -15,8 +16,11 @@ namespace AthenaFramework
             Dictionary<Pawn, float> result = new Dictionary<Pawn, float>();
             float squaredDistance = maxDistance * maxDistance;
 
-            foreach (Pawn ally in map.mapPawns.PawnsInFaction(faction))
+            List<Pawn> pawns = map.mapPawns.PawnsInFaction(faction);
+            for (int i = pawns.Count - 1; i >= 0; i--)
             {
+                Pawn ally = pawns[i];
+
                 if (!ally.Spawned || (ally.Downed && !checkDowned) || (ally.Dead && !checkDead))
                 {
                     continue;
@@ -52,8 +56,10 @@ namespace AthenaFramework
             int nearbyAllies = 0;
             float squaredDistance = maxDistance * maxDistance;
 
-            foreach (Pawn ally in map.mapPawns.PawnsInFaction(faction))
+            List<Pawn> pawns = map.mapPawns.PawnsInFaction(faction);
+            for (int i = pawns.Count - 1; i >= 0; i--)
             {
+                Pawn ally = pawns[i];
                 if (!ally.Spawned || (ally.Downed && !checkDowned) || (ally.Dead && !checkDead))
                 {
                     continue;
@@ -82,8 +88,10 @@ namespace AthenaFramework
             Dictionary<Pawn, float> result = new Dictionary<Pawn, float>();
             float squaredDistance = maxDistance * maxDistance;
 
-            foreach (Pawn potentialEnemy in map.mapPawns.AllPawnsSpawned)
+            for (int i = map.mapPawns.AllPawnsSpawned.Count - 1; i >= 0; i--)
             {
+                Pawn potentialEnemy = map.mapPawns.AllPawnsSpawned[i];
+
                 if (!potentialEnemy.Spawned || (potentialEnemy.Downed && !checkDowned) || (potentialEnemy.Dead && !checkDead) || !potentialEnemy.Faction.HostileTo(faction))
                 {
                     continue;
@@ -119,8 +127,10 @@ namespace AthenaFramework
             int nearbyHostiles = 0;
             float squaredDistance = maxDistance * maxDistance;
 
-            foreach (Pawn potentialEnemy in map.mapPawns.AllPawnsSpawned)
+            for (int i = map.mapPawns.AllPawnsSpawned.Count - 1; i >= 0; i--)
             {
+                Pawn potentialEnemy = map.mapPawns.AllPawnsSpawned[i];
+
                 if (!potentialEnemy.Spawned || (potentialEnemy.Downed && !checkDowned) || (potentialEnemy.Dead && !checkDead) || !potentialEnemy.Faction.HostileTo(faction))
                 {
                     continue;
@@ -149,8 +159,10 @@ namespace AthenaFramework
             Dictionary<Pawn, float> result = new Dictionary<Pawn, float>();
             float squaredDistance = maxDistance * maxDistance;
 
-            foreach (Pawn pawn in map.mapPawns.AllPawnsSpawned)
+            for (int i = map.mapPawns.AllPawnsSpawned.Count - 1; i >= 0; i--)
             {
+                Pawn pawn = map.mapPawns.AllPawnsSpawned[i];
+
                 if (!pawn.Spawned || (pawn.Downed && !checkDowned) || (pawn.Dead && !checkDead))
                 {
                     continue;
@@ -186,8 +198,10 @@ namespace AthenaFramework
             int nearbyPawns = 0;
             float squaredDistance = maxDistance * maxDistance;
 
-            foreach (Pawn pawn in map.mapPawns.AllPawnsSpawned)
+            for (int i = map.mapPawns.AllPawnsSpawned.Count - 1; i >= 0; i--)
             {
+                Pawn pawn = map.mapPawns.AllPawnsSpawned[i];
+
                 if (!pawn.Spawned || (pawn.Downed && !checkDowned) || (pawn.Dead && !checkDead))
                 {
                     continue;
@@ -216,8 +230,10 @@ namespace AthenaFramework
             List<PawnGroupup> pawnGroups = new List<PawnGroupup>();
             float squaredDistance = groupDistance * groupDistance;
 
-            foreach(Pawn pawn in pawnList)
+            for (int i = pawnList.Count - 1; i >= 0; i--)
             {
+                Pawn pawn = pawnList[i];
+
                 if (!pawn.Spawned || pawn.Downed || pawn.Dead)
                 {
                     continue;

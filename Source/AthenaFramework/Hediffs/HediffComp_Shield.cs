@@ -43,12 +43,26 @@ namespace AthenaFramework
             Scribe_Values.Look(ref lastResetTick, "lastResetTick");
             Scribe_Values.Look(ref freeRecharge, "freeRecharge");
             Scribe_Values.Look(ref impactAngleVect, "impactAngleVect");
+
+            if (Scribe.mode != LoadSaveMode.LoadingVars)
+            {
+                return;
+            }
+
+            AthenaCache.AddCache(this, AthenaCache.responderCache, Pawn.thingIDNumber);
         }
 
         public override void CompPostMake()
         {
             base.CompPostMake();
             energy = Props.maxEnergy * Props.energyOnStart;
+            AthenaCache.AddCache(this, AthenaCache.responderCache, Pawn.thingIDNumber);
+        }
+
+        public override void CompPostPostRemoved()
+        {
+            base.CompPostPostRemoved();
+            AthenaCache.RemoveCache(this, AthenaCache.responderCache, Pawn.thingIDNumber);
         }
 
         public virtual void PreApplyDamage(ref DamageInfo dinfo, ref bool absorbed)
@@ -288,11 +302,6 @@ namespace AthenaFramework
 
         public override IEnumerable<Gizmo> CompGetGizmos()
         {
-            foreach (Gizmo gizmo in base.CompGetGizmos())
-            {
-                yield return gizmo;
-            }
-
             if (Props.displayGizmo)
             {
                 if (Pawn.Faction.IsPlayer && Find.Selector.SingleSelectedThing == Pawn)

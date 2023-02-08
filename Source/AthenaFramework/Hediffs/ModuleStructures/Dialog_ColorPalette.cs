@@ -11,8 +11,7 @@ namespace AthenaFramework
 {
     public class Dialog_ColorPalette : Window
     {
-        public HediffComp_Renderable hediffComp;
-        public Comp_AdditionalApparelGraphics apparelComp;
+        public IColorSelector linkedObject;
 
         private static readonly FloatRange range = new FloatRange(0f, 255f);
 
@@ -27,53 +26,35 @@ namespace AthenaFramework
         private static readonly Vector2 size1 = new Vector2(544f, 252f);
         private static readonly Vector2 size2 = new Vector2(544f, 141f);
 
-        public Dialog_ColorPalette(HediffComp_Renderable comp)
+        public Dialog_ColorPalette(IColorSelector linked)
         {
-            this.hediffComp = comp;
+            linkedObject = linked;
 
-            red1 = hediffComp.primaryColor.r * 255f;
-            green1 = hediffComp.primaryColor.g * 255f;
-            blue1 = hediffComp.primaryColor.b * 255f;
+            red1 = linkedObject.PrimaryColor.r * 255f;
+            green1 = linkedObject.PrimaryColor.g * 255f;
+            blue1 = linkedObject.PrimaryColor.b * 255f;
 
-            red2 = hediffComp.secondaryColor.r * 255f;
-            green2 = hediffComp.secondaryColor.g * 255f;
-            blue2 = hediffComp.secondaryColor.b * 255f;
-        }
-
-        public Dialog_ColorPalette(Comp_AdditionalApparelGraphics comp)
-        {
-            this.apparelComp = comp;
-
-            red1 = apparelComp.primaryColor.r * 255f;
-            green1 = apparelComp.primaryColor.g * 255f;
-            blue1 = apparelComp.primaryColor.b * 255f;
-
-            red2 = apparelComp.secondaryColor.r * 255f;
-            green2 = apparelComp.secondaryColor.g * 255f;
-            blue2 = apparelComp.secondaryColor.b * 255f;
+            red2 = linkedObject.SecondaryColor.r * 255f;
+            green2 = linkedObject.SecondaryColor.g * 255f;
+            blue2 = linkedObject.SecondaryColor.b * 255f;
         }
 
         public override Vector2 InitialSize
         {
             get
             {
-                if (hediffComp != null)
-                {
-                    return (bool)hediffComp.useSecondary ? size1 : size2;
-                }
-
-                return (bool)apparelComp.useSecondary ? size1 : size2;
+                return linkedObject.UseSecondary ? size1 : size2;
             }
         }
 
         public override void DoWindowContents(Rect inRect)
         {
-            Color primaryColor = (hediffComp != null ? hediffComp.primaryColor : apparelComp.primaryColor);
-            Color secondaryColor = (hediffComp != null ? hediffComp.secondaryColor : apparelComp.secondaryColor);
+            Color PrimaryColor = linkedObject.PrimaryColor;
+            Color SecondaryColor = linkedObject.SecondaryColor;
 
             Rect firstColorRect = new Rect(inRect.x + 10f, inRect.y + 10f, 84f, 84f);
 
-            GUI.color = primaryColor;
+            GUI.color = PrimaryColor;
             GUI.DrawTexture(firstColorRect, BaseContent.WhiteTex);
             GUI.color = Color.white;
 
@@ -86,21 +67,14 @@ namespace AthenaFramework
             Rect sliderB1 = new Rect(inRect.x + 114f, inRect.y + 70f, 384f, 16f);
             Widgets.HorizontalSlider(sliderB1, ref blue1, range, label: "Primary Blue");
 
-            if (red1 / 255f != primaryColor.r || green1 / 255f != primaryColor.g || blue1 / 255f != primaryColor.b)
+            if (red1 / 255f != PrimaryColor.r || green1 / 255f != PrimaryColor.g || blue1 / 255f != PrimaryColor.b)
             {
-                if (hediffComp != null)
-                {
-                    hediffComp.primaryColor = new Color(red1 / 255f, green1 / 255f, blue1 / 255f);
-                }
-                else
-                {
-                    apparelComp.primaryColor = new Color(red1 / 255f, green1 / 255f, blue1 / 255f);
-                }
+                linkedObject.PrimaryColor = new Color(red1 / 255f, green1 / 255f, blue1 / 255f);
             }
 
             Rect secondColorRect = new Rect(inRect.x + 10f, inRect.y + 10f + 30f + 84f, 84f, 84f);
 
-            GUI.color = secondaryColor;
+            GUI.color = SecondaryColor;
             GUI.DrawTexture(secondColorRect, BaseContent.WhiteTex);
             GUI.color = Color.white;
 
@@ -113,16 +87,9 @@ namespace AthenaFramework
             Rect sliderB2 = new Rect(inRect.x + 114f, inRect.y + 184f, 384f, 16f);
             Widgets.HorizontalSlider(sliderB2, ref blue2, range, label: "Secondary Blue");
 
-            if (red2 / 255f != secondaryColor.r || green2 / 255f != secondaryColor.g || blue2 / 255f != secondaryColor.b)
+            if (red2 / 255f != SecondaryColor.r || green2 / 255f != SecondaryColor.g || blue2 / 255f != SecondaryColor.b)
             {
-                if (hediffComp != null)
-                {
-                    hediffComp.secondaryColor = new Color(red2 / 255f, green2 / 255f, blue2 / 255f);
-                }
-                else
-                {
-                    apparelComp.secondaryColor = new Color(red2 / 255f, green2 / 255f, blue2 / 255f);
-                }
+                linkedObject.SecondaryColor = new Color(red2 / 255f, green2 / 255f, blue2 / 255f);
             }
         }
     }

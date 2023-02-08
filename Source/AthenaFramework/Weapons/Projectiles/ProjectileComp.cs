@@ -9,7 +9,7 @@ using Verse;
 
 namespace AthenaFramework
 {
-    public class ProjectileComp : ThingComp
+    public class ProjectileComp : ThingComp, IProjectile
     {
         protected Projectile Projectile => parent as Projectile;
 
@@ -18,5 +18,17 @@ namespace AthenaFramework
         public virtual void Impact(Thing hitThing, ref bool blockedByShield) { }
 
         public virtual void CanHit(Thing hitThing, ref bool result) { }
+
+        public override void Initialize(CompProperties props)
+        {
+            base.Initialize(props);
+            AthenaCache.AddCache(this, AthenaCache.projectileCache, parent.thingIDNumber);
+        }
+
+        public override void PostDestroy(DestroyMode mode, Map previousMap)
+        {
+            base.PostDestroy(mode, previousMap);
+            AthenaCache.RemoveCache(this, AthenaCache.projectileCache, parent.thingIDNumber);
+        }
     }
 }

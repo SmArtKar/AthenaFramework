@@ -10,5 +10,8 @@ namespace AthenaFramework
     public interface IDamageResponse
     {
         public abstract void PreApplyDamage(ref DamageInfo dinfo, ref bool absorbed);
+
+        // Must be added to AthenaCache.responderCache to work
+        // AthenaCache.AddCache(this, AthenaCache.responderCache, pawn.thingIDNumber)
     }
 }

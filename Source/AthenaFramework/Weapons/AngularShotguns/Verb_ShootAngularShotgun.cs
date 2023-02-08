@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using Verse;
+using Verse.Noise;
 using static UnityEngine.GraphicsBuffer;
 
 namespace AthenaFramework
@@ -82,8 +83,10 @@ namespace AthenaFramework
         {
             List<IntVec3> cellList = new List<IntVec3>();
 
-            foreach (IntVec3 targetPosition in GenSight.PointsOnLineOfSight(startPosition, endPosition).Concat(endPosition))
+            List<IntVec3> points = GenSight.PointsOnLineOfSight(startPosition, endPosition).Concat(endPosition).ToList();
+            for (int i = points.Count - 1; i >= 0; i--)
             {
+                IntVec3 targetPosition = points[i];
                 if (targetPosition == startPosition)
                 {
                     cellList.Add(targetPosition);
@@ -99,8 +102,16 @@ namespace AthenaFramework
                 cellList.Add(targetPosition);
                 bool foundPawn = false;
 
-                foreach (Pawn pawnTarget in GridsUtility.GetThingList(targetPosition, map).OfType<Pawn>())
+                List<Thing> thingList = GridsUtility.GetThingList(targetPosition, map);
+                for (int j = thingList.Count - 1; j >= 0; j--)
                 {
+                    Pawn pawnTarget = thingList[j] as Pawn;
+
+                    if (pawnTarget == null)
+                    {
+                        continue;
+                    }
+
                     if (!pawnTarget.Downed && !pawnTarget.Dead)
                     {
                         foundPawn = true;
@@ -159,8 +170,10 @@ namespace AthenaFramework
                 IntVec3 rangeEndPosition = endPosition + caster.Position;
                 Thing newTarget = null;
 
-                foreach (IntVec3 targetPosition in GenSight.PointsOnLineOfSight(caster.Position, rangeEndPosition).Concat(rangeEndPosition))
+                List<IntVec3> points = GenSight.PointsOnLineOfSight(caster.Position, rangeEndPosition).Concat(rangeEndPosition).ToList();
+                for (int j = points.Count - 1; j >= 0; j--)
                 {
+                    IntVec3 targetPosition = points[j];
                     if (targetPosition == caster.Position) //Prevents the caster from shooting himself
                     {
                         continue;
@@ -184,8 +197,17 @@ namespace AthenaFramework
                     }
 
                     bool foundPawn = false;
-                    foreach (Pawn pawnTarget in GridsUtility.GetThingList(targetPosition, caster.Map).OfType<Pawn>())
+
+                    List<Thing> thingList = GridsUtility.GetThingList(targetPosition, caster.Map);
+                    for (int k = thingList.Count - 1; k >= 0; k--)
                     {
+                        Pawn pawnTarget = thingList[k] as Pawn;
+
+                        if (pawnTarget == null)
+                        {
+                            continue;
+                        }
+
                         if (pawnTarget.Downed || pawnTarget.Dead)
                         {
                             if (Rand.Chance(extension.downedHitChance))

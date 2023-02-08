@@ -44,8 +44,9 @@ namespace AthenaFramework
 
             bool result = PawnGroupUtility.HostilePawnsNearbyThreshold(pawn, maxThreatDistance, hostileThreshold);
 
-            foreach (Pawn ally in allies)
+            for (int i = allies.Count - 1; i >= 0; i--)
             {
+                Pawn ally = allies[i];
                 cachedGroupThreats[ally] = result;
             }
 

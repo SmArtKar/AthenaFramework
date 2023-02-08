@@ -10,6 +10,56 @@ using Verse;
 
 namespace AthenaFramework
 {
+    [HarmonyPatch(typeof(PawnGraphicSet), nameof(PawnGraphicSet.ResolveAllGraphics))]
+    public static class PawnGraphicSet_Resolve
+    {
+        public static Pawn cachedPawn;
+        public static BodyTypeDef initialBodytype;
+
+        public static void Prefix(PawnGraphicSet __instance)
+        {
+            cachedPawn = null;
+            initialBodytype = null;
+
+            if (!__instance.pawn.RaceProps.Humanlike || __instance.pawn.apparel == null || __instance.pawn.story == null || __instance.pawn.story.bodyType == null)
+            {
+                return;
+            }
+
+            BodyTypeDef bodyType = __instance.pawn.story.bodyType;
+
+            if (!AthenaCache.bodyCache.TryGetValue(__instance.pawn.thingIDNumber, out List<IBodyModifier> mods))
+            {
+                return;
+            }
+
+            for (int i = mods.Count - 1; i >= 0; i--)
+            {
+                IBodyModifier customBody = mods[i];
+
+                if (customBody.CustomBodytype(ref bodyType))
+                {
+                    cachedPawn = __instance.pawn;
+                    initialBodytype = __instance.pawn.story.bodyType;
+                    __instance.pawn.story.bodyType = bodyType;
+                    return;
+                }
+            }
+        }
+
+        public static void Postfix(PawnGraphicSet __instance)
+        {
+            if (cachedPawn != __instance.pawn || initialBodytype == null)
+            {
+                return;
+            }
+
+            __instance.pawn.story.bodyType = initialBodytype;
+            cachedPawn = null;
+            initialBodytype = null;
+        }
+    }
+
     [HarmonyPatch(typeof(ApparelGraphicRecordGetter), nameof(ApparelGraphicRecordGetter.TryGetGraphicApparel))]
     public static class ApparelGraphic_PreGet
     {
@@ -17,14 +67,14 @@ namespace AthenaFramework
         {
             for (int i = apparel.AllComps.Count - 1; i >= 0; i--)
             {
-                Comp_CustomApparelBody customBody = apparel.AllComps[i] as Comp_CustomApparelBody;
+                IBodyModifier customBody = apparel.AllComps[i] as IBodyModifier;
 
                 if (customBody == null)
                 {
                     continue;
                 }
 
-                if (customBody.PreventBodytype(bodyType, rec))
+                if (customBody.PreventBodytype(bodyType))
                 {
                     if (apparel.WornGraphicPath.NullOrEmpty())
                     {
@@ -45,107 +95,7 @@ namespace AthenaFramework
                 }
             }
 
-            if (apparel.Wearer == null || apparel.Wearer.apparel == null) //Somehow this happened, be that another mod's intervention or something else.
-            {
-                return true;
-            }
-
-            List<Apparel> wornApparel = apparel.Wearer.apparel.WornApparel;
-            for (int i = wornApparel.Count - 1; i >= 0; i--)
-            {
-                Apparel otherApparel = wornApparel[i];
-
-                for (int j = otherApparel.AllComps.Count - 1; j >= 0; j--)
-                {
-                    Comp_CustomApparelBody customBody = otherApparel.AllComps[j] as Comp_CustomApparelBody;
-
-                    if (customBody == null)
-                    {
-                        continue;
-                    }
-
-                    BodyTypeDef newBodyType = bodyType;
-                    customBody.CustomBodytype(apparel, ref newBodyType, rec);
-
-                    if (newBodyType != bodyType)
-                    {
-                        bodyType = newBodyType;
-                        return true;
-                    }
-                }
-            }
-
             return true;
-        }
-    }
-
-    [HarmonyPatch(typeof(PawnGraphicSet), nameof(PawnGraphicSet.ResolveAllGraphics))]
-    public static class PawnGraphicSet_PostResolve
-    {
-        public static void Postfix(PawnGraphicSet __instance)
-        {
-            if (!__instance.pawn.RaceProps.Humanlike || __instance.pawn.apparel == null || __instance.pawn.story == null)
-            {
-                return;
-            }
-
-            bool graphicsSet = false;
-            BodyTypeDef customUserBody = __instance.pawn.story.bodyType;
-
-            List<Apparel> wornApparel = __instance.pawn.apparel.WornApparel;
-            for (int i = wornApparel.Count - 1; i >= 0; i--)
-            {
-                Apparel apparel = wornApparel[i];
-
-                for (int j = apparel.AllComps.Count - 1; j >= 0; j--)
-                {
-                    Comp_CustomApparelBody customBody = apparel.AllComps[j] as Comp_CustomApparelBody;
-
-                    if (customBody == null)
-                    {
-                        continue;
-                    }
-
-                    Graphic customBodyGraphic = customBody.GetBodyGraphic;
-
-                    if (customBodyGraphic != null)
-                    {
-                        __instance.nakedGraphic = customBodyGraphic;
-                        graphicsSet = true;
-                    }
-
-                    Graphic customHeadGraphic = customBody.GetHeadGraphic;
-
-                    if (customHeadGraphic != null)
-                    {
-                        __instance.headGraphic = customHeadGraphic;
-                        graphicsSet = true;
-                    }
-
-                    customBody.CustomBodytype(apparel, ref customUserBody);
-                }
-            }
-
-            if (graphicsSet)
-            {
-                __instance.CalculateHairMats();
-                __instance.ResolveApparelGraphics();
-                __instance.ResolveGeneGraphics();
-            }
-            else if (customUserBody != null && __instance.pawn != null)
-            {
-                LongEventHandler.ExecuteWhenFinished(delegate
-                {
-                    Color color = (__instance.pawn.story.SkinColorOverriden ? (PawnGraphicSet.RottingColorDefault * __instance.pawn.story.SkinColor) : PawnGraphicSet.RottingColorDefault);
-                    __instance.nakedGraphic = GraphicDatabase.Get<Graphic_Multi>(customUserBody.bodyNakedGraphicPath, ShaderUtility.GetSkinShader(__instance.pawn.story.SkinColorOverriden), Vector2.one, __instance.pawn.story.SkinColor);
-                    __instance.rottingGraphic = GraphicDatabase.Get<Graphic_Multi>(customUserBody.bodyNakedGraphicPath, ShaderUtility.GetSkinShader(__instance.pawn.story.SkinColorOverriden), Vector2.one, color);
-                    __instance.dessicatedGraphic = GraphicDatabase.Get<Graphic_Multi>(customUserBody.bodyDessicatedGraphicPath, ShaderDatabase.Cutout);
-
-                    __instance.CalculateHairMats();
-                    __instance.ResolveApparelGraphics();
-                    __instance.ResolveGeneGraphics();
-                });
-            }
         }
     }
 
@@ -155,63 +105,33 @@ namespace AthenaFramework
         public static void Postfix(Pawn __instance, Vector3 drawLoc)
         {
             BodyTypeDef bodyType = null;
-            List<IRenderable> compCache = new List<IRenderable>();
 
             if (__instance.story != null && __instance.story.bodyType != null)
             {
                 bodyType = __instance.story.bodyType;
 
-                List<Apparel> wornApparel = __instance.apparel.WornApparel;
-                if (__instance.apparel != null)
+                if (AthenaCache.bodyCache.TryGetValue(__instance.thingIDNumber, out List<IBodyModifier> mods))
                 {
-                    for (int i = wornApparel.Count - 1; i >= 0; i--)
+                    for (int i = mods.Count - 1; i >= 0; i--)
                     {
-                        Apparel apparel = wornApparel[i];
+                        IBodyModifier customBody = mods[i];
 
-                        for (int j = apparel.AllComps.Count - 1; j >= 0; j--)
+                        if (customBody.CustomBodytype(ref bodyType))
                         {
-                            Comp_CustomApparelBody customBody = apparel.AllComps[j] as Comp_CustomApparelBody;
-
-                            if (customBody != null)
-                            {
-                                customBody.CustomBodytype(apparel, ref bodyType);
-                            }
-
-                            IRenderable renderable = apparel.comps[j] as IRenderable;
-
-                            if (renderable != null)
-                            {
-                                compCache.Add(renderable);
-                            }
+                            break;
                         }
                     }
                 }
             }
 
-            for (int i = __instance.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
+            if (AthenaCache.renderCache.TryGetValue(__instance.thingIDNumber, out List<IRenderable> mods2))
             {
-                HediffWithComps hediff = __instance.health.hediffSet.hediffs[i] as HediffWithComps;
-
-                if (hediff == null)
+                for (int i = mods2.Count - 1; i >= 0; i--)
                 {
-                    continue;
+
+                    IRenderable renderable = mods2[i];
+                    renderable.DrawAt(drawLoc, bodyType);
                 }
-
-                for (int j = hediff.comps.Count - 1; j >= 0; j--)
-                {
-                    IRenderable renderable = hediff.comps[j] as IRenderable;
-
-                    if (renderable != null)
-                    {
-                        renderable.DrawAt(drawLoc, bodyType);
-                    }
-                }
-            }
-
-            for (int i = compCache.Count - 1; i >= 0; i--)
-            {
-                IRenderable renderable = compCache[i];
-                renderable.DrawAt(drawLoc, bodyType);
             }
         }
     }

@@ -8,7 +8,7 @@ using Verse;
 
 namespace AthenaFramework
 {
-    public class HediffComp_DamageModifier : HediffComp
+    public class HediffComp_DamageModifier : HediffComp, IDamageModifier
     {
         private HediffCompProperties_DamageModifier Props => props as HediffCompProperties_DamageModifier;
 
@@ -26,8 +26,9 @@ namespace AthenaFramework
             float offset = 0f;
             List<string> excluded = new List<string>();
 
-            foreach (DamageModificator modGroup in Props.outgoingModifiers)
+            for (int i = Props.outgoingModifiers.Count - 1; i >= 0; i--)
             {
+                DamageModificator modGroup = Props.outgoingModifiers[i];
                 (float, float) result = modGroup.GetDamageModifiers(target, ref excluded, ref excludedGlobal, instigator, dinfo, projectile);
                 modifier *= result.Item1;
                 offset += result.Item2;
@@ -42,14 +43,39 @@ namespace AthenaFramework
             float offset = 0f;
             List<string> excluded = new List<string>();
 
-            foreach (DamageModificator modGroup in Props.incomingModifiers)
+            for (int i = Props.incomingModifiers.Count - 1; i >= 0; i--)
             {
+                DamageModificator modGroup = Props.incomingModifiers[i];
                 (float, float) result = modGroup.GetDamageModifiers(instigator, ref excluded, ref excludedGlobal, target, dinfo, projectile, true);
                 modifier *= result.Item1;
                 offset += result.Item2;
             }
 
             return (modifier, offset);
+        }
+
+        public override void CompPostMake()
+        {
+            base.CompPostMake();
+            AthenaCache.AddCache(this, AthenaCache.damageCache, Pawn.thingIDNumber);
+        }
+
+        public override void CompExposeData()
+        {
+            base.CompExposeData();
+
+            if (Scribe.mode != LoadSaveMode.LoadingVars)
+            {
+                return;
+            }
+
+            AthenaCache.AddCache(this, AthenaCache.damageCache, Pawn.thingIDNumber);
+        }
+
+        public override void CompPostPostRemoved()
+        {
+            base.CompPostPostRemoved();
+            AthenaCache.RemoveCache(this, AthenaCache.damageCache, Pawn.thingIDNumber);
         }
     }
 

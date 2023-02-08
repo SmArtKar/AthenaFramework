@@ -10,30 +10,54 @@ using System.Reflection;
 
 namespace AthenaFramework
 {
-    public class HediffComp_Renderable : HediffComp, IRenderable
+    [StaticConstructorOnStartup]
+    public class HediffComp_Renderable : HediffComp, IRenderable, IColorSelector
     {
         private HediffCompProperties_Renderable Props => props as HediffCompProperties_Renderable;
         private static readonly float altitude = AltitudeLayer.MoteOverhead.AltitudeFor();
 
         public Mote attachedMote;
+        public Effecter attachedEffecter;
 
-        public static Texture2D cachedPaletteTex;
+        public static readonly Texture2D cachedPaletteTex = ContentFinder<Texture2D>.Get("UI/Gizmos/ColorPalette");
         public Color primaryColor = Color.white;
         public Color secondaryColor = Color.white;
         public bool? usePrimary;
         public bool? useSecondary;
         public Command_Action paletteAction;
+        public List<HediffGraphicPackage> additionalGraphics;
 
-        public virtual Texture2D ColorPaletteTex
+        public virtual Color PrimaryColor
         {
             get
             {
-                if (cachedPaletteTex == null)
-                {
-                    cachedPaletteTex = ContentFinder<Texture2D>.Get("UI/Gizmos/ColorPalette");
-                }
+                return primaryColor;
+            }
 
-                return cachedPaletteTex;
+            set
+            {
+                primaryColor = value;
+            }
+        }
+
+        public virtual Color SecondaryColor
+        {
+            get
+            {
+                return secondaryColor;
+            }
+
+            set
+            {
+                secondaryColor = value;
+            }
+        }
+
+        public virtual bool UseSecondary
+        {
+            get
+            {
+                return (bool)useSecondary;
             }
         }
 
@@ -44,12 +68,10 @@ namespace AthenaFramework
                 return;
             }
 
-            if (Props.graphicData == null)
+            if (Props.graphicData != null)
             {
-                return;
+                Props.graphicData.Graphic.Draw(new Vector3(drawPos.x, altitude, drawPos.z), Pawn.Rotation, Pawn);
             }
-
-            Props.graphicData.Graphic.Draw(new Vector3(drawPos.x, altitude, drawPos.z), Pawn.Rotation, Pawn);
 
             DrawSecondaries(drawPos, bodyType);
         }
@@ -61,9 +83,14 @@ namespace AthenaFramework
                 return;
             }
 
-            for (int i = Props.additionalGraphics.Count - 1; i >= 0; i--)
+            if (additionalGraphics == null)
             {
-                HediffGraphicPackage package = Props.additionalGraphics[i];
+                RecacheGraphicData();
+            }
+
+            for (int i = additionalGraphics.Count - 1; i >= 0; i--)
+            {
+                HediffGraphicPackage package = additionalGraphics[i];
                 Vector3 offset = new Vector3();
 
                 if (package.onlyRenderWhenDrafted && (Pawn.drafter == null || !Pawn.drafter.Drafted))
@@ -87,18 +114,70 @@ namespace AthenaFramework
             }
         }
 
+        public virtual void RecacheGraphicData()
+        {
+            if (Props.additionalGraphics == null)
+            {
+                additionalGraphics = new List<HediffGraphicPackage>();
+            }
+            else
+            {
+                additionalGraphics = new List<HediffGraphicPackage>(Props.additionalGraphics);
+            }
+
+            for (int i = parent.comps.Count - 1; i >= 0; i--)
+            {
+                IHediffGraphicGiver modular = parent.comps[i] as IHediffGraphicGiver;
+
+                if (modular != null)
+                {
+                    additionalGraphics = additionalGraphics.Concat(modular.GetAdditionalGraphics).ToList();
+                }
+            }
+
+            usePrimary = false;
+            useSecondary = false;
+
+            for (int i = additionalGraphics.Count - 1; i >= 0; i--)
+            {
+                HediffGraphicPackage package = additionalGraphics[i];
+
+                if (package.firstMask == HediffPackageColor.PrimaryColor || package.secondMask == HediffPackageColor.PrimaryColor)
+                {
+                    usePrimary = true;
+                }
+
+                if (package.firstMask == HediffPackageColor.SecondaryColor || package.secondMask == HediffPackageColor.SecondaryColor)
+                {
+                    usePrimary = true;
+                    useSecondary = true;
+                    break;
+                }
+            }
+        }
+
         public override void CompPostTick(ref float severityAdjustment)
         {
             base.CompPostTick(ref severityAdjustment);
             
-            if (attachedMote != null && !attachedMote.Destroyed)
+            if (Props.attachedMoteDef != null)
             {
+                if (attachedMote == null || attachedMote.Destroyed)
+                {
+                    attachedMote = MoteMaker.MakeAttachedOverlay(Pawn, Props.attachedMoteDef, Props.attachedMoteOffset, Props.attachedMoteScale);
+                }
+
                 attachedMote.Maintain();
             }
 
-            else if (Props.attachedMoteDef != null)
+            if (Props.attachedEffecterDef != null)
             {
-                attachedMote = MoteMaker.MakeAttachedOverlay(Pawn, Props.attachedMoteDef, Props.attachedMoteOffset, Props.attachedMoteScale);
+                if (attachedEffecter == null)
+                {
+                    attachedEffecter = Props.attachedEffecterDef.SpawnAttached(Pawn, Pawn.Map);
+                }
+
+                attachedEffecter.EffectTick(Pawn, Pawn);
             }
         }
 
@@ -110,11 +189,35 @@ namespace AthenaFramework
             {
                 attachedMote = MoteMaker.MakeAttachedOverlay(Pawn, Props.attachedMoteDef, Props.attachedMoteOffset, Props.attachedMoteScale);
             }
+
+            if (Props.attachedEffecterDef != null)
+            {
+                attachedEffecter = Props.attachedEffecterDef.SpawnAttached(Pawn, Pawn.Map);
+            }
+        }
+
+        public override void CompPostMake()
+        {
+            base.CompPostMake();
+            AthenaCache.AddCache(this, AthenaCache.renderCache, Pawn.thingIDNumber);
+        }
+
+        public override void CompExposeData()
+        {
+            base.CompExposeData();
+
+            if (Scribe.mode != LoadSaveMode.LoadingVars)
+            {
+                return;
+            }
+
+            AthenaCache.AddCache(this, AthenaCache.renderCache, Pawn.thingIDNumber);
         }
 
         public override void CompPostPostRemoved()
         {
             base.CompPostPostRemoved();
+            AthenaCache.RemoveCache(this, AthenaCache.renderCache, Pawn.thingIDNumber);
 
             if (attachedMote != null && !attachedMote.Destroyed)
             {
@@ -126,25 +229,7 @@ namespace AthenaFramework
         {
             if (usePrimary == null || useSecondary == null)
             {
-                usePrimary = false;
-                useSecondary = false;
-
-                for (int i = Props.additionalGraphics.Count - 1; i >= 0; i--)
-                {
-                    HediffGraphicPackage package = Props.additionalGraphics[i];
-
-                    if (package.firstMask == HediffPackageColor.PrimaryColor || package.secondMask == HediffPackageColor.PrimaryColor)
-                    {
-                        usePrimary = true;
-                    }
-
-                    if (package.firstMask == HediffPackageColor.SecondaryColor || package.secondMask == HediffPackageColor.SecondaryColor)
-                    {
-                        usePrimary = true;
-                        useSecondary = true;
-                        break;
-                    }
-                }
+                RecacheGraphicData();
             }
 
             if (!(bool)usePrimary)
@@ -156,7 +241,7 @@ namespace AthenaFramework
             {
                 paletteAction = new Command_Action();
                 paletteAction.defaultLabel = "Change colors for " + parent.LabelCap;
-                paletteAction.icon = ColorPaletteTex;
+                paletteAction.icon = cachedPaletteTex;
                 paletteAction.action = delegate ()
                 {
                     Find.WindowStack.Add(new Dialog_ColorPalette(this));
@@ -179,6 +264,8 @@ namespace AthenaFramework
         public GraphicData graphicData;
         // Mote attached to the hediff
         public ThingDef attachedMoteDef;
+        // Effecter attached to the hediff
+        public EffecterDef attachedEffecterDef;
         // Offset of the attached mote
         public Vector3 attachedMoteOffset = new Vector3();
         // Scale of the attached mote

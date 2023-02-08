@@ -6,7 +6,7 @@ using static HarmonyLib.Code;
 
 namespace AthenaFramework
 {
-    public class Comp_DamageModifier : ThingComp
+    public class Comp_DamageModifier : ThingComp, IDamageModifier
     {
         private CompProperties_DamageModifier Props => props as CompProperties_DamageModifier;
 
@@ -24,8 +24,9 @@ namespace AthenaFramework
             float offset = 0f;
             List<string> excluded = new List<string>();
 
-            foreach(DamageModificator modGroup in Props.outgoingModifiers)
+            for(int i = Props.outgoingModifiers.Count - 1; i >= 0; i--)
             {
+                DamageModificator modGroup = Props.outgoingModifiers[i];
                 (float, float) result = modGroup.GetDamageModifiers(target, ref excluded, ref excludedGlobal, instigator, dinfo, projectile);
                 modifier *= result.Item1;
                 offset += result.Item2;
@@ -40,14 +41,65 @@ namespace AthenaFramework
             float offset = 0f;
             List<string> excluded = new List<string>();
 
-            foreach (DamageModificator modGroup in Props.incomingModifiers)
+            for (int i = Props.incomingModifiers.Count - 1; i >= 0; i--)
             {
+                DamageModificator modGroup = Props.incomingModifiers[i];
                 (float, float) result = modGroup.GetDamageModifiers(instigator, ref excluded, ref excludedGlobal, target, dinfo, projectile, true);
                 modifier *= result.Item1;
                 offset += result.Item2;
             }
 
             return (modifier, offset);
+        }
+
+        public override void Notify_Equipped(Pawn pawn)
+        {
+            base.Notify_Equipped(pawn);
+
+            if (Props.workOnEquip)
+            {
+                AthenaCache.AddCache(this, AthenaCache.damageCache, pawn.thingIDNumber);
+            }
+
+            if (Props.workOnParent && !Props.workWhenEquipped)
+            {
+                AthenaCache.RemoveCache(this, AthenaCache.damageCache, parent.thingIDNumber);
+            }
+        }
+
+        public override void Notify_Unequipped(Pawn pawn)
+        {
+            base.Notify_Unequipped(pawn);
+
+            if (Props.workOnEquip)
+            {
+                AthenaCache.RemoveCache(this, AthenaCache.damageCache, pawn.thingIDNumber);
+            }
+
+            if (Props.workOnParent && !Props.workWhenEquipped)
+            {
+                AthenaCache.AddCache(this, AthenaCache.damageCache, parent.thingIDNumber);
+            }
+        }
+
+        public override void Initialize(CompProperties props)
+        {
+            base.Initialize(props);
+
+            if (Props.workOnParent)
+            {
+                AthenaCache.AddCache(this, AthenaCache.damageCache, parent.thingIDNumber);
+            }
+        }
+
+        public override void PostDestroy(DestroyMode mode, Map previousMap)
+        {
+            base.PostDestroy(mode, previousMap);
+
+            if (Props.workOnParent)
+            {
+                AthenaCache.RemoveCache(this, AthenaCache.damageCache, parent.thingIDNumber);
+            }
         }
     }
 
@@ -62,6 +114,12 @@ namespace AthenaFramework
         public List<DamageModificator> outgoingModifiers = new List<DamageModificator>();
         // List of possible modification effects that affect outgoing damage
         public List<DamageModificator> incomingModifiers = new List<DamageModificator>();
+        // Whenever the damage modification should be applied on the parent itself
+        public bool workOnParent = true;
+        // Whenever damage modifications should be applied on pawns that equips the parent
+        public bool workOnEquip = true;
+        // Whenever damage modifications should be applied on the parent when it's equipped
+        public bool workWhenEquipped = false;
         // Passive outgoing damage modifier that's always applied
         public float outgoingDamageMultiplier = 1f;
         // Passive incoming damage modifier that's always applied

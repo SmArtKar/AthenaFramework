@@ -18,7 +18,6 @@ namespace AthenaFramework
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator ilg)
         {
             var code = new List<CodeInstruction>(instructions);
-            LocalBuilder floatLocal = ilg.DeclareLocal(typeof(float));
 
             int insertionIndex = -1;
             for (int i = 0; i < code.Count - 1; i++) // -1 since we will be checking i + 1

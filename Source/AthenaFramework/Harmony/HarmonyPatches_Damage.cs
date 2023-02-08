@@ -2,10 +2,14 @@
 using RimWorld;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.Linq;
+using System.Reflection.Emit;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Verse;
+using Mono.Cecil.Cil;
 
 namespace AthenaFramework
 {
@@ -29,20 +33,11 @@ namespace AthenaFramework
                 __result *= __instance.Instigator.def.GetModExtension<DamageModifierExtension>().OutgoingDamageMultiplier;
             }
 
-            ThingWithComps compThing = __instance.Instigator as ThingWithComps;
-
-            if (compThing == null)
+            if (AthenaCache.damageCache.TryGetValue(__instance.Instigator.thingIDNumber, out List<IDamageModifier> mods))
             {
-                return;
-            }
-
-            for (int i = compThing.AllComps.Count - 1; i >= 0; i--)
-            {
-                Comp_DamageModifier modifier = compThing.AllComps[i] as Comp_DamageModifier;
-
-                if (modifier != null)
+                for (int i = mods.Count - 1; i >= 0; i--)
                 {
-                    __result *= modifier.OutgoingDamageMultiplier;
+                    __result *= mods[i].OutgoingDamageMultiplier;
                 }
             }
 
@@ -61,24 +56,6 @@ namespace AthenaFramework
                 {
                     __result *= hediff.def.GetModExtension<DamageModifierExtension>().OutgoingDamageMultiplier;
                 }
-
-                HediffWithComps compHediff = hediff as HediffWithComps;
-
-                if (compHediff == null)
-                {
-                    continue;
-                }
-
-                for (int j = compHediff.comps.Count - 1; j >= 0; j--)
-                {
-                    HediffComp_DamageModifier modifier = compHediff.comps[j] as HediffComp_DamageModifier;
-
-                    if (modifier != null)
-                    {
-                        __result *= modifier.OutgoingDamageMultiplier;
-                    }
-                }
-
             }
 
             if (pawn.apparel == null)
@@ -90,18 +67,6 @@ namespace AthenaFramework
             for (int i = wornApparel.Count - 1; i >= 0; i--)
             {
                 Apparel apparel = wornApparel[i];
-
-                for (int j = apparel.AllComps.Count - 1; j >= 0; j--)
-                {
-                    Comp_DamageModifier modifier = apparel.AllComps[j] as Comp_DamageModifier;
-
-                    if (modifier == null)
-                    {
-                        continue;
-                    }
-
-                    __result *= modifier.OutgoingDamageMultiplier;
-                }
 
                 if (apparel.def.GetModExtension<DamageModifierExtension>() != null)
                 {
@@ -125,6 +90,25 @@ namespace AthenaFramework
             float offset = 0f;
             List<string> excludedGlobal = new List<string>();
 
+            if (AthenaCache.damageCache.TryGetValue(__instance.thingIDNumber, out List<IDamageModifier> mods))
+            {
+                for (int i = mods.Count - 1; i >= 0; i--)
+                {
+                    IDamageModifier modifierComp = mods[i];
+
+                    (float, float) result = modifierComp.GetIncomingDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator, dinfo);
+                    modifier *= result.Item1;
+                    offset += result.Item2;
+                }
+            }
+
+            if (__instance.def.GetModExtension<DamageModifierExtension>() != null)
+            {
+                (float, float) result = __instance.def.GetModExtension<DamageModifierExtension>().GetIncomingDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator, dinfo);
+                modifier *= result.Item1;
+                offset += result.Item2;
+            }
+
             if (dinfo.Weapon != null && dinfo.Weapon.GetModExtension<DamageModifierExtension>() != null)
             {
                 (float, float) result = dinfo.Weapon.GetModExtension<DamageModifierExtension>().GetOutcomingDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator, dinfo);
@@ -141,20 +125,13 @@ namespace AthenaFramework
                     offset += result.Item2;
                 }
 
-                ThingWithComps compThing = dinfo.Instigator as ThingWithComps;
-
-                if (compThing != null)
+                if (AthenaCache.damageCache.TryGetValue(dinfo.Instigator.thingIDNumber, out List<IDamageModifier> mods2))
                 {
-                    for (int i = compThing.AllComps.Count - 1; i >= 0; i--)
+                    for (int i = mods2.Count - 1; i >= 0; i--)
                     {
-                        Comp_DamageModifier modifierComp = compThing.AllComps[i] as Comp_DamageModifier;
+                        IDamageModifier modifierComp = mods2[i];
 
-                        if (modifierComp == null)
-                        {
-                            continue;
-                        }
-
-                        (float, float) result = modifierComp.GetOutcomingDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator, dinfo);
+                        (float, float) result = modifierComp.GetIncomingDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator, dinfo);
                         modifier *= result.Item1;
                         offset += result.Item2;
                     }
@@ -174,28 +151,6 @@ namespace AthenaFramework
                             modifier *= result.Item1;
                             offset += result.Item2;
                         }
-
-                        HediffWithComps compHediff = hediff as HediffWithComps;
-
-                        if (compHediff == null)
-                        {
-                            continue;
-
-                        }
-
-                        for (int j = compHediff.comps.Count - 1; j >= 0; j--)
-                        {
-                            HediffComp_DamageModifier modifierComp = compHediff.comps[j] as HediffComp_DamageModifier;
-
-                            if (modifierComp == null)
-                            {
-                                continue;
-                            }
-
-                            (float, float) result = modifierComp.GetOutcomingDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator, dinfo);
-                            modifier *= result.Item1;
-                            offset += result.Item2;
-                        }
                     }
 
                     if (pawn.apparel != null)
@@ -205,20 +160,6 @@ namespace AthenaFramework
                         {
                             Apparel apparel = wornApparel[i];
 
-                            for (int j = apparel.AllComps.Count - 1; j >= 0; j--)
-                            {
-                                Comp_DamageModifier modifierComp = apparel.AllComps[j] as Comp_DamageModifier;
-
-                                if (modifierComp == null)
-                                {
-                                    continue;
-                                }
-
-                                (float, float) result = modifierComp.GetOutcomingDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator, dinfo);
-                                modifier *= result.Item1;
-                                offset += result.Item2;
-                            }
-
                             if (apparel.def.GetModExtension<DamageModifierExtension>() != null)
                             {
                                 (float, float) result = apparel.def.GetModExtension<DamageModifierExtension>().GetOutcomingDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator, dinfo);
@@ -227,32 +168,6 @@ namespace AthenaFramework
                             }
                         }
                     }
-                }
-            }
-
-            if (__instance.def.GetModExtension<DamageModifierExtension>() != null)
-            {
-                (float, float) result = __instance.def.GetModExtension<DamageModifierExtension>().GetIncomingDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator, dinfo);
-                modifier *= result.Item1;
-                offset += result.Item2;
-            }
-
-            ThingWithComps compThing2 = __instance as ThingWithComps;
-
-            if (compThing2 != null)
-            {
-                for (int i = compThing2.AllComps.Count - 1; i >= 0; i--)
-                {
-                    Comp_DamageModifier modifierComp = compThing2.AllComps[i] as Comp_DamageModifier;
-
-                    if (modifierComp == null)
-                    {
-                        continue;
-                    }
-
-                    (float, float) result = modifierComp.GetIncomingDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator, dinfo);
-                    modifier *= result.Item1;
-                    offset += result.Item2;
                 }
             }
 
@@ -270,26 +185,6 @@ namespace AthenaFramework
                         modifier *= result.Item1;
                         offset += result.Item2;
                     }
-
-                    HediffWithComps compHediff = hediff as HediffWithComps;
-
-                    if (compHediff == null)
-                    {
-                        continue;
-
-                    }
-
-                    for (int j = compHediff.comps.Count - 1; j >= 0; j--)
-                    {
-                        HediffComp_DamageModifier modifierComp = compHediff.comps[j] as HediffComp_DamageModifier;
-
-                        if (modifierComp != null)
-                        {
-                            (float, float) result = modifierComp.GetIncomingDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator, dinfo);
-                            modifier *= result.Item1;
-                            offset += result.Item2;
-                        }
-                    }
                 }
 
                 if (pawn2.apparel != null)
@@ -298,20 +193,6 @@ namespace AthenaFramework
                     for (int i = wornApparel.Count - 1; i >= 0; i--)
                     {
                         Apparel apparel = wornApparel[i];
-
-                        for (int j = apparel.AllComps.Count - 1; j >= 0; j--)
-                        {
-                            Comp_DamageModifier modifierComp = apparel.AllComps[j] as Comp_DamageModifier;
-
-                            if (modifierComp == null)
-                            {
-                                continue;
-                            }
-
-                            (float, float) result = modifierComp.GetIncomingDamageModifier(__instance, ref excludedGlobal, dinfo.Instigator, dinfo);
-                            modifier *= result.Item1;
-                            offset += result.Item2;
-                        }
 
                         if (apparel.def.GetModExtension<DamageModifierExtension>() != null)
                         {
@@ -333,157 +214,137 @@ namespace AthenaFramework
                 return;
             }
 
-            Pawn pawn = __instance as Pawn;
-
-            if (pawn == null)
+            if (!AthenaCache.responderCache.TryGetValue(__instance.thingIDNumber, out List<IDamageResponse> mods))
             {
                 return;
             }
 
-            for (int i = pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
+            for (int i = mods.Count - 1; i >= 0; i--)
             {
-                HediffWithComps compHediff = pawn.health.hediffSet.hediffs[i] as HediffWithComps;
+                IDamageResponse responder = mods[i];
 
-                if (compHediff == null)
+                responder.PreApplyDamage(ref dinfo, ref absorbed);
+
+                if (absorbed)
                 {
-                    continue;
-
-                }
-
-                for (int j = compHediff.comps.Count - 1; j >= 0; j--)
-                {
-                    IDamageResponse responder = compHediff.comps[j] as IDamageResponse;
-
-                    if (responder == null)
-                    {
-                        return;
-                    }
-
-                    responder.PreApplyDamage(ref dinfo, ref absorbed);
-
-                    if (absorbed)
-                    {
-                        return;
-                    }
+                    return;
                 }
             }
         }
     }
 
     [HarmonyPatch(typeof(ArmorUtility), nameof(ArmorUtility.GetPostArmorDamage))]
-    public static class ArmorUtility_PostArmorGetter
+    public static class ArmorUtility_ArmorTranspiler
     {
-        public static void Postfix(Pawn pawn, float amount, float armorPenetration, BodyPartRecord part, ref DamageDef damageDef, ref bool deflectedByMetalArmor, ref bool diminishedByMetalArmor, ref float __result)
+        static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator ilg)
         {
-            if (__result == 0)
-            {
-                return;
-            }
+            var code = new List<CodeInstruction>(instructions);
+            LocalBuilder floatLocal = ilg.DeclareLocal(typeof(float));
+            LocalBuilder floatLocal2 = ilg.DeclareLocal(typeof(float));
+            Label ifLabel = ilg.DefineLabel();
 
-            StatDef armorRatingStat = damageDef.armorCategory.armorRatingStat;
-
-            if (pawn.apparel != null)
+            int insertionIndex = -1;
+            for (int i = 0; i < code.Count - 1; i++)
             {
-                List<Apparel> wornApparel = pawn.apparel.WornApparel;
-                for (int i = wornApparel.Count - 1; i >= 0; i--)
+                if (code[i].opcode == OpCodes.Ldloc_S && (((code[i].operand is LocalBuilder) && ((LocalBuilder)code[i].operand).LocalIndex == 5) || ((code[i].operand is int) && Convert.ToInt32(code[i].operand) == 5)))
                 {
-                    Apparel apparel = wornApparel[i];
-                    if (apparel.def.apparel.CoversBodyPart(part))
-                    {
-                        for (int j = apparel.AllComps.Count - 1; j >= 0; j--)
-                        {
-                            IArmored armor = apparel.AllComps[j] as IArmored;
-
-                            if (armor == null)
-                            {
-                                continue;
-                            }
-
-                            float num = __result;
-                            bool flag;
-
-                            armor.ApplyArmor(ref __result, armorPenetration, armorRatingStat, part, ref damageDef, out flag);
-
-                            if (__result < 0.001f)
-                            {
-                                deflectedByMetalArmor = flag;
-                                __result = 0f;
-                                return;
-                            }
-
-                            if (__result < num && flag)
-                            {
-                                diminishedByMetalArmor = true;
-                            }
-                        }
-                    }
+                    insertionIndex = i;
+                    break;
                 }
             }
 
-            for (int i = pawn.AllComps.Count - 1; i >= 0; i--)
+            if (insertionIndex == -1)
             {
-                IArmored armor = pawn.AllComps[i] as IArmored;
+                return code;
+            }
 
-                if (armor == null)
+            object operand1 = code[insertionIndex + 8].operand;
+            object operand2 = code[insertionIndex + 16].operand;
+
+            List<CodeInstruction> instructionsToInsert = new List<CodeInstruction>();
+            instructionsToInsert.Add(new CodeInstruction(OpCodes.Ldloc_0));
+            instructionsToInsert.Add(new CodeInstruction(OpCodes.Ldc_I4_1));
+            instructionsToInsert.Add(new CodeInstruction(OpCodes.Ldc_I4_M1));
+            instructionsToInsert.Add(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(StatExtension), nameof(StatExtension.GetStatValue), new Type[] { typeof(Thing), typeof(StatDef), typeof(bool), typeof(Int32) })));
+            instructionsToInsert.Add(new CodeInstruction(OpCodes.Stloc_S, floatLocal));
+
+            instructionsToInsert.Add(new CodeInstruction(OpCodes.Ldloc_S, 5));
+            instructionsToInsert.Add(new CodeInstruction(OpCodes.Ldarga_S, operand1));
+            instructionsToInsert.Add(new CodeInstruction(OpCodes.Ldarg_2));
+            instructionsToInsert.Add(new CodeInstruction(OpCodes.Ldloc_0));
+            instructionsToInsert.Add(new CodeInstruction(OpCodes.Ldloca_S, floatLocal));
+            instructionsToInsert.Add(new CodeInstruction(OpCodes.Ldarg_3));
+            instructionsToInsert.Add(new CodeInstruction(OpCodes.Ldarg_S, operand2));
+            instructionsToInsert.Add(new CodeInstruction(OpCodes.Ldarg_0));
+            instructionsToInsert.Add(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(AthenaArmor), nameof(AthenaArmor.CoversBodyPart), new Type[] { typeof(Thing), typeof(float).MakeByRefType(), typeof(float), typeof(StatDef), typeof(float).MakeByRefType(), typeof(BodyPartRecord), typeof(DamageDef).MakeByRefType(), typeof(Pawn) })));
+            instructionsToInsert.Add(new CodeInstruction(OpCodes.Brfalse_S, ifLabel));
+
+            List<CodeInstruction> instructionsToInsert2 = new List<CodeInstruction>();
+            instructionsToInsert2.Add(new CodeInstruction(OpCodes.Ldloc_S, 5));
+            instructionsToInsert2.Add(new CodeInstruction(OpCodes.Ldarga_S, operand1));
+            instructionsToInsert2.Add(new CodeInstruction(OpCodes.Ldarg_2));
+            instructionsToInsert2.Add(new CodeInstruction(OpCodes.Ldloc_0));
+            instructionsToInsert2.Add(new CodeInstruction(OpCodes.Ldloc_S, floatLocal));
+            instructionsToInsert2.Add(new CodeInstruction(OpCodes.Ldarg_3));
+            instructionsToInsert2.Add(new CodeInstruction(OpCodes.Ldarg_S, operand2));
+            instructionsToInsert2.Add(new CodeInstruction(OpCodes.Ldarg_0));
+            instructionsToInsert2.Add(new CodeInstruction(OpCodes.Ldloca_S, 6));
+            instructionsToInsert2.Add(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(AthenaArmor), nameof(AthenaArmor.ApplyArmor), new Type[] { typeof(Thing), typeof(float).MakeByRefType(), typeof(float), typeof(StatDef), typeof(float), typeof(BodyPartRecord), typeof(DamageDef).MakeByRefType(), typeof(Pawn), typeof(bool).MakeByRefType() })));
+
+            code.RemoveRange(insertionIndex + 1, 5);
+            code.InsertRange(insertionIndex + 1, instructionsToInsert);
+
+            code.RemoveRange(insertionIndex + 18, 12);
+            code.InsertRange(insertionIndex + 18, instructionsToInsert2);
+
+            int insertionIndex2 = -1;
+            Byte num = 1;
+            for (int i = insertionIndex + 53; i < code.Count - 1; i++)
+            {
+                if (code[i].opcode == OpCodes.Ldarga_S && (Byte)code[i].operand == num)
                 {
-                    continue;
-                }
-
-                float num3 = __result;
-                bool flag3;
-
-                armor.ApplyArmor(ref __result, armorPenetration, armorRatingStat, part, ref damageDef, out flag3);
-
-                if (__result < 0.001f)
-                {
-                    deflectedByMetalArmor = flag3;
-                    __result = 0f;
-                    return;
-                }
-
-                if (__result < num3 && flag3)
-                {
-                    diminishedByMetalArmor = true;
+                    insertionIndex2 = i;
+                    break;
                 }
             }
 
-            for (int i = pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
+            List<CodeInstruction> instructionsToInsert3 = new List<CodeInstruction>();
+
+            instructionsToInsert3.Add(new CodeInstruction(OpCodes.Ldarg_0));
+            instructionsToInsert3.Add(new CodeInstruction(OpCodes.Ldloc_0));
+            instructionsToInsert3.Add(new CodeInstruction(OpCodes.Ldc_I4_1));
+            instructionsToInsert3.Add(new CodeInstruction(OpCodes.Ldc_I4_M1));
+            instructionsToInsert3.Add(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(StatExtension), nameof(StatExtension.GetStatValue), new Type[] { typeof(Thing), typeof(StatDef), typeof(bool), typeof(Int32) })));
+            instructionsToInsert3.Add(new CodeInstruction(OpCodes.Stloc_S, floatLocal2));
+
+            instructionsToInsert3.Add(new CodeInstruction(OpCodes.Ldnull));
+            instructionsToInsert3.Add(new CodeInstruction(OpCodes.Ldarga_S, operand1));
+            instructionsToInsert3.Add(new CodeInstruction(OpCodes.Ldarg_2));
+            instructionsToInsert3.Add(new CodeInstruction(OpCodes.Ldloc_0));
+            instructionsToInsert3.Add(new CodeInstruction(OpCodes.Ldloc_S, floatLocal2));
+
+            instructionsToInsert3.Add(new CodeInstruction(OpCodes.Ldarg_3));
+            instructionsToInsert3.Add(new CodeInstruction(OpCodes.Ldarg_S, operand2));
+            instructionsToInsert3.Add(new CodeInstruction(OpCodes.Ldarg_0));
+            instructionsToInsert3.Add(new CodeInstruction(OpCodes.Ldloca_S, 1));
+            instructionsToInsert3.Add(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(AthenaArmor), nameof(AthenaArmor.ApplyArmor), new Type[] { typeof(Thing), typeof(float).MakeByRefType(), typeof(float), typeof(StatDef), typeof(float), typeof(BodyPartRecord), typeof(DamageDef).MakeByRefType(), typeof(Pawn), typeof(bool).MakeByRefType() })));
+
+            code.RemoveRange(insertionIndex2, 12);
+            code.InsertRange(insertionIndex2, instructionsToInsert3);
+
+            int insertionIndex3 = -1;
+            for (int i = insertionIndex; i < code.Count - 1; i++)
             {
-                HediffWithComps hediff = pawn.health.hediffSet.hediffs[i] as HediffWithComps;
-
-                if (hediff == null)
+                if (code[i].opcode == OpCodes.Sub)
                 {
-                    continue;
-                }
-
-                for (int j = hediff.comps.Count - 1; j >= 0; j--)
-                {
-                    IArmored armor = hediff.comps[j] as IArmored;
-
-                    if (armor == null)
-                    {
-                        continue;
-                    }
-
-                    float num = __result;
-                    bool flag;
-
-                    armor.ApplyArmor(ref __result, armorPenetration, armorRatingStat, part, ref damageDef, out flag);
-                    if (__result < 0.001f)
-                    {
-                        deflectedByMetalArmor = flag;
-                        __result = 0f;
-                        return;
-                    }
-
-                    if (__result < num && flag)
-                    {
-                        diminishedByMetalArmor = true;
-                    }
+                    insertionIndex3 = i;
+                    break;
                 }
             }
 
-            __result = amount;
+            code[insertionIndex3 - 2].labels.Add(ifLabel);
+
+            return code;
         }
     }
 }

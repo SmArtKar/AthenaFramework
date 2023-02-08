@@ -8,54 +8,60 @@ using Verse;
 
 namespace AthenaFramework
 {
-    public class Comp_CustomApparelBody : ThingComp
+    public class Comp_CustomApparelBody : ThingComp, IBodyModifier
     {
         private CompProperties_CustomApparelBody Props => props as CompProperties_CustomApparelBody;
         protected Apparel Apparel => parent as Apparel;
         protected Pawn Wearer => Apparel.Wearer;
 
-        public virtual Graphic GetBodyGraphic
-        {
-            get
-            {
-                if (Props.bodyGraphicData == null)
-                {
-                    return null;
-                }
-
-                return Props.bodyGraphicData.Graphic;
-            }
-        }
-
-        public virtual Graphic GetHeadGraphic
-        {
-            get
-            {
-                if (Props.headGraphicData == null)
-                {
-                    return null;
-                }
-
-                return Props.headGraphicData.Graphic;
-            }
-        }
-
-        public virtual bool PreventBodytype (BodyTypeDef bodyType, ApparelGraphicRecord rec)
+        public virtual bool PreventBodytype(BodyTypeDef bodyType)
         {
             return Props.preventBodytype;
         }
 
-        public virtual void CustomBodytype(Apparel apparel, ref BodyTypeDef bodyType)
+        public virtual bool HideBody
+        {
+            get
+            {
+                return Props.hideBody;
+            }
+        }
+
+        public virtual bool HideHead
+        {
+            get
+            {
+                return Props.hideHead;
+            }
+        }
+
+        public virtual bool HideFur
+        {
+            get
+            {
+                return Props.hideFur;
+            }
+        }
+
+        public virtual bool HideHair
+        {
+            get
+            {
+                return Props.hideHair;
+            }
+        }
+
+        public virtual bool CustomBodytype(ref BodyTypeDef bodyType)
         {
             if (bodyType == null)
             {
-                return;
+                return false;
             }
 
             if (Props.forcedBodytype != null)
             {
                 bodyType = Props.forcedBodytype;
-                return;
+                return true;
             }
 
             if (Props.bodytypePairs != null)
@@ -66,28 +72,25 @@ namespace AthenaFramework
                     if (pair.initialBodytype == bodyType)
                     {
                         bodyType = pair.newBodytype;
-                        return;
+                        return true;
                     }
                 }
             }
 
-            return;
-        }
-
-        public virtual void CustomBodytype(Apparel apparel, ref BodyTypeDef bodyType, ApparelGraphicRecord rec)
-        {
-            CustomBodytype(apparel, ref bodyType);
+            return false;
         }
 
         public override void Notify_Equipped(Pawn pawn)
 		{
             base.Notify_Equipped(pawn);
+            AthenaCache.AddCache(this, AthenaCache.bodyCache, pawn.thingIDNumber);
             pawn.Drawer.renderer.graphics.ResolveAllGraphics();
         }
 
         public override void Notify_Unequipped(Pawn pawn)
         {
             base.Notify_Unequipped(pawn);
+            AthenaCache.RemoveCache(this, AthenaCache.bodyCache, pawn.thingIDNumber);
             pawn.Drawer.renderer.graphics.ResolveAllGraphics();
         }
     }
@@ -99,14 +102,18 @@ namespace AthenaFramework
             this.compClass = typeof(Comp_CustomApparelBody);
         }
 
-        // Custom graphic for the wearer's head
-        public GraphicData bodyGraphicData = null;
-        // Custom graphic for the wearer's head
-        public GraphicData headGraphicData = null;
         // If bodygear should ignore bodytype in their texture paths similarly to headgear.
-        public bool preventBodytype = true;
+        public bool preventBodytype = false;
         // If set to a certain bodytype it will force that bodytype onto all apparel that user is wearing. Overrides bodytypePairs
         public BodyTypeDef forcedBodytype;
+        // If the comp should hide the owner's body
+        public bool hideBody = false;
+        // If the comp should hide the owner's head
+        public bool hideHead = false;
+        // If the comp should hide the owner's fur
+        public bool hideFur = false;
+        // If the comp should hide the owner's hair
+        public bool hideHair = false;
         // List of bodytype pairs that will be swapped. Allows to do stuff like making all fatties into hulks and thins into normals
         public List<BodytypeSwitch> bodytypePairs;
     }

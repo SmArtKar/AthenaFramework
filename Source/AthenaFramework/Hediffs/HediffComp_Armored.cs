@@ -13,7 +13,33 @@ namespace AthenaFramework
     {
         private HediffCompProperties_Armored Props => props as HediffCompProperties_Armored;
 
-        public virtual void ApplyArmor(ref float amount, float armorPenetration, StatDef armorStat, BodyPartRecord part, ref DamageDef damageDef, out bool metalArmor)
+        public override void CompPostMake()
+        {
+            base.CompPostMake();
+            AthenaCache.AddCache(this, AthenaCache.armorCache, Pawn.thingIDNumber);
+        }
+
+        public override void CompExposeData()
+        {
+            base.CompExposeData();
+
+            if (Scribe.mode != LoadSaveMode.LoadingVars)
+            {
+                return;
+            }
+
+            AthenaCache.AddCache(this, AthenaCache.armorCache, Pawn.thingIDNumber);
+        }
+
+        public override void CompPostPostRemoved()
+        {
+            base.CompPostPostRemoved();
+            AthenaCache.RemoveCache(this, AthenaCache.armorCache, Pawn.thingIDNumber);
+        }
+
+        public virtual bool PreProcessArmor(ref float amount, float armorPenetration, StatDef stat, ref float armorRating, BodyPartRecord part, ref DamageDef damageDef, Pawn pawn, ref bool metalArmor, DamageDef originalDamageDef, float originalAmount) { return true; }
+
+        public virtual void PostProcessArmor(ref float amount, float armorPenetration, StatDef stat, ref float armorRating, BodyPartRecord part, ref DamageDef damageDef, Pawn pawn, ref bool metalArmor, DamageDef originalDamageDef, float originalAmount)
         {
             bool blocksDamage = false;
 
@@ -38,22 +64,33 @@ namespace AthenaFramework
                 return;
             }
 
-            float armorRating = 0f;
+            float localArmorRating = 0f;
 
             for (int i = Props.armorStats.Count - 1; i >= 0; i--)
             {
-                StatModifier stat = Props.armorStats[i];
+                StatModifier localStat = Props.armorStats[i];
 
-                if (stat.stat == armorStat)
+                if (localStat.stat == stat)
                 {
-                    armorRating = stat.value;
+                    localArmorRating = localStat.value;
                     break;
                 }
             }
 
-            metalArmor = Props.metallicBlock; 
+            for (int j = Props.defArmors.Count - 1; j >= 0; j--)
+            {
+                DamageDefArmor localStat = Props.defArmors[j];
 
-            float blockLeft = Mathf.Max(armorRating - armorPenetration, 0f);
+                if (localStat.damageDef == damageDef)
+                {
+                    armorRating += localStat.value;
+                    break;
+                }
+            }
+
+            metalArmor = Props.metallicBlock;
+
+            float blockLeft = Mathf.Max(localArmorRating - armorPenetration, 0f);
             float randomValue = Rand.Value;
 
             if (randomValue < blockLeft * 0.5)
@@ -83,6 +120,14 @@ namespace AthenaFramework
                     break;
             }
         }
+
+        public virtual bool CoversBodypart(ref float amount, float armorPenetration, StatDef stat, ref float armorRating, BodyPartRecord part, ref DamageDef damageDef, Pawn pawn, bool defaultCovered, out bool forceCover, out bool forceUncover)
+        {
+            forceCover = false;
+            forceUncover = false;
+
+            return false;
+        }
     }
 
     public class HediffCompProperties_Armored : HediffCompProperties
@@ -104,6 +149,8 @@ namespace AthenaFramework
         public float durabilityCoeff = 0.25f;
         // List of armor stats
         public List<StatModifier> armorStats = new List<StatModifier>();
+        // List of armor per damageDefs
+        public List<DamageDefArmor> defArmors = new List<DamageDefArmor>();
     }
 
     public enum HediffDurability

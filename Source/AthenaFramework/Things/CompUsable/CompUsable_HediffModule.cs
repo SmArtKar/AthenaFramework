@@ -34,7 +34,7 @@ namespace AthenaFramework
                 {
                     HediffComp_Modular comp = hediff.comps[j] as HediffComp_Modular;
 
-                    if (comp != null && comp.CanInstall(parentComp))
+                    if (comp != null && comp.GetOpenSlots(parentComp).Count > 0)
                     {
                         failReason = null;
                         return true;
@@ -109,30 +109,36 @@ namespace AthenaFramework
                 {
                     HediffComp_Modular comp = hediff.comps[j] as HediffComp_Modular;
 
-                    if (comp == null || !comp.CanInstall(parentComp))
+                    if (comp == null)
                     {
                         continue;
                     }
 
-                    Action action = delegate ()
-                    {
-                        if (pawn.CanReserveAndReach(parent, PathEndMode.Touch, Danger.Deadly, 1, -1, null, Props.ignoreOtherReservations))
-                        {
-                            StartModuleJob(pawn, comp, parentComp, Props.ignoreOtherReservations);
-                        }
-                    };
+                    List<ModuleSlotPackage> slots = comp.GetOpenSlots(parentComp);
 
-                    FloatMenuOption floatMenuOption = FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption(label + (hediff.Part.Label != null ? "(" + hediff.Part.Label + ")" : ""), action, Icon, IconColor, Props.floatMenuOptionPriority, null, null, 0f, null, null, true, 0, HorizontalJustification.Left, false), pawn, parent, "ReservedBy", null);
-                    yield return floatMenuOption;
+                    for (int k = slots.Count - 1; k >= 0; k--)
+                    {
+                        Action action = delegate ()
+                        {
+                            if (pawn.CanReserveAndReach(parent, PathEndMode.Touch, Danger.Deadly, 1, -1, null, Props.ignoreOtherReservations))
+                            {
+                                StartModuleJob(pawn, comp, parentComp, slots[k], Props.ignoreOtherReservations);
+                            }
+                        };
+
+                        FloatMenuOption floatMenuOption = FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption(label + (hediff.Part != null && hediff.Part.Label != null ? " (" + hediff.Part.Label + ")" : "") + " (" + slots[k].slotName + ")", action, Icon, IconColor, Props.floatMenuOptionPriority, null, null, 0f, null, null, true, 0, HorizontalJustification.Left, false), pawn, parent, "ReservedBy", null);
+                        yield return floatMenuOption;
+                    }
                 }
             }
 
             yield break;
         }
 
-        public virtual void StartModuleJob(Pawn pawn, HediffComp_Modular modular, CompUseEffect_HediffModule parentComp, bool forced = false)
+        public virtual void StartModuleJob(Pawn pawn, HediffComp_Modular modular, CompUseEffect_HediffModule parentComp, ModuleSlotPackage slot, bool forced = false)
         {
             parentComp.comp = modular;
+            parentComp.usedSlot = slot.slotID;
             TryStartUseJob(pawn, null, forced);
         }
     }

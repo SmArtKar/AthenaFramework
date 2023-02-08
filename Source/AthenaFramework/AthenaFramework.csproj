@@ -26,7 +26,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\..\1.4\Assemblies\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -46,19 +46,35 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Harmony\HarmonyPatches_HideParts.cs" />
+    <Compile Include="Hediffs\HediffComp_CompApplicator.cs" />
+    <Compile Include="Interfaces\IColorSelector.cs" />
+    <Compile Include="Interfaces\IDamageModifier.cs" />
+    <Compile Include="Interfaces\IGraphicGivers.cs" />
+    <Compile Include="Interfaces\IPreventEquip.cs" />
+    <Compile Include="Interfaces\IProjectile.cs" />
+    <Compile Include="Things\CompAdvancedArmor.cs" />
+    <Compile Include="Things\CompModular.cs" />
+    <Compile Include="Things\CompUsable\CompUseEffect_HediffModule.cs" />
+    <Compile Include="Things\CompUsable\CompUseEffect_Module.cs" />
     <Compile Include="Hediffs\Classes\Hediff_Modular.cs" />
     <Compile Include="Hediffs\Classes\Hediff_ModularAddedPart.cs" />
     <Compile Include="Hediffs\Classes\Hediff_ModularImplant.cs" />
     <Compile Include="Hediffs\HediffComp_Armored.cs" />
     <Compile Include="Hediffs\HediffComp_Modular.cs" />
+    <Compile Include="Hediffs\HediffComp_PerquisiteHediff.cs" />
     <Compile Include="Hediffs\ModuleStructures\ApparelGraphicPackage.cs" />
     <Compile Include="Hediffs\ModuleStructures\Dialog_ColorPalette.cs" />
     <Compile Include="Hediffs\ModuleStructures\HediffGraphicPackage.cs" />
     <Compile Include="Interfaces\IArmored.cs" />
+    <Compile Include="Interfaces\IBodyModifier.cs" />
     <Compile Include="Interfaces\IRenderable.cs" />
     <Compile Include="Interfaces\IStageOverride.cs" />
-    <Compile Include="Things\CompUsable_HediffModule.cs" />
-    <Compile Include="Things\CompUseEffect_HediffModule.cs" />
+    <Compile Include="Interfaces\IStatModifier.cs" />
+    <Compile Include="Things\CompPerquisiteEquippable.cs" />
+    <Compile Include="Things\CompUsable\CompUsable_Module.cs" />
+    <Compile Include="Things\CompUsable\CompUsable_HediffModule.cs" />
+    <Compile Include="Utilities\AthenaArmor.cs" />
     <Compile Include="Utilities\Gradient.cs" />
     <Compile Include="Utilities\HediffStageUtility.cs" />
     <Compile Include="Weapons\AngularShotguns\AngularShotgunExtension.cs" />

@@ -8,7 +8,7 @@ using static HarmonyLib.Code;
 
 namespace AthenaFramework
 {
-    public class DamageModifierExtension : DefModExtension
+    public class DamageModifierExtension : DefModExtension, IDamageModifier
     {
         public virtual float OutgoingDamageMultiplier
         {
@@ -24,8 +24,9 @@ namespace AthenaFramework
             float offset = 0f;
             List<string> excluded = new List<string>();
 
-            foreach (DamageModificator modGroup in outgoingModifiers)
+            for (int i = outgoingModifiers.Count - 1; i >= 0; i--)
             {
+                DamageModificator modGroup = outgoingModifiers[i];
                 (float, float) result = modGroup.GetDamageModifiers(target, ref excluded, ref excludedGlobal, instigator, dinfo, projectile);
                 modifier *= result.Item1;
                 offset += result.Item2;
@@ -40,8 +41,9 @@ namespace AthenaFramework
             float offset = 0f;
             List<string> excluded = new List<string>();
 
-            foreach (DamageModificator modGroup in incomingModifiers)
+            for (int i = incomingModifiers.Count - 1; i >= 0; i--)
             {
+                DamageModificator modGroup = incomingModifiers[i];
                 (float, float) result = modGroup.GetDamageModifiers(instigator, ref excluded, ref excludedGlobal, target, dinfo, projectile, true);
                 modifier *= result.Item1;
                 offset += result.Item2;

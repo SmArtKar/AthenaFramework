@@ -1,31 +1,46 @@
-﻿using System;
+﻿using RimWorld;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml;
-using RimWorld;
 using UnityEngine;
-using UnityEngine.UI;
 using Verse;
-using Verse.Sound;
 
 namespace AthenaFramework
 {
-    [StaticConstructorOnStartup]
-    public class HediffComp_Modular : HediffComp, IStageOverride, IHediffGraphicGiver
+    public class CompModular : ThingComp, IEquippableGraphicGiver
     {
-        private HediffCompProperties_Modular Props => props as HediffCompProperties_Modular;
+        private CompProperties_Modular Props => props as CompProperties_Modular;
 
-        public HediffStage cachedInput;
-        public HediffStage cachedOutput;
-        public bool resetCache = false; //Set to true after changing modules to force a recache
         public bool ejectableModules = true;
         public Command_Action ejectAction;
         public static readonly Texture2D cachedEjectTex = ContentFinder<Texture2D>.Get("UI/Gizmos/EjectModule");
 
         public ThingOwner<ThingWithComps> moduleHolder;
+        public Dictionary<StatDef, float> gearStatOffsets = new Dictionary<StatDef, float>();
+        public Dictionary<StatDef, float> statOffsets = new Dictionary<StatDef, float>();
+        public Dictionary<StatDef, float> statFactors = new Dictionary<StatDef, float>();
 
+        public virtual Pawn Holder
+        {
+            get
+            {
+                if (parent is Apparel)
+                {
+                    return (parent as Apparel).Wearer;
+                }
+
+                CompEquippable comp = parent.TryGetComp<CompEquippable>();
+
+                if (comp != null)
+                {
+                    return comp.Holder;
+                }
+
+                return null;
+            }
+        }
         public virtual List<ModuleSlotPackage> GetAllSlots
         {
             get
@@ -34,7 +49,7 @@ namespace AthenaFramework
             }
         }
 
-        public virtual List<ModuleSlotPackage> GetOpenSlots(CompUseEffect_HediffModule comp)
+        public virtual List<ModuleSlotPackage> GetOpenSlots(CompUseEffect_Module comp)
         {
             List<ModuleSlotPackage> validSlots = new List<ModuleSlotPackage>();
 
@@ -52,7 +67,7 @@ namespace AthenaFramework
 
                 for (int j = moduleHolder.Count - 1; j >= 0; j--)
                 {
-                    CompUseEffect_HediffModule moduleComp = moduleHolder[j].TryGetComp<CompUseEffect_HediffModule>();
+                    CompUseEffect_Module moduleComp = moduleHolder[j].TryGetComp<CompUseEffect_Module>();
 
                     if (moduleComp.usedSlot == slot.slotID)
                     {
@@ -81,15 +96,15 @@ namespace AthenaFramework
             return validSlots;
         }
 
-        public virtual List<HediffGraphicPackage> GetAdditionalGraphics
+        public virtual List<ApparelGraphicPackage> GetAdditionalGraphics
         {
             get
             {
-                List<HediffGraphicPackage> packages = new List<HediffGraphicPackage>();
+                List<ApparelGraphicPackage> packages = new List<ApparelGraphicPackage>();
 
                 for (int j = moduleHolder.Count - 1; j >= 0; j--)
                 {
-                    CompUseEffect_HediffModule moduleComp = moduleHolder[j].TryGetComp<CompUseEffect_HediffModule>();
+                    CompUseEffect_Module moduleComp = moduleHolder[j].TryGetComp<CompUseEffect_Module>();
 
                     if (moduleComp.GetGraphics != null)
                     {
@@ -100,10 +115,10 @@ namespace AthenaFramework
                 return packages;
             }
         }
-        
+
         public virtual void InstallModule(ThingWithComps thing)
         {
-            CompUseEffect_HediffModule comp = thing.TryGetComp<CompUseEffect_HediffModule>();
+            CompUseEffect_Module comp = thing.TryGetComp<CompUseEffect_Module>();
 
             if (!comp.Install(this))
             {
@@ -112,10 +127,9 @@ namespace AthenaFramework
 
             thing.DeSpawnOrDeselect();
             moduleHolder.TryAdd(thing, false);
-            resetCache = true;
             RecacheGizmo();
 
-            if (AthenaCache.renderCache.TryGetValue(Pawn.thingIDNumber, out List<IRenderable> mods))
+            if (AthenaCache.renderCache.TryGetValue(parent.thingIDNumber, out List<IRenderable> mods))
             {
                 for (int i = mods.Count - 1; i >= 0; i--)
                 {
@@ -127,18 +141,16 @@ namespace AthenaFramework
 
         public virtual void RemoveModule(ThingWithComps thing)
         {
-            CompUseEffect_HediffModule comp = thing.TryGetComp<CompUseEffect_HediffModule>();
-
+            CompUseEffect_Module comp = thing.TryGetComp<CompUseEffect_Module>();
             if (!comp.Remove(this))
             {
                 return;
             }
 
-            moduleHolder.TryDrop(thing, Pawn.Position, Pawn.Map, ThingPlaceMode.Near, 1, out Thing placedThing);
-            resetCache = true;
+            moduleHolder.TryDrop(thing, parent.Position, parent.Map, ThingPlaceMode.Near, 1, out Thing placedThing);
             RecacheGizmo();
 
-            if (AthenaCache.renderCache.TryGetValue(Pawn.thingIDNumber, out List<IRenderable> mods))
+            if (AthenaCache.renderCache.TryGetValue(parent.thingIDNumber, out List<IRenderable> mods))
             {
                 for (int i = mods.Count - 1; i >= 0; i--)
                 {
@@ -148,53 +160,23 @@ namespace AthenaFramework
             }
         }
 
-        public override void CompPostMake()
+        public override void PostPostMake()
         {
-            base.CompPostMake();
+            base.PostPostMake();
             moduleHolder = new ThingOwner<ThingWithComps>();
         }
 
-        public virtual HediffStage GetStage(HediffStage stage)
+        public override void PostExposeData()
         {
-            if (stage == cachedInput && !resetCache)
-            {
-                return cachedOutput;
-            }
-
-            cachedInput = stage;
-            resetCache = false;
-
-            if (moduleHolder.Count == 0)
-            {
-                cachedOutput = stage;
-                return cachedOutput;
-            }
-
-            cachedOutput = new HediffStage();
-            cachedOutput.CopyValues(stage);
-
-            for (int i = moduleHolder.Count - 1; i >= 0; i--)
-            {
-                ThingWithComps module = moduleHolder[i];
-                CompUseEffect_HediffModule comp = module.TryGetComp<CompUseEffect_HediffModule>();
-
-                cachedOutput = comp.ModifyStage(parent.CurStageIndex, cachedOutput);
-            }
-
-            return cachedOutput;
-        }
-
-        public override void CompExposeData()
-        {
-            base.CompExposeData();
+            base.PostExposeData();
             Scribe_Deep.Look(ref moduleHolder, "moduleHolder");
 
             if (Scribe.mode != LoadSaveMode.LoadingVars)
             {
                 return;
             }
-            
-            if (AthenaCache.renderCache.TryGetValue(Pawn.thingIDNumber, out List<IRenderable> mods))
+
+            if (AthenaCache.renderCache.TryGetValue(parent.thingIDNumber, out List<IRenderable> mods))
             {
                 for (int i = mods.Count - 1; i >= 0; i--)
                 {
@@ -212,7 +194,8 @@ namespace AthenaFramework
             for (int i = moduleHolder.Count - 1; i >= 0; i--)
             {
                 ThingWithComps module = moduleHolder[i];
-                CompUseEffect_HediffModule comp = module.TryGetComp<CompUseEffect_HediffModule>();
+                CompUseEffect_Module comp = module.TryGetComp<CompUseEffect_Module>();
+
                 comp.PostInit(this);
             }
         }
@@ -225,7 +208,7 @@ namespace AthenaFramework
             for (int i = moduleHolder.Count - 1; i >= 0; i--)
             {
                 ThingWithComps module = moduleHolder[i];
-                CompUseEffect_HediffModule comp = module.TryGetComp<CompUseEffect_HediffModule>();
+                CompUseEffect_Module comp = module.TryGetComp<CompUseEffect_Module>();
 
                 if (!comp.Ejectable)
                 {
@@ -244,7 +227,7 @@ namespace AthenaFramework
 
             ejectAction = new Command_Action();
             ejectAction.defaultLabel = "Eject module";
-            ejectAction.defaultDesc = "Eject a module from " + parent.LabelCap + (parent.Part != null ? " (" + parent.Part.LabelCap + ")" : "");
+            ejectAction.defaultDesc = "Eject a module from " + parent.LabelCap;
             ejectAction.icon = cachedEjectTex;
             ejectAction.action = delegate ()
             {
@@ -252,7 +235,7 @@ namespace AthenaFramework
             };
         }
 
-        public override IEnumerable<Gizmo> CompGetGizmos()
+        public override IEnumerable<Gizmo> CompGetWornGizmosExtra()
         {
             if (ejectAction == null)
             {
@@ -269,22 +252,14 @@ namespace AthenaFramework
         }
     }
 
-    public class HediffCompProperties_Modular : HediffCompProperties
+    public class CompProperties_Modular : CompProperties
     {
-        public HediffCompProperties_Modular()
+        public CompProperties_Modular()
         {
-            this.compClass = typeof(HediffComp_Modular);
+            this.compClass = typeof(CompModular);
         }
 
         // List of open slots
         public List<ModuleSlotPackage> slots = new List<ModuleSlotPackage>();
-    }
-
-    public class ModuleSlotPackage
-    {
-        public string slotID;
-        public string slotName = "Undefined";
-        // -1 means unlimited capacity
-        public float capacity = -1f;
     }
 }
