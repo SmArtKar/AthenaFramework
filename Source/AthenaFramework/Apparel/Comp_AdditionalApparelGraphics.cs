@@ -219,9 +219,9 @@ namespace AthenaFramework
             this.compClass = typeof(Comp_AdditionalApparelGraphics);
         }
 
-        // Mote attached to the hediff
+        // Mote attached to the equipment piece
         public ThingDef attachedMoteDef;
-        // Effecter attached to the hediff
+        // Effecter attached to the equipment piece
         public EffecterDef attachedEffecterDef;
         // Offset of the attached mote
         public Vector3 attachedMoteOffset = new Vector3();

@@ -44,10 +44,10 @@ namespace AthenaFramework
             Widgets.Label(textRect, props.gizmoTitle);
             Rect barRect = drawRect;
             barRect.yMin = drawRect.y + drawRect.height / 2f;
-            float num = shieldHediff.energy / Mathf.Max(1f, props.maxEnergy);
+            float num = shieldHediff.energy / Mathf.Max(1f, shieldHediff.MaxEnergy);
             Widgets.FillableBar(barRect, num, Gizmo_HediffShieldStatus.FullShieldBarTex, Gizmo_HediffShieldStatus.EmptyShieldBarTex, false);
             Text.Font = GameFont.Small;
-            Widgets.Label(barRect, (shieldHediff.energy).ToString("F0") + " / " + (props.maxEnergy).ToString("F0"));
+            Widgets.Label(barRect, (shieldHediff.energy).ToString("F0") + " / " + (shieldHediff.MaxEnergy).ToString("F0"));
             Text.Anchor = TextAnchor.UpperLeft;
             TooltipHandler.TipRegion(drawRect, props.gizmoTip);
             return new GizmoResult(GizmoState.Clear);

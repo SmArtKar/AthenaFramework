@@ -30,7 +30,33 @@ namespace AthenaFramework
         {
             get
             {
-                return energy / Props.maxEnergy;
+                return energy / MaxEnergy;
+            }
+        }
+
+        public virtual float MaxEnergy
+        {
+            get
+            {
+                if (!Props.affectedByStats)
+                {
+                    return Props.maxEnergy;
+                }
+
+                return Props.maxEnergy * Pawn.GetStatValue(StatDefOf.EnergyShieldEnergyMax);
+            }
+        }
+
+        public virtual float EnergyRechargeRate
+        {
+            get
+            {
+                if (!Props.affectedByStats)
+                {
+                    return Props.energyRechargeRate;
+                }
+
+                return Props.energyRechargeRate + Pawn.GetStatValue(StatDefOf.EnergyShieldRechargeRate) / 60f;
             }
         }
 
@@ -55,7 +81,7 @@ namespace AthenaFramework
         public override void CompPostMake()
         {
             base.CompPostMake();
-            energy = Props.maxEnergy * Props.energyOnStart;
+            energy = MaxEnergy * Props.energyOnStart;
             AthenaCache.AddCache(this, AthenaCache.responderCache, Pawn.thingIDNumber);
         }
 
@@ -213,12 +239,12 @@ namespace AthenaFramework
             ticksToReset = -1;
             if (freeRecharge)
             {
-                energy = Props.maxEnergy;
+                energy = MaxEnergy;
                 freeRecharge = false;
             }
             else
             {
-                energy = Props.maxEnergy * Props.energyOnReset;
+                energy = MaxEnergy * Props.energyOnReset;
             }
 
             lastResetTick = Find.TickManager.TicksGame;
@@ -240,12 +266,12 @@ namespace AthenaFramework
                 return;
             }
 
-            if (energy >= Props.maxEnergy)
+            if (energy >= MaxEnergy)
             {
                 return;
             }
 
-            energy = Math.Min(energy + Props.energyRechargeRate, Props.maxEnergy);
+            energy = Math.Min(energy + EnergyRechargeRate, MaxEnergy);
         }
 
         public override void DrawAt(Vector3 drawPos, BodyTypeDef bodyType)
@@ -345,6 +371,8 @@ namespace AthenaFramework
         public bool consumeOverdamage = false;
         // Whenever the shield hediff should be removed upon being broken
         public bool removeOnBreak = false;
+        // If the shield is affected by parent's shield health and recharge speed stats
+        public bool affectedByStats = true;
 
         // Whenever the shield blocks ranged/explosive/melee damage
         public bool blocksRangedDamage = true;

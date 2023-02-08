@@ -41,7 +41,7 @@ namespace AthenaFramework
             {
                 ArmorPackage package = Props.armorPackages[i];
 
-                if (package.partGroups.Intersect(part.groups).Count() == 0)
+                if (package.partGroups != null && package.partGroups.Intersect(part.groups).Count() == 0)
                 {
                     continue;
                 }
@@ -85,7 +85,7 @@ namespace AthenaFramework
 
     public class ArmorPackage
     {
-        public List<BodyPartGroupDef> partGroups = new List<BodyPartGroupDef>();
+        public List<BodyPartGroupDef> partGroups;
         public List<StatModifier> armorModifiers = new List<StatModifier>();
         public List<DamageDefArmor> defArmors = new List<DamageDefArmor>();
     }
