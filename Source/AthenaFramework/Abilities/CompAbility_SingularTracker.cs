@@ -33,4 +33,12 @@ namespace AthenaFramework
             }
         }
     }
+
+    public class CompProperties_AbilitySingularTracker : CompProperties_AbilityEffect
+    {
+        public CompProperties_AbilitySingularTracker()
+        {
+            compClass = typeof(CompAbility_SingularTracker);
+        }
+    }
 }
