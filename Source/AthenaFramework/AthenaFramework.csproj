@@ -46,13 +46,18 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Abilities\CompAbility_SingularTracker.cs" />
     <Compile Include="Harmony\HarmonyPatches_HideParts.cs" />
     <Compile Include="Hediffs\HediffComp_CompApplicator.cs" />
+    <Compile Include="Hediffs\HediffComp_GiveSingularAbility.cs" />
     <Compile Include="Interfaces\IColorSelector.cs" />
     <Compile Include="Interfaces\IDamageModifier.cs" />
     <Compile Include="Interfaces\IGraphicGivers.cs" />
+    <Compile Include="Interfaces\IFloatMenu.cs" />
     <Compile Include="Interfaces\IPreventEquip.cs" />
     <Compile Include="Interfaces\IProjectile.cs" />
+    <Compile Include="Jobs\JobDriver_ReloadAbility.cs" />
+    <Compile Include="Jobs\JobGiver_ReloadAbility.cs" />
     <Compile Include="Things\CompAdvancedArmor.cs" />
     <Compile Include="Things\CompModular.cs" />
     <Compile Include="Things\CompUsable\CompUseEffect_HediffModule.cs" />
@@ -75,8 +80,10 @@
     <Compile Include="Things\CompUsable\CompUsable_Module.cs" />
     <Compile Include="Things\CompUsable\CompUsable_HediffModule.cs" />
     <Compile Include="Utilities\AthenaArmor.cs" />
+    <Compile Include="Utilities\AthenaDefOf.cs" />
     <Compile Include="Utilities\Gradient.cs" />
     <Compile Include="Utilities\HediffStageUtility.cs" />
+    <Compile Include="Abilities\CompAbility_Reloadable.cs" />
     <Compile Include="Weapons\AngularShotguns\AngularShotgunExtension.cs" />
     <Compile Include="Weapons\AngularShotguns\CompAbilityEffect_LaunchShotgunProjectiles.cs" />
     <Compile Include="Weapons\AngularShotguns\Verb_ShootAngularShotgun.cs" />
@@ -110,11 +117,11 @@
     <Compile Include="Things\HediffGiverExtension.cs" />
     <Compile Include="Things\TurretGraphicOverride.cs" />
     <Compile Include="Things\TurretRoofBlocked.cs" />
-    <Compile Include="Utilities\ThinkNodes\ThinkNodeConditional_UnderGroupCombatPressure.cs" />
+    <Compile Include="Jobs\ThinkNodeConditional_UnderGroupCombatPressure.cs" />
     <Compile Include="Utilities\PawnGroupUtility.cs" />
-    <Compile Include="Weapons\Abilities\CompAbilityEffect_LaunchProjectileBurst.cs" />
-    <Compile Include="Weapons\Abilities\CompAbilityEffect_RevivalConversion.cs" />
-    <Compile Include="Weapons\Abilities\CompAbilityEffect_ShootRunningBeam.cs" />
+    <Compile Include="Abilities\CompAbilityEffect_LaunchProjectileBurst.cs" />
+    <Compile Include="Abilities\CompAbilityEffect_RevivalConversion.cs" />
+    <Compile Include="Abilities\CompAbilityEffect_ShootRunningBeam.cs" />
     <Compile Include="Weapons\AimAngleOffsetExtension.cs" />
     <Compile Include="Weapons\Projectiles\ProjectileComp_ImpactEffect.cs" />
     <Compile Include="Weapons\Verb_ShootRunningBeam.cs" />

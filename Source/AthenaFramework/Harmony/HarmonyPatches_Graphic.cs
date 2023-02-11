@@ -21,7 +21,7 @@ namespace AthenaFramework
             cachedPawn = null;
             initialBodytype = null;
 
-            if (!__instance.pawn.RaceProps.Humanlike || __instance.pawn.apparel == null || __instance.pawn.story == null || __instance.pawn.story.bodyType == null)
+            if (__instance.pawn == null || __instance.pawn.RaceProps == null || !__instance.pawn.RaceProps.Humanlike || __instance.pawn.apparel == null || __instance.pawn.story == null || __instance.pawn.story.bodyType == null || AthenaCache.bodyCache == null)
             {
                 return;
             }

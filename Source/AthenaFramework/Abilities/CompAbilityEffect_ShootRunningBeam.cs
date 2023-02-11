@@ -14,7 +14,7 @@ namespace AthenaFramework
 {
     public class CompAbilityEffect_ShootRunningBeam : CompAbilityEffect
     {
-        private CompProperties_AbilityShootRunningBeam NewProps => props as CompProperties_AbilityShootRunningBeam;
+        private new CompProperties_AbilityShootRunningBeam Props => props as CompProperties_AbilityShootRunningBeam;
 
         public int ticksToShot = -1;
         public int shotsLeft = 0;
@@ -41,7 +41,7 @@ namespace AthenaFramework
         public override void Apply(LocalTargetInfo target, LocalTargetInfo dest)
         {
             base.Apply(target, dest);
-            shotsLeft = NewProps.burstCount;
+            shotsLeft = Props.burstCount;
             curTarget = target;
             currentPos = target.Thing.DrawPos + (parent.pawn.DrawPos - target.Thing.DrawPos).normalized * 3;
             beamMote = MoteMaker.MakeInteractionOverlay(parent.VerbProperties[0].beamMoteDef, parent.pawn, new TargetInfo(currentPos.ToIntVec3(), parent.pawn.Map));
@@ -82,7 +82,7 @@ namespace AthenaFramework
             }
 
             shotsLeft--;
-            ticksToShot = NewProps.ticksBetweenShots;
+            ticksToShot = Props.ticksBetweenShots;
             BeamStep(curTarget);
 
             if (shotsLeft == 0)
@@ -119,7 +119,7 @@ namespace AthenaFramework
                 beamMote.Maintain();
             }
 
-            currentPos += (target.Thing.DrawPos - currentPos).normalized / NewProps.ticksBetweenShots;
+            currentPos += (target.Thing.DrawPos - currentPos).normalized / Props.ticksBetweenShots;
             Vector3 currentPosVector = currentPos;
             Vector3 offsetVector = (currentPos - parent.pawn.Position.ToVector3Shifted()).Yto0();
             IntVec3 beamPos = currentPosVector.ToIntVec3();
@@ -137,15 +137,15 @@ namespace AthenaFramework
 
             Vector3 vector = new Vector3();
 
-            if (NewProps.startOffsets != null)
+            if (Props.startOffsets != null)
             {
-                if (NewProps.startOffsets.Count == 4)
+                if (Props.startOffsets.Count == 4)
                 {
-                    vector += NewProps.startOffsets[parent.pawn.Rotation.AsInt];
+                    vector += Props.startOffsets[parent.pawn.Rotation.AsInt];
                 }
                 else
                 {
-                    vector += NewProps.startOffsets[0];
+                    vector += Props.startOffsets[0];
                 }
             }
 

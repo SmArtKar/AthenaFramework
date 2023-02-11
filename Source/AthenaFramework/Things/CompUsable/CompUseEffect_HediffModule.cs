@@ -11,7 +11,7 @@ namespace AthenaFramework
 {
     public class CompUseEffect_HediffModule : CompUseEffect
     {
-        private CompProperties_UseEffectHediffModule NewProps => props as CompProperties_UseEffectHediffModule;
+        private new CompProperties_UseEffectHediffModule Props => props as CompProperties_UseEffectHediffModule;
 
         public string usedSlot;
         public HediffComp_Modular comp;
@@ -22,7 +22,7 @@ namespace AthenaFramework
         {
             get
             {
-                return NewProps.slotIDs;
+                return Props.slotIDs;
             }
         }
 
@@ -30,7 +30,7 @@ namespace AthenaFramework
         {
             get
             {
-                return NewProps.requiredCapacity;
+                return Props.requiredCapacity;
             }
         }
 
@@ -38,7 +38,7 @@ namespace AthenaFramework
         {
             get
             {
-                return NewProps.excludeIDs;
+                return Props.excludeIDs;
             }
         }
 
@@ -46,7 +46,7 @@ namespace AthenaFramework
         {
             get
             {
-                return NewProps.additionalGraphics;
+                return Props.additionalGraphics;
             }
         }
 
@@ -54,7 +54,7 @@ namespace AthenaFramework
         {
             get
             {
-                return NewProps.ejectable;
+                return Props.ejectable;
             }
         }
 
@@ -83,20 +83,20 @@ namespace AthenaFramework
 
         public virtual bool Install(HediffComp_Modular holder)
         {
-            if (NewProps.installSound != null)
+            if (Props.installSound != null)
             {
-                NewProps.installSound.PlayOneShot(SoundInfo.InMap(holder.Pawn, MaintenanceType.None));
+                Props.installSound.PlayOneShot(SoundInfo.InMap(holder.Pawn, MaintenanceType.None));
             }
 
-            if (NewProps.comps != null)
+            if (Props.comps != null)
             {
-                for (int i = NewProps.comps.Count - 1; i >= 0; i--)
+                for (int i = Props.comps.Count - 1; i >= 0; i--)
                 {
                     HediffComp hediffComp = null;
                     try
                     {
-                        hediffComp = (HediffComp)Activator.CreateInstance(NewProps.comps[i].compClass);
-                        hediffComp.props = NewProps.comps[i];
+                        hediffComp = (HediffComp)Activator.CreateInstance(Props.comps[i].compClass);
+                        hediffComp.props = Props.comps[i];
                         hediffComp.parent = holder.parent;
                         holder.parent.comps.Add(hediffComp);
                         linkedComps.Add(hediffComp);
@@ -109,11 +109,11 @@ namespace AthenaFramework
                 }
             }
 
-            if (NewProps.hediffs != null)
+            if (Props.hediffs != null)
             {
-                for (int i = NewProps.hediffs.Count - 1; i >= 0; i--)
+                for (int i = Props.hediffs.Count - 1; i >= 0; i--)
                 {
-                    Hediff hediff = HediffMaker.MakeHediff(NewProps.hediffs[i], holder.Pawn, holder.parent.Part);
+                    Hediff hediff = HediffMaker.MakeHediff(Props.hediffs[i], holder.Pawn, holder.parent.Part);
                     holder.Pawn.health.AddHediff(hediff, holder.parent.Part);
                     linkedHediffs.Add(hediff);
                 }
@@ -124,14 +124,14 @@ namespace AthenaFramework
 
         public virtual bool Remove(HediffComp_Modular holder)
         {
-            if (!NewProps.ejectable)
+            if (!Props.ejectable)
             {
                 return false;
             }
 
-            if (NewProps.ejectSound != null)
+            if (Props.ejectSound != null)
             {
-                NewProps.ejectSound.PlayOneShot(SoundInfo.InMap(holder.Pawn, MaintenanceType.None));
+                Props.ejectSound.PlayOneShot(SoundInfo.InMap(holder.Pawn, MaintenanceType.None));
             }
 
             for (int i = linkedComps.Count - 1; i >= 0; i--)
@@ -157,13 +157,13 @@ namespace AthenaFramework
 
         public virtual void PostInit(HediffComp_Modular holder)
         {
-            for (int i = NewProps.comps.Count - 1; i >= 0; i--)
+            for (int i = Props.comps.Count - 1; i >= 0; i--)
             {
                 HediffComp hediffComp = null;
                 try
                 {
-                    hediffComp = (HediffComp)Activator.CreateInstance(NewProps.comps[i].compClass);
-                    hediffComp.props = NewProps.comps[i];
+                    hediffComp = (HediffComp)Activator.CreateInstance(Props.comps[i].compClass);
+                    hediffComp.props = Props.comps[i];
                     hediffComp.parent = holder.parent;
                     holder.parent.comps.Add(hediffComp);
                     linkedComps.Add(hediffComp);
@@ -178,17 +178,17 @@ namespace AthenaFramework
 
         public virtual HediffStage ModifyStage(int stageIndex, HediffStage stage)
         {
-            if (NewProps.stageOverlays == null || NewProps.stageOverlays.Count == 0)
+            if (Props.stageOverlays == null || Props.stageOverlays.Count == 0)
             {
                 return stage;
             }
 
-            if (NewProps.stageOverlays.Count == 1)
+            if (Props.stageOverlays.Count == 1)
             {
-                return NewProps.stageOverlays[0].ModifyHediffStage(stage);
+                return Props.stageOverlays[0].ModifyHediffStage(stage);
             }
 
-            return NewProps.stageOverlays[stageIndex].ModifyHediffStage(stage);
+            return Props.stageOverlays[stageIndex].ModifyHediffStage(stage);
         }
 
         public override void DoEffect(Pawn user)

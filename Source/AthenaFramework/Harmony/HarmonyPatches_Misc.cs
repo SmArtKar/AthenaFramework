@@ -242,4 +242,33 @@ namespace AthenaFramework
             }
         }
     }
+
+    [HarmonyPatch(typeof(ThingWithComps), nameof(ThingWithComps.GetFloatMenuOptions))]
+    public static class ThingWithComps_MenuOptions
+    {
+        public static void Postfix(ThingWithComps __instance, Pawn selPawn, ref IEnumerable<FloatMenuOption> __result)
+        {
+            if (AthenaCache.menuCache.TryGetValue(__instance.thingIDNumber, out List<IFloatMenu> mods))
+            {
+                for (int i = mods.Count - 1; i >= 0; i--)
+                {
+                    foreach (FloatMenuOption option in mods[i].ItemFloatMenuOptions(selPawn))
+                    {
+                        __result = __result.AddItem(option);
+                    }
+                }
+            }
+
+            if (AthenaCache.menuCache.TryGetValue(selPawn.thingIDNumber, out List<IFloatMenu> mods2))
+            {
+                for (int i = mods2.Count - 1; i >= 0; i--)
+                {
+                    foreach (FloatMenuOption option in mods2[i].PawnFloatMenuOptions(__instance))
+                    {
+                        __result = __result.AddItem(option);
+                    }
+                }
+            }
+        }
+    }
 }

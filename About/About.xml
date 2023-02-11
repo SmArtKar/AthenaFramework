@@ -26,5 +26,10 @@
 		<li>ludeon.rimworld.biotech</li>
 	</loadAfter>
 
+	<loadBefore>
+		<li>ogliss.admech.armoury</li>
+		<li>uuugggg.thickarmor</li>
+	</loadBefore>
+
 	<description>Athena is an advanced framework that contains multiple tools and features for both XML and C# modders. It also has a couple of code fixes that don't affect players directly but allow modders to use some of the game's features to their full potential.</description>
 </ModMetaData>

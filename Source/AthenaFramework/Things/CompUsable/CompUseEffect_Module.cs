@@ -12,7 +12,7 @@ namespace AthenaFramework
 {
     public class CompUseEffect_Module : CompUseEffect, IArmored, IStatModifier
     {
-        private CompProperties_UseEffectModule NewProps => props as CompProperties_UseEffectModule;
+        private new CompProperties_UseEffectModule Props => props as CompProperties_UseEffectModule;
 
         public string usedSlot;
         public List<ThingComp> linkedComps = new List<ThingComp>();
@@ -25,7 +25,7 @@ namespace AthenaFramework
         {
             get
             {
-                return NewProps.slotIDs;
+                return Props.slotIDs;
             }
         }
 
@@ -33,7 +33,7 @@ namespace AthenaFramework
         {
             get
             {
-                return NewProps.requiredCapacity;
+                return Props.requiredCapacity;
             }
         }
 
@@ -41,7 +41,7 @@ namespace AthenaFramework
         {
             get
             {
-                return NewProps.excludeIDs;
+                return Props.excludeIDs;
             }
         }
 
@@ -49,7 +49,7 @@ namespace AthenaFramework
         {
             get
             {
-                return NewProps.additionalGraphics;
+                return Props.additionalGraphics;
             }
         }
 
@@ -57,7 +57,7 @@ namespace AthenaFramework
         {
             get
             {
-                return NewProps.ejectable;
+                return Props.ejectable;
             }
         }
 
@@ -65,7 +65,7 @@ namespace AthenaFramework
         {
             get
             {
-                return NewProps.armorMode;
+                return Props.armorMode;
             }
         }
 
@@ -154,23 +154,23 @@ namespace AthenaFramework
 
             AthenaCache.AddCache(this, AthenaCache.statmodCache, comp.parent.thingIDNumber);
 
-            if (NewProps.installSound != null)
+            if (Props.installSound != null)
             {
-                NewProps.installSound.PlayOneShot(SoundInfo.InMap(comp.parent, MaintenanceType.None));
+                Props.installSound.PlayOneShot(SoundInfo.InMap(comp.parent, MaintenanceType.None));
             }
 
-            if (NewProps.comps != null)
+            if (Props.comps != null)
             {
-                for (int i = NewProps.comps.Count - 1; i >= 0; i--)
+                for (int i = Props.comps.Count - 1; i >= 0; i--)
                 {
                     ThingComp thingComp = null;
                     try
                     {
-                        thingComp = (ThingComp)Activator.CreateInstance(NewProps.comps[i].compClass);
+                        thingComp = (ThingComp)Activator.CreateInstance(Props.comps[i].compClass);
                         thingComp.parent = comp.parent;
                         comp.parent.comps.Add(thingComp);
                         linkedComps.Add(thingComp);
-                        thingComp.Initialize(NewProps.comps[i]);
+                        thingComp.Initialize(Props.comps[i]);
                     }
                     catch (Exception ex)
                     {
@@ -185,14 +185,14 @@ namespace AthenaFramework
 
         public virtual bool Remove(CompModular comp)
         {
-            if (!NewProps.ejectable)
+            if (!Props.ejectable)
             {
                 return false;
             }
 
-            if (NewProps.ejectSound != null)
+            if (Props.ejectSound != null)
             {
-                NewProps.ejectSound.PlayOneShot(SoundInfo.InMap(comp.parent, MaintenanceType.None));
+                Props.ejectSound.PlayOneShot(SoundInfo.InMap(comp.parent, MaintenanceType.None));
             }
 
             if (CurrentArmorMode  != ArmorMode.None)
@@ -220,21 +220,21 @@ namespace AthenaFramework
 
             AthenaCache.AddCache(this, AthenaCache.statmodCache, comp.parent.thingIDNumber);
 
-            if (NewProps.comps == null)
+            if (Props.comps == null)
             {
                 return;
             }
 
-            for (int i = NewProps.comps.Count - 1; i >= 0; i--)
+            for (int i = Props.comps.Count - 1; i >= 0; i--)
             {
                 ThingComp thingComp = null;
                 try
                 {
-                    thingComp = (ThingComp)Activator.CreateInstance(NewProps.comps[i].compClass);
+                    thingComp = (ThingComp)Activator.CreateInstance(Props.comps[i].compClass);
                     thingComp.parent = comp.parent;
                     comp.parent.comps.Add(thingComp);
                     linkedComps.Add(thingComp);
-                    thingComp.Initialize(NewProps.comps[i]);
+                    thingComp.Initialize(Props.comps[i]);
                 }
                 catch (Exception ex)
                 {
@@ -283,21 +283,21 @@ namespace AthenaFramework
         {
             base.Initialize(props);
 
-            for (int i = NewProps.equippedStatOffsets.Count - 1; i >= 0; i--)
+            for (int i = Props.equippedStatOffsets.Count - 1; i >= 0; i--)
             {
-                StatModifier statmod = NewProps.equippedStatOffsets[i];
+                StatModifier statmod = Props.equippedStatOffsets[i];
                 equippedStatOffsets[statmod.stat] = statmod.value;
             }
 
-            for (int i = NewProps.statOffsets.Count - 1; i >= 0; i--)
+            for (int i = Props.statOffsets.Count - 1; i >= 0; i--)
             {
-                StatModifier statmod = NewProps.statOffsets[i];
+                StatModifier statmod = Props.statOffsets[i];
                 statOffsets[statmod.stat] = statmod.value;
             }
 
-            for (int i = NewProps.statFactors.Count - 1; i >= 0; i--)
+            for (int i = Props.statFactors.Count - 1; i >= 0; i--)
             {
-                StatModifier statmod = NewProps.statFactors[i];
+                StatModifier statmod = Props.statFactors[i];
                 statFactors[statmod.stat] = statmod.value;
             }
         }
@@ -311,9 +311,9 @@ namespace AthenaFramework
 
             if (CurrentArmorMode == ArmorMode.Additional)
             {
-                for (int j = NewProps.armorStats.Count - 1; j >= 0; j--)
+                for (int j = Props.armorStats.Count - 1; j >= 0; j--)
                 {
-                    StatModifier localStat = NewProps.armorStats[j];
+                    StatModifier localStat = Props.armorStats[j];
 
                     if (localStat.stat == stat)
                     {
@@ -332,9 +332,9 @@ namespace AthenaFramework
 
             float localArmorRating = 0f;
 
-            for (int j = NewProps.armorStats.Count - 1; j >= 0; j--)
+            for (int j = Props.armorStats.Count - 1; j >= 0; j--)
             {
-                StatModifier localStat = NewProps.armorStats[j];
+                StatModifier localStat = Props.armorStats[j];
 
                 if (localStat.stat == stat)
                 {
@@ -343,7 +343,7 @@ namespace AthenaFramework
                 }
             }
 
-            if (NewProps.metallicBlock)
+            if (Props.metallicBlock)
             {
                 metalArmor = true;
             }
@@ -379,9 +379,9 @@ namespace AthenaFramework
 
             float localArmorRating = 0f;
 
-            for (int j = NewProps.armorStats.Count - 1; j >= 0; j--)
+            for (int j = Props.armorStats.Count - 1; j >= 0; j--)
             {
-                StatModifier localStat = NewProps.armorStats[j];
+                StatModifier localStat = Props.armorStats[j];
 
                 if (localStat.stat == stat)
                 {
@@ -390,7 +390,7 @@ namespace AthenaFramework
                 }
             }
 
-            if (NewProps.metallicBlock)
+            if (Props.metallicBlock)
             {
                 metalArmor = true;
             }
@@ -430,7 +430,7 @@ namespace AthenaFramework
 
         public virtual bool CoversPart(BodyPartRecord part)
         {
-            if (NewProps.coveredParts != null && NewProps.coveredParts.Intersect(part.groups).Count() > 0)
+            if (Props.coveredParts != null && Props.coveredParts.Intersect(part.groups).Count() > 0)
             {
                 return true;
             }

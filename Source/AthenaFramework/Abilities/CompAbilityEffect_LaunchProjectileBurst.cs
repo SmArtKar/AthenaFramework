@@ -10,7 +10,7 @@ namespace AthenaFramework
 {
     public class CompAbilityEffect_LaunchProjectileBurst : CompAbilityEffect
     {
-        private CompProperties_AbilityLaunchProjectileBurst NewProps => props as CompProperties_AbilityLaunchProjectileBurst;
+        private new CompProperties_AbilityLaunchProjectileBurst Props => props as CompProperties_AbilityLaunchProjectileBurst;
 
         public int ticksToShot = -1;
         public int shotsLeft = 0;
@@ -19,7 +19,7 @@ namespace AthenaFramework
         public override void Apply(LocalTargetInfo target, LocalTargetInfo dest)
         {
             base.Apply(target, dest);
-            shotsLeft = NewProps.burstCount;
+            shotsLeft = Props.burstCount;
             curTarget = target;
         }
 
@@ -53,7 +53,7 @@ namespace AthenaFramework
             }
 
             shotsLeft--;
-            ticksToShot = NewProps.ticksBetweenShots;
+            ticksToShot = Props.ticksBetweenShots;
             LaunchProjectile(curTarget);
 
             if (shotsLeft == 0)
@@ -64,7 +64,7 @@ namespace AthenaFramework
 
         public virtual void LaunchProjectile(LocalTargetInfo target)
         {
-            Projectile proj = GenSpawn.Spawn(NewProps.projectileDef, parent.pawn.Position, parent.pawn.Map) as Projectile;
+            Projectile proj = GenSpawn.Spawn(Props.projectileDef, parent.pawn.Position, parent.pawn.Map) as Projectile;
             proj.Launch(parent.pawn, parent.pawn.DrawPos, target, target, ProjectileHitFlags.IntendedTarget);
         }
 

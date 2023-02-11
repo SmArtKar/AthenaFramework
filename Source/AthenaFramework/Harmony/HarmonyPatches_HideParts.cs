@@ -16,6 +16,11 @@ namespace AthenaFramework
     {
         public static bool Prefix(PawnRenderer __instance, Vector3 shellLoc, Rot4 facing, Quaternion quat, PawnRenderFlags flags)
         {
+            if (AthenaCache.bodyCache == null)
+            {
+                return true;
+            }
+
             if (!AthenaCache.bodyCache.TryGetValue(__instance.pawn.thingIDNumber, out List<IBodyModifier> mods))
             {
                 return true;
@@ -40,6 +45,11 @@ namespace AthenaFramework
     {
         public static bool Prefix(PawnRenderer __instance, ref Vector3 rootLoc, ref float angle, ref Rot4 facing, ref RotDrawMode bodyDrawType, ref PawnRenderFlags flags, ref Mesh bodyMesh)
         {
+            if (AthenaCache.bodyCache == null || __instance.pawn.RaceProps == null || __instance.graphics == null)
+            {
+                return true;
+            }
+
             if (!AthenaCache.bodyCache.TryGetValue(__instance.pawn.thingIDNumber, out List<IBodyModifier> mods))
             {
                 return true;
@@ -79,6 +89,11 @@ namespace AthenaFramework
     {
         public static bool Prefix(PawnRenderer __instance, Vector3 rootLoc, Vector3 headOffset, float angle, Rot4 bodyFacing, Rot4 headFacing, RotDrawMode bodyDrawType, PawnRenderFlags flags, bool bodyDrawn)
         {
+            if (AthenaCache.bodyCache == null)
+            {
+                return true;
+            }
+
             if (!AthenaCache.bodyCache.TryGetValue(__instance.pawn.thingIDNumber, out List<IBodyModifier> mods))
             {
                 return true;
@@ -104,6 +119,11 @@ namespace AthenaFramework
     {
         public static bool Prefix(PawnGraphicSet __instance, Rot4 facing, RotDrawMode bodyCondition, bool stump, bool portrait, bool allowOverride, ref Material __result)
         {
+            if (AthenaCache.bodyCache == null)
+            {
+                return true;
+            }
+
             if (!AthenaCache.bodyCache.TryGetValue(__instance.pawn.thingIDNumber, out List<IBodyModifier> mods))
             {
                 return true;

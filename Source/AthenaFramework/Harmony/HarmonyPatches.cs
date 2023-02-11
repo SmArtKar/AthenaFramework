@@ -33,6 +33,7 @@ namespace AthenaFramework
         public static Dictionary<int, List<IStatModifier>> statmodCache;
         public static Dictionary<int, List<IProjectile>> projectileCache;
         public static Dictionary<int, List<IPreventEquip>> equipCache;
+        public static Dictionary<int, List<IFloatMenu>> menuCache;
 
         public static void AddCache<T>(T elem, Dictionary<int, List<T>> cacheList, int id)
         {
@@ -71,6 +72,7 @@ namespace AthenaFramework
             AthenaCache.statmodCache = new Dictionary<int, List<IStatModifier>>();
             AthenaCache.projectileCache = new Dictionary<int, List<IProjectile>>();
             AthenaCache.equipCache = new Dictionary<int, List<IPreventEquip>>();
+            AthenaCache.menuCache = new Dictionary<int, List<IFloatMenu>>();
         }
     }
 }
