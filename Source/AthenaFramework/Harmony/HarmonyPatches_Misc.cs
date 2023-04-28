@@ -332,11 +332,6 @@ namespace AthenaFramework
             {
                 xp *= __instance.pawn.GetStatValue(AthenaDefOf.Athena_SkillLoss);
             }
-
-            if (xp > 0)
-            {
-                xp *= __instance.pawn.GetStatValue(AthenaDefOf.Athena_LearningRate);
-            }
         }
     }
 }
