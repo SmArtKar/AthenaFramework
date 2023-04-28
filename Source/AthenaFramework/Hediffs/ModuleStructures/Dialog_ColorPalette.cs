@@ -6,12 +6,10 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using Verse;
-using HotSwap;
 using Verse.Noise;
 
 namespace AthenaFramework
 {
-    [HotSwappable]
     public class Dialog_ColorPalette : Window
     {
         public IColorSelector linkedObject;
