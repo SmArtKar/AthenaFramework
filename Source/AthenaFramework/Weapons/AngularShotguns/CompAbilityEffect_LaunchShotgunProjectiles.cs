@@ -37,7 +37,7 @@ namespace AthenaFramework
                 Thing newTarget = null;
 
                 List<IntVec3> points = GenSight.PointsOnLineOfSight(parent.pawn.Position, rangeEndPosition).Concat(rangeEndPosition).ToList();
-                for (int j = points.Count- 1; j >= 0; j--)
+                for (int j = 0; j < points.Count; j++)
                 {
                     IntVec3 targetPosition = points[j];
                     if (targetPosition == parent.pawn.Position) //Prevents the parent.pawn from shooting himself
@@ -62,7 +62,6 @@ namespace AthenaFramework
                         }
                     }
 
-                    bool foundPawn = false;
                     List<Thing> thingList = GridsUtility.GetThingList(targetPosition, parent.pawn.Map);
                     for (int k = thingList.Count - 1; k >= 0; k--)
                     {
@@ -73,24 +72,15 @@ namespace AthenaFramework
                             continue;
                         }
 
-                        if (pawnTarget.Downed || pawnTarget.Dead)
-                        {
-                            if (Rand.Chance(Props.downedHitChance))
-                            {
-                                newTarget = pawnTarget;
-                                foundPawn = true;
-                                break;
-                            }
-                        }
-                        else
+                        ShotReport shotReport = ShotReport.HitReportFor(parent.pawn, parent.verb, pawnTarget);
+                        if (Rand.Chance(shotReport.AimOnTargetChance))
                         {
                             newTarget = pawnTarget;
-                            foundPawn = true;
                             break;
                         }
                     }
 
-                    if (foundPawn)
+                    if (newTarget != null)
                     {
                         break;
                     }
@@ -191,7 +181,7 @@ namespace AthenaFramework
             List<IntVec3> cellList = new List<IntVec3>();
 
             List<IntVec3> points = GenSight.PointsOnLineOfSight(startPosition, endPosition).Concat(endPosition).ToList();
-            for (int i = points.Count - 1; i >= 0; i--)
+            for (int i = 0; i < points.Count; i++)
             {
                 IntVec3 targetPosition = points[i];
                 if (targetPosition == startPosition)
@@ -243,13 +233,23 @@ namespace AthenaFramework
             compClass = typeof(CompAbilityEffect_LaunchShotgunProjectiles);
         }
 
+        public override IEnumerable<string> ConfigErrors(AbilityDef parentDef)
+        {
+            if (downedHitChance != null)
+            {
+                Log.Warning(parentDef.defName + " is using downedHitChance which is deprecated and no longer in use. Please contact the mod's author and ask him to remove the said field.");
+            }
+
+            return base.ConfigErrors(parentDef);
+        }
+
         // Projectile that you want to fire
         public ThingDef projectileDef;
         // Amount of pellets that your ability fires
         public int pelletCount;
-        // Angle betweet fired pellets
+        // Angle between fired pellets
         public float pelletAngle;
-        // Chance for a pellet to hit a downed target when passing through a tile with one
-        public float downedHitChance = 0.20f;
+        // DEPRECATED
+        public float? downedHitChance;
     }
 }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 using Verse;
 
 namespace AthenaFramework
@@ -93,6 +94,8 @@ namespace AthenaFramework
             AthenaCache.RemoveCache(this, AthenaCache.bodyCache, pawn.thingIDNumber);
             pawn.Drawer.renderer.graphics.ResolveAllGraphics();
         }
+
+        public virtual void FurMat(Rot4 facing, bool portrait, bool cached, ref Material furMat) { }
     }
 
     public class CompProperties_CustomApparelBody : CompProperties

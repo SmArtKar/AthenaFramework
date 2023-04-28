@@ -71,7 +71,7 @@ namespace AthenaFramework
             }
 
             Pawn pawn = corpse.InnerPawn;
-            return pawn != null && pawn.Dead && AbilityUtility.ValidateMustBeHuman(pawn, throwMessages, this.parent);
+            return pawn != null && pawn.Dead && AbilityUtility.ValidateMustBeHuman(pawn, throwMessages, parent);
         }
 
         public override bool AICanTargetNow(LocalTargetInfo target)
@@ -88,7 +88,7 @@ namespace AthenaFramework
             }
 
             Pawn pawn = corpse.InnerPawn;
-            return pawn != null && pawn.Dead && AbilityUtility.ValidateMustBeHuman(pawn, false, this.parent) && pawn.Faction.HostileTo(this.parent.pawn.Faction);
+            return pawn != null && pawn.Dead && AbilityUtility.ValidateMustBeHuman(pawn, false, parent) && pawn.HostileTo(parent.pawn);
         }
     }
 

@@ -20,6 +20,14 @@ namespace AthenaFramework
             }
         }
 
+        public virtual bool AccumulateDuration
+        {
+            get
+            {
+                return Props.accumulateDuration;
+            }
+        }
+
         public override void Notify_PawnPostApplyDamage(DamageInfo dinfo, float totalDamageDealt)
         {
             base.Notify_PawnPostApplyDamage(dinfo, totalDamageDealt);
@@ -94,6 +102,8 @@ namespace AthenaFramework
         public bool increaseDisabledDuration = true;
         // When set, disabledDurationTicks will be replaced by values from this curve with X being the amount of damage dealt
         public SimpleCurve durationScaling;
+        // Only works when increaseDisabledDuration is set to true. When activated, damage taken when the hediff is already disabled will be added to the timer. When not, timer will simply be set to the supposed duration (if it's above current remaining duration)
+        public bool accumulateDuration = true;
         // White and black lists for damageDefs. Defaults to all damage defs
         public List<DamageDef> damageDefWhitelist;
         public List<DamageDef> damageDefBlacklist;

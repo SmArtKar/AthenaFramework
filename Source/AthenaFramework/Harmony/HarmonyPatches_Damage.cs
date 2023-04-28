@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Verse;
 using Mono.Cecil.Cil;
+using static UnityEngine.GraphicsBuffer;
 
 namespace AthenaFramework
 {
@@ -31,6 +32,11 @@ namespace AthenaFramework
             if (__instance.Instigator.def.GetModExtension<DamageModifierExtension>() != null)
             {
                 __result *= __instance.Instigator.def.GetModExtension<DamageModifierExtension>().OutgoingDamageMultiplier;
+            }
+
+            if (__instance.Instigator.Destroyed)
+            {
+                return;
             }
 
             if (AthenaCache.damageCache.TryGetValue(__instance.Instigator.thingIDNumber, out List<IDamageModifier> mods))
@@ -345,6 +351,67 @@ namespace AthenaFramework
             code[insertionIndex3 - 2].labels.Add(ifLabel);
 
             return code;
+        }
+    }
+
+    [HarmonyPatch(typeof(Verb_MeleeAttackDamage), nameof(Verb_MeleeAttackDamage.DamageInfosToApply))]
+    public static class MeleeAttack_Damage
+    {
+        static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator ilg)
+        {
+            var code = new List<CodeInstruction>(instructions);
+
+            object operand1 = null;
+            object operand2 = null;
+
+            int insertionIndex = -1;
+            for (int i = 0; i < code.Count - 1; i++)
+            {
+                if (code[i].opcode == OpCodes.Callvirt && (MethodInfo)code[i].operand == AccessTools.Method(typeof(VerbProperties), nameof(VerbProperties.AdjustedMeleeDamageAmount), new Type[] { typeof(Verb), typeof(Pawn) }))
+                {
+                    operand1 = code[i + 1].operand;
+                }
+
+                if (code[i].opcode == OpCodes.Callvirt && (MethodInfo)code[i].operand == AccessTools.Method(typeof(VerbProperties), nameof(VerbProperties.AdjustedArmorPenetration), new Type[] { typeof(Verb), typeof(Pawn) }))
+                {
+                    insertionIndex = i;
+                    break;
+                }
+            }
+
+            if (insertionIndex == -1)
+            {
+                return code;
+            }
+
+            List<CodeInstruction> instructionsToInsert = new List<CodeInstruction>();
+
+            operand2 = code[insertionIndex + 1].operand;
+
+            instructionsToInsert.Add(new CodeInstruction(OpCodes.Ldloc_2));
+            instructionsToInsert.Add(new CodeInstruction(OpCodes.Ldloca_S, operand1));
+            instructionsToInsert.Add(new CodeInstruction(OpCodes.Ldloca_S, operand2));
+            instructionsToInsert.Add(new CodeInstruction(OpCodes.Ldarg_0));
+            instructionsToInsert.Add(new CodeInstruction(OpCodes.Ldflda, AccessTools.Field(typeof(Verb_MeleeAttackDamage), "target")));
+            instructionsToInsert.Add(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(AthenaArmor), nameof(AthenaArmor.DamageModification), new Type[] { typeof(Verb), typeof(float).MakeByRefType(), typeof(float).MakeByRefType(), typeof(LocalTargetInfo).MakeByRefType() })));
+
+            code.InsertRange(insertionIndex + 2, instructionsToInsert);
+
+            return code;
+        }
+    }
+
+    [HarmonyPatch(typeof(VerbProperties), nameof(VerbProperties.AdjustedCooldown), new Type[] { typeof(Tool), typeof(Pawn), typeof(Thing) })]
+    public static class VerbProperties_Cooldown
+    {
+        public static void Postfix(VerbProperties __instance, Tool tool, Pawn attacker, Thing equipment, ref float __result)
+        {
+            AdvancedTool advTool = tool as AdvancedTool;
+
+            if (advTool != null)
+            {
+                advTool.CooldownModification(__instance, ref __result, tool, attacker, equipment);
+            }
         }
     }
 }

@@ -43,7 +43,14 @@ namespace AthenaFramework
 
                 if (comp.ShouldIncreaseDuration)
                 {
-                    ticksToRemove += comp.GetDisabledDuration(dinfo, totalDamageDealt);
+                    if (comp.AccumulateDuration)
+                    {
+                        ticksToRemove += comp.GetDisabledDuration(dinfo, totalDamageDealt);
+                    }
+                    else
+                    {
+                        ticksToRemove = Math.Max(ticksToRemove, comp.GetDisabledDuration(dinfo, totalDamageDealt));
+                    }
                 }
             }
         }

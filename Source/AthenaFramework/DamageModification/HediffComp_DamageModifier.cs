@@ -34,6 +34,11 @@ namespace AthenaFramework
                 offset += result.Item2;
             }
 
+            if (Props.outgoingDamageCurve != null)
+            {
+                modifier *= Props.outgoingDamageCurve.Evaluate(parent.Severity);
+            }
+
             return (modifier, offset);
         }
 
@@ -49,6 +54,11 @@ namespace AthenaFramework
                 (float, float) result = modGroup.GetDamageModifiers(instigator, ref excluded, ref excludedGlobal, target, dinfo, projectile, true);
                 modifier *= result.Item1;
                 offset += result.Item2;
+            }
+
+            if (Props.incomingDamageCurve != null)
+            {
+                modifier *= Props.incomingDamageCurve.Evaluate(parent.Severity);
             }
 
             return (modifier, offset);
@@ -94,5 +104,8 @@ namespace AthenaFramework
         public float outgoingDamageMultiplier = 1f;
         // Passive incoming damage modifier that's always applied
         public float incomingDamageMultiplier = 1f;
+        // Curves for outgoing and incoming damage multiplication based on hediff's severity
+        public SimpleCurve outgoingDamageCurve;
+        public SimpleCurve incomingDamageCurve;
     }
 }

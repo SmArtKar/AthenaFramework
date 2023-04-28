@@ -156,4 +156,27 @@ namespace AthenaFramework
             }
         }
     }
+
+    [HarmonyPatch(typeof(PawnGraphicSet), nameof(PawnGraphicSet.FurMatAt))]
+    public static class PawnGraphicSet_FurMat
+    {
+        public static void Postfix(PawnGraphicSet __instance, Rot4 facing, bool portrait, bool cached, Material __result)
+        {
+            if (AthenaCache.bodyCache == null)
+            {
+                return;
+            }
+
+            if (!AthenaCache.bodyCache.TryGetValue(__instance.pawn.thingIDNumber, out List<IBodyModifier> mods))
+            {
+                return;
+            }
+
+            for (int i = mods.Count - 1; i >= 0; i--)
+            {
+                IBodyModifier customBody = mods[i];
+                customBody.FurMat(facing, portrait, cached, ref __result);
+            }
+        }
+    }
 }

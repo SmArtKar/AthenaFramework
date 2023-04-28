@@ -10,6 +10,9 @@ using Verse;
 public static class AthenaDefOf
 {
     public static JobDef Athena_ReloadAbility;
+    public static StatDef Athena_Metabolism;
+    public static StatDef Athena_SkillLoss;
+    public static StatDef Athena_LearningRate;
 
     static AthenaDefOf()
     {

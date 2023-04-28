@@ -1,10 +1,13 @@
-﻿using HarmonyLib;
+﻿using AthenaFramework;
+using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
+using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Verse;
@@ -250,24 +253,89 @@ namespace AthenaFramework
         {
             if (AthenaCache.menuCache.TryGetValue(__instance.thingIDNumber, out List<IFloatMenu> mods))
             {
+                List<FloatMenuOption> newResult = new List<FloatMenuOption>();
                 for (int i = mods.Count - 1; i >= 0; i--)
                 {
                     foreach (FloatMenuOption option in mods[i].ItemFloatMenuOptions(selPawn))
                     {
-                        __result = __result.AddItem(option);
+                        newResult.Add(option);
                     }
                 }
+                __result = __result.Concat(newResult);
             }
 
             if (AthenaCache.menuCache.TryGetValue(selPawn.thingIDNumber, out List<IFloatMenu> mods2))
             {
+                List<FloatMenuOption> newResult = new List<FloatMenuOption>();
                 for (int i = mods2.Count - 1; i >= 0; i--)
                 {
                     foreach (FloatMenuOption option in mods2[i].PawnFloatMenuOptions(__instance))
                     {
-                        __result = __result.AddItem(option);
+                        newResult.Add(option);
                     }
                 }
+                __result = __result.Concat(newResult);
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(Need_Food), nameof(Need_Food.FoodFallPerTickAssumingCategory))]
+    public static class NeedFood_FallRate
+    {
+        public static void Postfix(Need_Food __instance, HungerCategory hunger, bool ignoreMalnutrition, ref float __result)
+        {
+            __result *= __instance.pawn.GetStatValue(AthenaDefOf.Athena_Metabolism);
+        }
+    }
+
+    [HarmonyPatch(typeof(GeneDefGenerator), nameof(GeneDefGenerator.ImpliedGeneDefs))]
+    public static class GeneGenerator_ImpliedGenes
+    {
+        public static void Postfix(ref IEnumerable<GeneDef> __result)
+        {
+            if (!ModsConfig.BiotechActive)
+            {
+                return;
+            }
+
+            List<AthenaGeneTemplateDef> templates = DefDatabase<AthenaGeneTemplateDef>.AllDefs.ToList();
+
+            for (int i = templates.Count - 1; i >= 0; i--)
+            {
+                AthenaGeneTemplateDef template = templates[i];
+                GeneGenerationHandler handler = Activator.CreateInstance(template.geneHandler) as GeneGenerationHandler;
+                __result = __result.Concat(handler.GenerateDefs(template));
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(Verb), nameof(Verb.VerbTick))]
+    public static class Verb_PostTick
+    {
+        public static void Postfix(Verb __instance)
+        {
+            ITickerVerb verb = __instance as ITickerVerb;
+
+            if (verb != null)
+            {
+                verb.Tick();
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(SkillRecord), nameof(SkillRecord.Learn))]
+    public static class SkillRecord_LearningRate
+    {
+        public static void Prefix(SkillRecord __instance, ref float xp, bool direct)
+        {
+            if (xp < 0 && !direct)
+            {
+                xp *= __instance.pawn.GetStatValue(AthenaDefOf.Athena_SkillLoss);
+            }
+
+            if (xp > 0)
+            {
+                xp *= __instance.pawn.GetStatValue(AthenaDefOf.Athena_LearningRate);
             }
         }
     }

@@ -84,7 +84,7 @@ namespace AthenaFramework
             List<IntVec3> cellList = new List<IntVec3>();
 
             List<IntVec3> points = GenSight.PointsOnLineOfSight(startPosition, endPosition).Concat(endPosition).ToList();
-            for (int i = points.Count - 1; i >= 0; i--)
+            for (int i = 0; i < points.Count; i++)
             {
                 IntVec3 targetPosition = points[i];
                 if (targetPosition == startPosition)
@@ -171,7 +171,7 @@ namespace AthenaFramework
                 Thing newTarget = null;
 
                 List<IntVec3> points = GenSight.PointsOnLineOfSight(caster.Position, rangeEndPosition).Concat(rangeEndPosition).ToList();
-                for (int j = points.Count - 1; j >= 0; j--)
+                for (int j = 0; j < points.Count; j++)
                 {
                     IntVec3 targetPosition = points[j];
                     if (targetPosition == caster.Position) //Prevents the caster from shooting himself
@@ -196,8 +196,6 @@ namespace AthenaFramework
                         }
                     }
 
-                    bool foundPawn = false;
-
                     List<Thing> thingList = GridsUtility.GetThingList(targetPosition, caster.Map);
                     for (int k = thingList.Count - 1; k >= 0; k--)
                     {
@@ -208,24 +206,15 @@ namespace AthenaFramework
                             continue;
                         }
 
-                        if (pawnTarget.Downed || pawnTarget.Dead)
-                        {
-                            if (Rand.Chance(extension.downedHitChance))
-                            {
-                                newTarget = pawnTarget;
-                                foundPawn = true;
-                                break;
-                            }
-                        }
-                        else
+                        ShotReport shotReport = ShotReport.HitReportFor(caster, this, pawnTarget);
+                        if (Rand.Chance(shotReport.AimOnTargetChance))
                         {
                             newTarget = pawnTarget;
-                            foundPawn = true;
                             break;
                         }
                     }
 
-                    if (foundPawn)
+                    if (newTarget != null)
                     {
                         break;
                     }
@@ -241,7 +230,7 @@ namespace AthenaFramework
                 }
                 else
                 {
-                    if (!base.TryFindShootLineFromTo(caster.Position, new LocalTargetInfo(rangeEndPosition), out ShootLine shootLine))
+                    if (!TryFindShootLineFromTo(caster.Position, new LocalTargetInfo(rangeEndPosition), out ShootLine shootLine))
                     {
                         continue;
                     }

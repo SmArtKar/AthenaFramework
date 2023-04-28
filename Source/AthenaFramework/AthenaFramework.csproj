@@ -36,6 +36,9 @@
       <HintPath>..\..\..\..\..\..\workshop\content\294100\2009463077\Current\Assemblies\0Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="HotSwap">
+      <HintPath>..\..\..\HotSwap-master\Assemblies\HotSwap.dll</HintPath>
+    </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -47,15 +50,20 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Abilities\CompAbility_SingularTracker.cs" />
+    <Compile Include="Genes\AthenaGeneTemplateDef.cs" />
+    <Compile Include="Genes\GeneGenerationHandler.cs" />
     <Compile Include="Harmony\HarmonyPatches_HideParts.cs" />
     <Compile Include="Hediffs\HediffComp_CompApplicator.cs" />
     <Compile Include="Hediffs\HediffComp_GiveSingularAbility.cs" />
+    <Compile Include="Things\CompHediffOnDamage.cs" />
+    <Compile Include="Weapons\AdvancedTool.cs" />
     <Compile Include="Interfaces\IColorSelector.cs" />
     <Compile Include="Interfaces\IDamageModifier.cs" />
     <Compile Include="Interfaces\IGraphicGivers.cs" />
     <Compile Include="Interfaces\IFloatMenu.cs" />
     <Compile Include="Interfaces\IPreventEquip.cs" />
     <Compile Include="Interfaces\IProjectile.cs" />
+    <Compile Include="Interfaces\ITickerVerb.cs" />
     <Compile Include="Jobs\JobDriver_ReloadAbility.cs" />
     <Compile Include="Jobs\JobGiver_ReloadAbility.cs" />
     <Compile Include="Things\CompAdvancedArmor.cs" />
@@ -81,6 +89,9 @@
     <Compile Include="Things\CompUsable\CompUsable_HediffModule.cs" />
     <Compile Include="Utilities\AthenaArmor.cs" />
     <Compile Include="Utilities\AthenaDefOf.cs" />
+    <Compile Include="Utilities\PawnGroupUtility.cs" />
+    <Compile Include="Utilities\PawnRegionUtility.cs" />
+    <Compile Include="Utilities\QuadBezierCurve.cs" />
     <Compile Include="Utilities\Gradient.cs" />
     <Compile Include="Utilities\HediffStageUtility.cs" />
     <Compile Include="Abilities\CompAbility_Reloadable.cs" />
@@ -113,17 +124,20 @@
     <Compile Include="DamageModification\Comp_DamageModifier.cs" />
     <Compile Include="Apparel\Comp_CustomApparelBody.cs" />
     <Compile Include="Things\MinPreySizeExtension.cs" />
+    <Compile Include="Weapons\Projectiles\ProjectileComp_Bouncy.cs" />
+    <Compile Include="Weapons\Projectiles\ProjectileComp_ThingSpawner.cs" />
     <Compile Include="Weapons\Projectiles\ProjectileComp_Trail.cs" />
     <Compile Include="Things\HediffGiverExtension.cs" />
     <Compile Include="Things\TurretGraphicOverride.cs" />
     <Compile Include="Things\TurretRoofBlocked.cs" />
     <Compile Include="Jobs\ThinkNodeConditional_UnderGroupCombatPressure.cs" />
-    <Compile Include="Utilities\PawnGroupUtility.cs" />
     <Compile Include="Abilities\CompAbilityEffect_LaunchProjectileBurst.cs" />
     <Compile Include="Abilities\CompAbilityEffect_RevivalConversion.cs" />
     <Compile Include="Abilities\CompAbilityEffect_ShootRunningBeam.cs" />
     <Compile Include="Weapons\AimAngleOffsetExtension.cs" />
     <Compile Include="Weapons\Projectiles\ProjectileComp_ImpactEffect.cs" />
+    <Compile Include="Weapons\Tool_Detonation.cs" />
+    <Compile Include="Weapons\Verb_ShootMinigun.cs" />
     <Compile Include="Weapons\Verb_ShootRunningBeam.cs" />
   </ItemGroup>
   <ItemGroup>

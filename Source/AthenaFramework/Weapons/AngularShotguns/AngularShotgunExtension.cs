@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RimWorld;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,9 +12,19 @@ namespace AthenaFramework
     {
         // Amount of pellets that your shotgun fires
         public int pelletCount;
-        // Angle betweet fired pellets
+        // Angle between fired pellets
         public float pelletAngle;
-        // Chance for a pellet to hit a downed target when passing through a tile with one
-        public float downedHitChance = 0.20f;
+        // DEPRECATED
+        public float? downedHitChance;
+
+        public override IEnumerable<string> ConfigErrors()
+        {
+            if (downedHitChance != null)
+            {
+                Log.Warning("Some mod is using downedHitChance which is deprecated and no longer in use. Please contact the mod's author and ask him to remove the said field.");
+            }
+
+            return base.ConfigErrors();
+        }
     }
 }

@@ -38,11 +38,11 @@ namespace AthenaFramework
                 return threatValue;
             }
 
-            List<Pawn> allies = PawnGroupUtility.GetNearbyAllies(pawn, maxAllyDistance);
+            List<Pawn> allies = PawnRegionUtility.NearbyPawns(pawn, maxAllyDistance, allies: true);
             int alliesAmount = 1 + allies.Count;
             int hostileThreshold = Math.Max(soloMinPawns, alliesAmount * groupPawnMultiplier);
 
-            bool result = PawnGroupUtility.HostilePawnsNearbyThreshold(pawn, maxThreatDistance, hostileThreshold);
+            bool result = PawnRegionUtility.NearbyPawnsThreshold(pawn, maxThreatDistance, hostileThreshold, hostiles: true);
 
             for (int i = allies.Count - 1; i >= 0; i--)
             {

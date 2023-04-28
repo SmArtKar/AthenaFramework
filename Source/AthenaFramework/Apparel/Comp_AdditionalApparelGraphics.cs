@@ -210,6 +210,13 @@ namespace AthenaFramework
                 attachedEffecter = null;
             }
         }
+
+        public override void PostExposeData()
+        {
+            base.PostExposeData();
+            Scribe_Values.Look(ref primaryColor, "primaryColor");
+            Scribe_Values.Look(ref secondaryColor, "secondaryColor");
+        }
     }
 
     public class CompProperties_AdditionalApparelGraphics : CompProperties

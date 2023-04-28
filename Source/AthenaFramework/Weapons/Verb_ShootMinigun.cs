@@ -1,0 +1,66 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Verse;
+
+namespace AthenaFramework
+{
+    public class Verb_ShootMinigun : Verb_Shoot
+    {
+        public float speedModifier = 0f;
+        public IntVec3 lastPosition;
+        public bool startedFiring = false;
+
+        public MinigunExtension Extension => EquipmentSource.def.GetModExtension<MinigunExtension>();
+        public override int ShotsPerBurst => 2;
+
+        public override void BurstingTick()
+        {
+            base.BurstingTick();
+
+            if (Extension.standingOnly)
+            {
+                if (!startedFiring)
+                {
+                    lastPosition = Caster.Position;
+                    startedFiring = true;
+                }
+
+                if (lastPosition != Caster.Position)
+                {
+                    Reset();
+                    return;
+                }
+            }
+
+            if (burstShotsLeft == 1)
+            {
+                burstShotsLeft = 2;
+            }
+
+            ticksToNextBurstShot = Math.Max(0, ticksToNextBurstShot - (int)speedModifier);
+            speedModifier += Extension.speedPerTick;
+        }
+
+        public override void Reset()
+        {
+            base.Reset();
+            speedModifier = 0f;
+            startedFiring = false;
+        }
+    }
+
+    public class MinigunExtension : DefModExtension
+    {
+        // Use NonInterruptingSelfCast or else the pawn won't be able to stop bursting
+
+        // Maximum ramp up speed. Deducted from ticksBetweenBurstShots every tick
+        public float maxSpeed = 5f;
+        // Burst speed gain every tick.
+        public float speedPerTick = 0.03f;
+        // If the gun can only be used when standing still
+        public bool standingOnly = true;
+    }
+}

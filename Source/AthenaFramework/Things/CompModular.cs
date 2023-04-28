@@ -9,6 +9,7 @@ using Verse;
 
 namespace AthenaFramework
 {
+    [StaticConstructorOnStartup]
     public class CompModular : ThingComp, IEquippableGraphicGiver
     {
         private CompProperties_Modular Props => props as CompProperties_Modular;

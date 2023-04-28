@@ -205,13 +205,13 @@ namespace AthenaFramework
         public override void CompExposeData()
         {
             base.CompExposeData();
+            Scribe_Values.Look(ref primaryColor, "primaryColor");
+            Scribe_Values.Look(ref secondaryColor, "secondaryColor");
 
-            if (Scribe.mode != LoadSaveMode.LoadingVars)
+            if (Scribe.mode == LoadSaveMode.LoadingVars)
             {
-                return;
+                AthenaCache.AddCache(this, AthenaCache.renderCache, Pawn.thingIDNumber);
             }
-
-            AthenaCache.AddCache(this, AthenaCache.renderCache, Pawn.thingIDNumber);
         }
 
         public override void CompPostPostRemoved()
