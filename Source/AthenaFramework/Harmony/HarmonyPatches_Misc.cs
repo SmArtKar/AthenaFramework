@@ -309,20 +309,6 @@ namespace AthenaFramework
         }
     }
 
-    [HarmonyPatch(typeof(Verb), nameof(Verb.VerbTick))]
-    public static class Verb_PostTick
-    {
-        public static void Postfix(Verb __instance)
-        {
-            ITickerVerb verb = __instance as ITickerVerb;
-
-            if (verb != null)
-            {
-                verb.Tick();
-            }
-        }
-    }
-
     [HarmonyPatch(typeof(SkillRecord), nameof(SkillRecord.Learn))]
     public static class SkillRecord_LearningRate
     {

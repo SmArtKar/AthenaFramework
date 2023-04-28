@@ -60,7 +60,6 @@
     <Compile Include="Interfaces\IFloatMenu.cs" />
     <Compile Include="Interfaces\IPreventEquip.cs" />
     <Compile Include="Interfaces\IProjectile.cs" />
-    <Compile Include="Interfaces\ITickerVerb.cs" />
     <Compile Include="Jobs\JobDriver_ReloadAbility.cs" />
     <Compile Include="Jobs\JobGiver_ReloadAbility.cs" />
     <Compile Include="Things\CompAdvancedArmor.cs" />
