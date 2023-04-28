@@ -138,7 +138,7 @@ namespace AthenaFramework
 
                 return false;
 
-            }, regionOverride ?? (int)(Math.Max(3, Math.Ceiling(maxDistance / 12) * 4 + 1) * Math.Max(3, Math.Ceiling(maxDistance / 12) * 4 + 1)));
+            }, regionOverride ?? (int)(Math.Max(3, Math.Ceiling(maxDistance / 3) + 1) * Math.Max(3, Math.Ceiling(maxDistance / 3) + 1)));
 
             return result;
         }
@@ -289,7 +289,7 @@ namespace AthenaFramework
 
                 return false;
 
-            }, regionOverride ?? (int)(Math.Max(3, Math.Ceiling(maxDistance / 12) * 4 + 1) * Math.Max(3, Math.Ceiling(maxDistance / 12) * 4 + 1)));
+            }, regionOverride ?? (int)(Math.Max(3, Math.Ceiling(maxDistance / 3) + 1) * Math.Max(3, Math.Ceiling(maxDistance / 3) + 1)));
 
             return count == requiredAmount;
         }
