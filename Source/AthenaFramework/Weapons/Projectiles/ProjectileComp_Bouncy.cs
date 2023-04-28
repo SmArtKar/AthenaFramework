@@ -52,18 +52,25 @@ namespace AthenaFramework
 
             Thing target = null;
 
-            IntVec3 targetPosition = (TargetDir * Props.range).ToIntVec3();
+            IntVec3 targetPosition = lastPosition + (TargetDir * Props.range).ToIntVec3();
             List<IntVec3> lineOfSight = GenSight.PointsOnLineOfSight(lastPosition, targetPosition).ToList();
             for (int i = 0; i < lineOfSight.Count; i++)
             {
+                IntVec3 tile = lineOfSight[i];
 
-                Thing targetBuilding = targetPosition.GetRoofHolderOrImpassable(Projectile.Map);
+                if (!tile.IsValid)
+                {
+                    break;
+                }
+
+                Thing targetBuilding = tile.GetRoofHolderOrImpassable(Projectile.Map);
                 if (targetBuilding != null)
                 {
                     target = targetBuilding;
                     break;
                 }
-                Thing cover = targetPosition.GetCover(Projectile.Map);
+
+                Thing cover = tile.GetCover(Projectile.Map);
                 if (cover != null)
                 {
                     if (Rand.Chance(cover.BaseBlockChance()))
@@ -73,7 +80,7 @@ namespace AthenaFramework
                     }
                 }
 
-                List<Thing> thingList = GridsUtility.GetThingList(targetPosition, Projectile.Map);
+                List<Thing> thingList = GridsUtility.GetThingList(tile, Projectile.Map);
                 for (int k = thingList.Count - 1; k >= 0; k--)
                 {
                     Pawn pawnTarget = thingList[k] as Pawn;
@@ -96,6 +103,11 @@ namespace AthenaFramework
                 {
                     break;
                 }
+            }
+
+            if (target == null)
+            {
+                return;
             }
 
             Projectile newProj = GenSpawn.Spawn(Projectile.def, lastPosition, Projectile.Map) as Projectile;

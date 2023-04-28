@@ -14,7 +14,7 @@ namespace AthenaFramework
         public bool startedFiring = false;
 
         public MinigunExtension Extension => EquipmentSource.def.GetModExtension<MinigunExtension>();
-        public override int ShotsPerBurst => 2;
+        public override int ShotsPerBurst => Extension.unlimitedBurst ? 2 : base.ShotsPerBurst;
 
         public override void BurstingTick()
         {
@@ -35,7 +35,7 @@ namespace AthenaFramework
                 }
             }
 
-            if (burstShotsLeft == 1)
+            if (burstShotsLeft == 1 && Extension.unlimitedBurst)
             {
                 burstShotsLeft = 2;
             }
@@ -56,11 +56,13 @@ namespace AthenaFramework
     {
         // Use NonInterruptingSelfCast or else the pawn won't be able to stop bursting
 
-        // Maximum ramp up speed. Deducted from ticksBetweenBurstShots every tick
+        // Maximum ramp up speed. Deducted from ticksBetweenBurstShots every tick. Should not be lower than ticksBetweenBurstShots
         public float maxSpeed = 5f;
         // Burst speed gain every tick.
-        public float speedPerTick = 0.03f;
+        public float speedPerTick = 0.02f;
         // If the gun can only be used when standing still
         public bool standingOnly = true;
+        // When set to true, pawn will ignore shotsPerBurst and fire until something stops them.
+        public bool unlimitedBurst = true;
     }
 }
