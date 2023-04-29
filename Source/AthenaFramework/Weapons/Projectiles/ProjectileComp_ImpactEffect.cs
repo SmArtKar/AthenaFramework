@@ -19,7 +19,7 @@ namespace AthenaFramework
 
             if (Props.fleck != null)
             {
-                FleckMaker.Static(parent.DrawPos, parent.Map, Props.fleck, 1f);
+                FleckMaker.Static(Projectile.DrawPos, parent.Map, Props.fleck, 1f);
             }
 
             if (Props.mote != null)
@@ -29,7 +29,9 @@ namespace AthenaFramework
 
             if (Props.effecter != null)
             {
-                Props.effecter.Spawn(parent.Position, parent.Map, 1f).Cleanup();
+                Effecter effecter = Props.effecter.Spawn(parent.Position, parent.Map, 1f);
+                effecter.offset = parent.DrawPos - parent.Position.ToVector3();
+                effecter.Cleanup();
             }
         }
     }

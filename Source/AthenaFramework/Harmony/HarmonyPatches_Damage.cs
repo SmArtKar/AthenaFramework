@@ -34,11 +34,6 @@ namespace AthenaFramework
                 __result *= __instance.Instigator.def.GetModExtension<DamageModifierExtension>().OutgoingDamageMultiplier;
             }
 
-            if (__instance.Instigator.Destroyed)
-            {
-                return;
-            }
-
             if (AthenaCache.damageCache.TryGetValue(__instance.Instigator.thingIDNumber, out List<IDamageModifier> mods))
             {
                 for (int i = mods.Count - 1; i >= 0; i--)
