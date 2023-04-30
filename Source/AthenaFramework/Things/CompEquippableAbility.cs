@@ -13,6 +13,7 @@ namespace AthenaFramework
         private CompProperties_EquippableAbility Props => props as CompProperties_EquippableAbility;
 
         public int lastAbilityCastTick = -9999;
+        public bool addedAbility = false;
 
         public override void Notify_Equipped(Pawn pawn)
         {
@@ -20,9 +21,11 @@ namespace AthenaFramework
 
             if (pawn.abilities.GetAbility(Props.ability) != null)
             {
+                addedAbility = false;
                 return;
             }
 
+            addedAbility = true;
             pawn.abilities.GainAbility(Props.ability);
             Ability ability = pawn.abilities.GetAbility(Props.ability);
             ability.lastCastTick = lastAbilityCastTick;
@@ -31,6 +34,12 @@ namespace AthenaFramework
         public override void Notify_Unequipped(Pawn pawn)
         {
             base.Notify_Unequipped(pawn);
+
+            if (!addedAbility)
+            {
+                return;
+            }
+
             Ability ability = pawn.abilities.GetAbility(Props.ability);
             lastAbilityCastTick = ability.lastCastTick;
             pawn.abilities.RemoveAbility(Props.ability);
@@ -40,6 +49,7 @@ namespace AthenaFramework
         {
             base.PostExposeData();
             Scribe_Values.Look(ref lastAbilityCastTick, "lastAbilityCastTick");
+            Scribe_Values.Look(ref addedAbility, "addedAbility");
         }
     }
 
