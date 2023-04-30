@@ -52,6 +52,7 @@
     <Compile Include="Harmony\HarmonyPatches_HideParts.cs" />
     <Compile Include="Hediffs\HediffComp_CompApplicator.cs" />
     <Compile Include="Hediffs\HediffComp_GiveSingularAbility.cs" />
+    <Compile Include="Things\CompEquippableAbility.cs" />
     <Compile Include="Things\CompHediffOnDamage.cs" />
     <Compile Include="Weapons\AdvancedTool.cs" />
     <Compile Include="Interfaces\IColorSelector.cs" />
