@@ -52,6 +52,11 @@ namespace AthenaFramework
     {
         static void Prefix(Projectile __instance, Thing hitThing, ref bool blockedByShield)
         {
+            if (__instance.def == null || __instance.DamageAmount == 0)
+            {
+                return;
+            }
+
             float multiplier = 1f;
             float offset = 0f;
             List<string> excludedGlobal = new List<string>();
