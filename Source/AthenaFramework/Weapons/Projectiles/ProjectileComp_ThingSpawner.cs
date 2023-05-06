@@ -14,8 +14,10 @@ namespace AthenaFramework
 
         public override void Impact(Thing hitThing, ref bool blockedByShield)
         {
+            IntVec3 tile = Projectile.Position;
+            Map map = Projectile.Map;
             base.Impact(hitThing, ref blockedByShield);
-            GenSpawn.Spawn(Props.spawnedDef, Props.previousTile ? lastPosition : hitThing.Position, hitThing.Map);
+            GenSpawn.Spawn(Props.spawnedDef, Props.previousTile ? lastPosition : (hitThing != null ? hitThing.Position : tile), map);
         }
 
         public override void CompTick()
