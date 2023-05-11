@@ -16,7 +16,7 @@ namespace AthenaFramework
         {
             base.Impact(hitThing, ref blockedByShield);
 
-            List<IntVec3> tileOffsets = GenRadial.RadialPatternInRadius(Props.collaseRange).ToList();
+            List<IntVec3> tileOffsets = GenRadial.RadialPatternInRadius(Props.collapseRange).ToList();
             List<IntVec3> collapseTiles = new List<IntVec3>();
 
             for (int i = 0; i < tileOffsets.Count; i++)
@@ -42,6 +42,6 @@ namespace AthenaFramework
             this.compClass = typeof(ProjectileComp_RoofCollapse);
         }
 
-        public float collaseRange = 2.9f;
+        public float collapseRange = 2.9f;
     }
 }
