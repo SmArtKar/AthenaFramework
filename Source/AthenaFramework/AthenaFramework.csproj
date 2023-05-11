@@ -52,6 +52,7 @@
     <Compile Include="Harmony\HarmonyPatches_HideParts.cs" />
     <Compile Include="Hediffs\HediffComp_CompApplicator.cs" />
     <Compile Include="Hediffs\HediffComp_GiveSingularAbility.cs" />
+    <Compile Include="Interfaces\IProjectile.cs" />
     <Compile Include="Things\CompEquippableAbility.cs" />
     <Compile Include="Things\CompHediffOnDamage.cs" />
     <Compile Include="Weapons\AdvancedTool.cs" />
@@ -60,7 +61,6 @@
     <Compile Include="Interfaces\IGraphicGivers.cs" />
     <Compile Include="Interfaces\IFloatMenu.cs" />
     <Compile Include="Interfaces\IPreventEquip.cs" />
-    <Compile Include="Interfaces\IProjectile.cs" />
     <Compile Include="Jobs\JobDriver_ReloadAbility.cs" />
     <Compile Include="Jobs\JobGiver_ReloadAbility.cs" />
     <Compile Include="Things\CompAdvancedArmor.cs" />
@@ -122,6 +122,7 @@
     <Compile Include="Apparel\Comp_CustomApparelBody.cs" />
     <Compile Include="Things\MinPreySizeExtension.cs" />
     <Compile Include="Weapons\Projectiles\ProjectileComp_Bouncy.cs" />
+    <Compile Include="Weapons\Projectiles\ProjectileComp_RoofCollapse.cs" />
     <Compile Include="Weapons\Projectiles\ProjectileComp_ThingSpawner.cs" />
     <Compile Include="Weapons\Projectiles\ProjectileComp_Trail.cs" />
     <Compile Include="Things\HediffGiverExtension.cs" />
