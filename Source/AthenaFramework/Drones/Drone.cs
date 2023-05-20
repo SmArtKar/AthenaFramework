@@ -12,6 +12,7 @@ using static HarmonyLib.Code;
 
 namespace AthenaFramework
 {
+    [StaticConstructorOnStartup]
     public class Drone : IRenderable, IColorSelector, IDamageResponse, IExposable
     {
         public DroneDef def;

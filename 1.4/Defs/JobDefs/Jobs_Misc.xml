@@ -7,4 +7,11 @@
         <suspendable>false</suspendable>
         <allowOpportunisticPrefix>true</allowOpportunisticPrefix>
     </JobDef>
+        
+    <JobDef>
+        <defName>Athena_InstallModule</defName>
+        <driverClass>JobDriver_UseItem</driverClass>
+        <reportString>installing a module.</reportString>
+        <allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+    </JobDef>
 </Defs>
