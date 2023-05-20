@@ -18,6 +18,8 @@ namespace AthenaFramework
 
         public int remainingCharges = -1;
 
+        #region ===== Properties =====
+
         public virtual int MaxCharges
         {
             get
@@ -65,6 +67,8 @@ namespace AthenaFramework
                 return Props.reloadDuration;
             }
         }
+
+        #endregion
 
         public override void Initialize(AbilityCompProperties props)
         {

@@ -14,6 +14,8 @@ namespace AthenaFramework
         public int pelletCount;
         // Angle between fired pellets
         public float pelletAngle;
+        // Randomly adjusts every pellet's fire angle up to this value
+        public float pelletRandomSpread = 0f;
         // DEPRECATED
         public float? downedHitChance;
 

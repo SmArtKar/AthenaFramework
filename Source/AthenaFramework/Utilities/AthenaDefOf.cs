@@ -12,6 +12,7 @@ public static class AthenaDefOf
     public static JobDef Athena_ReloadAbility;
     public static StatDef Athena_Metabolism;
     public static StatDef Athena_SkillLoss;
+    public static HediffDef Athena_DroneHandler;
 
     static AthenaDefOf()
     {

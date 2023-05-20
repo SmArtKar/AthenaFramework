@@ -39,7 +39,10 @@ namespace AthenaFramework
         {
             if (cacheList.TryGetValue(id, out List<T> mods))
             {
-                mods.Add(elem);
+                if (!mods.Contains(elem))
+                {
+                    mods.Add(elem);
+                }
             }
             else
             {

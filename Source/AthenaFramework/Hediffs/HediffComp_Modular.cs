@@ -189,11 +189,11 @@ namespace AthenaFramework
             base.CompExposeData();
             Scribe_Deep.Look(ref moduleHolder, "moduleHolder");
 
-            if (Scribe.mode != LoadSaveMode.LoadingVars)
+            if (Scribe.mode != LoadSaveMode.ResolvingCrossRefs)
             {
                 return;
             }
-            
+
             if (AthenaCache.renderCache.TryGetValue(Pawn.thingIDNumber, out List<IRenderable> mods))
             {
                 for (int i = mods.Count - 1; i >= 0; i--)
@@ -214,6 +214,21 @@ namespace AthenaFramework
                 ThingWithComps module = moduleHolder[i];
                 CompUseEffect_HediffModule comp = module.TryGetComp<CompUseEffect_HediffModule>();
                 comp.PostInit(this);
+            }
+        }
+
+        public override void CompPostPostRemoved()
+        {
+            base.CompPostPostRemoved();
+
+            if (!Props.dropModulesOnRemoval)
+            {
+                return;
+            }
+
+            while (moduleHolder.Count > 0)
+            {
+                RemoveModule(moduleHolder[0]);
             }
         }
 
@@ -275,6 +290,9 @@ namespace AthenaFramework
         {
             this.compClass = typeof(HediffComp_Modular);
         }
+
+        // If the modules should be dropped when the hediff is removed
+        public bool dropModulesOnRemoval = true;
 
         // List of open slots
         public List<ModuleSlotPackage> slots = new List<ModuleSlotPackage>();

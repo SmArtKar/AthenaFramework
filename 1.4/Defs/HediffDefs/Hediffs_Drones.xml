@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+    <HediffDef Name="AthenaDroneHandler">
+        <defName>Athena_DroneHandler</defName>
+        <label>drone handler</label>
+        <description>A handler hediff for {0}. Players should not see this.</description>
+        <hediffClass>AthenaFramework.Hediff_DroneHandler</hediffClass>
+        <isBad>false</isBad>
+    </HediffDef>
+
+</Defs>

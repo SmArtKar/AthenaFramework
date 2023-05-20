@@ -23,12 +23,10 @@ namespace AthenaFramework
         {
             base.CompExposeData();
 
-            if (Scribe.mode != LoadSaveMode.LoadingVars)
+            if (Scribe.mode == LoadSaveMode.ResolvingCrossRefs)
             {
-                return;
+                AthenaCache.AddCache(this, AthenaCache.armorCache, Pawn.thingIDNumber);
             }
-
-            AthenaCache.AddCache(this, AthenaCache.armorCache, Pawn.thingIDNumber);
         }
 
         public override void CompPostPostRemoved()

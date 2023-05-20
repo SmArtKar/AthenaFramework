@@ -11,6 +11,9 @@ namespace AthenaFramework
 {
     public class PawnRegionUtility
     {
+
+        #region ===== Nearby Pawns =====
+
         public static Dictionary<Pawn, float> NearbyPawnsDistances(IntVec3 cell, Map map, float maxDistance, TraverseParms parms, Faction faction = null, bool hostiles = false, bool checkDowned = false, bool checkDead = false, Func<Pawn, float, bool> additionalCheck = null, int? regionOverride = null, Pawn givenPawn = null)
         {
             Dictionary<Pawn, float> result = new Dictionary<Pawn, float>();
@@ -160,6 +163,10 @@ namespace AthenaFramework
             return NearbyPawnsDistances(pawn.Position, pawn.Map, maxDistance, parms, (allies || hostiles) ? pawn.Faction : null, hostiles, checkDowned, checkDead, additionalCheck, regionOverride, pawn).Keys.ToList();
         }
 
+        #endregion
+
+        #region ===== Nearby Pawns Thresholds =====
+
         public static bool NearbyPawnsThreshold(IntVec3 cell, Map map, float maxDistance, int requiredAmount, TraverseParms parms, Faction faction = null, bool hostiles = false, bool checkDowned = false, bool checkDead = false, Func<Pawn, float, bool> additionalCheck = null, int? regionOverride = null, Pawn givenPawn = null)
         {
             int count = 0;
@@ -299,5 +306,8 @@ namespace AthenaFramework
             TraverseParms parms = (passDoors ? TraverseParms.For(TraverseMode.PassDoors) : TraverseParms.For(pawn));
             return NearbyPawnsThreshold(pawn.Position, pawn.Map, maxDistance, requiredAmount, parms, (allies || hostiles) ? pawn.Faction : null, hostiles, checkDowned, checkDead, additionalCheck, regionOverride, pawn);
         }
+
+        #endregion
+
     }
 }

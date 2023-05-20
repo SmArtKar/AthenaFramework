@@ -22,70 +22,16 @@ namespace AthenaFramework
         public override void Apply(LocalTargetInfo target, LocalTargetInfo dest)
         {
             base.Apply(target, dest);
+
             float angle = (float)Math.Acos(Vector2.Dot((new Vector2(target.Cell.x, target.Cell.z) - new Vector2(parent.pawn.Position.x, parent.pawn.Position.z)).normalized, new Vector2(1, 0)));
             float pelletAngle = (float)(Props.pelletAngle * (Math.PI) / 180);
+            float pelletAngleAmount = (Props.pelletCount - 1) / 2;
 
-            for (int i = 0; i < Props.pelletCount - 1; i++)
+            for (int i = 0; i < Props.pelletCount; i++)
             {
-                float newAngle = angle - pelletAngle * (Props.pelletCount - 1) / 2 + i * pelletAngle;
-                IntVec3 endPosition = (new IntVec3((int)(Math.Cos(newAngle) * parent.verb.verbProps.range), 0, (int)(Math.Sin(newAngle) * parent.verb.verbProps.range)));
-                if (target.Cell.z < parent.pawn.Position.z)
-                {
-                    endPosition.z *= -1;
-                }
-                IntVec3 rangeEndPosition = endPosition + parent.pawn.Position;
-                Thing newTarget = null;
+                float newAngle = angle - pelletAngle * pelletAngleAmount + i * pelletAngle + Props.pelletRandomSpread * (Rand.Value * 2 - 1);
 
-                List<IntVec3> points = GenSight.PointsOnLineOfSight(parent.pawn.Position, rangeEndPosition).Concat(rangeEndPosition).ToList();
-                for (int j = 0; j < points.Count; j++)
-                {
-                    IntVec3 targetPosition = points[j];
-                    if (targetPosition == parent.pawn.Position) //Prevents the parent.pawn from shooting himself
-                    {
-                        continue;
-                    }
-
-                    Thing targetBuilding = targetPosition.GetRoofHolderOrImpassable(parent.pawn.Map);
-                    if (targetBuilding != null)
-                    {
-                        newTarget = targetBuilding;
-                        break;
-                    }
-
-                    Thing cover = targetPosition.GetCover(parent.pawn.Map);
-                    if (cover != null)
-                    {
-                        if (Rand.Chance(cover.BaseBlockChance()))
-                        {
-                            newTarget = targetBuilding;
-                            break;
-                        }
-                    }
-
-                    List<Thing> thingList = GridsUtility.GetThingList(targetPosition, parent.pawn.Map);
-                    for (int k = thingList.Count - 1; k >= 0; k--)
-                    {
-                        Pawn pawnTarget = thingList[k] as Pawn;
-
-                        if (pawnTarget == null)
-                        {
-                            continue;
-                        }
-
-                        ShotReport shotReport = ShotReport.HitReportFor(parent.pawn, parent.verb, pawnTarget);
-                        if (Rand.Chance(shotReport.AimOnTargetChance))
-                        {
-                            newTarget = pawnTarget;
-                            break;
-                        }
-                    }
-
-                    if (newTarget != null)
-                    {
-                        break;
-                    }
-                }
-
+                Thing newTarget = AthenaCombatUtility.GetPelletTarget(newAngle, parent.verb.verbProps.range, parent.pawn.Position, parent.pawn.Map, target.Cell, out IntVec3 rangeEndPosition, caster: parent.pawn, verb: parent.verb);
 
                 if (newTarget != null)
                 {
@@ -93,6 +39,11 @@ namespace AthenaFramework
                 }
                 else
                 {
+                    if (!TryFindShootLineFromTo(parent.pawn.Position, new LocalTargetInfo(rangeEndPosition), out ShootLine _))
+                    {
+                        continue;
+                    }
+
                     LaunchProjectile(new LocalTargetInfo(rangeEndPosition));
                 }
             }
@@ -249,6 +200,8 @@ namespace AthenaFramework
         public int pelletCount;
         // Angle between fired pellets
         public float pelletAngle;
+        // Randomly adjusts every pellet's fire angle up to this value
+        public float pelletRandomSpread = 0f;
         // DEPRECATED
         public float? downedHitChance;
     }

@@ -139,7 +139,7 @@ namespace AthenaFramework
 
             if (extension == null)
             {
-                Log.Error(String.Format("{0} attempted to use Verb_ShootAngularShotgun without a AngularShotgunExtension mod extension", EquipmentSource.def.defName));
+                Log.Error(String.Format("{0} attempted to use Verb_ShootAngularShotgun without an AngularShotgunExtension mod extension", EquipmentSource.def.defName));
                 return false;
             }
 
@@ -155,71 +155,16 @@ namespace AthenaFramework
 
             for (int i = 0; i < extension.pelletCount; i++)
             {
-                float newAngle = angle - pelletAngle * pelletAngleAmount + i * pelletAngle;
+                float newAngle = angle - pelletAngle * pelletAngleAmount + i * pelletAngle + extension.pelletRandomSpread * (Rand.Value * 2 - 1);
 
                 if (i == (int)pelletAngleAmount)
                 {
                     continue;
                 }
 
-                IntVec3 endPosition = (new IntVec3((int)(Math.Cos(newAngle) * verbProps.range), 0, (int)(Math.Sin(newAngle) * verbProps.range)));
-                if (currentTarget.Cell.z < caster.Position.z)
-                {
-                    endPosition.z *= -1;
-                }
-                IntVec3 rangeEndPosition = endPosition + caster.Position;
-                Thing newTarget = null;
+                LocalTargetInfo cachedTarget = currentTarget;
 
-                List<IntVec3> points = GenSight.PointsOnLineOfSight(caster.Position, rangeEndPosition).Concat(rangeEndPosition).ToList();
-                for (int j = 0; j < points.Count; j++)
-                {
-                    IntVec3 targetPosition = points[j];
-                    if (targetPosition == caster.Position) //Prevents the caster from shooting himself
-                    {
-                        continue;
-                    }
-
-                    Thing targetBuilding = targetPosition.GetRoofHolderOrImpassable(caster.Map);
-                    if (targetBuilding != null)
-                    {
-                        newTarget = targetBuilding;
-                        break;
-                    }
-
-                    Thing cover = targetPosition.GetCover(caster.Map);
-                    if (cover != null)
-                    {
-                        if (Rand.Chance(cover.BaseBlockChance()))
-                        {
-                            newTarget = targetBuilding;
-                            break;
-                        }
-                    }
-
-                    List<Thing> thingList = GridsUtility.GetThingList(targetPosition, caster.Map);
-                    for (int k = thingList.Count - 1; k >= 0; k--)
-                    {
-                        Pawn pawnTarget = thingList[k] as Pawn;
-
-                        if (pawnTarget == null)
-                        {
-                            continue;
-                        }
-
-                        ShotReport shotReport = ShotReport.HitReportFor(caster, this, pawnTarget);
-                        if (Rand.Chance(shotReport.AimOnTargetChance))
-                        {
-                            newTarget = pawnTarget;
-                            break;
-                        }
-                    }
-
-                    if (newTarget != null)
-                    {
-                        break;
-                    }
-                }
-
+                Thing newTarget = AthenaCombatUtility.GetPelletTarget(newAngle, verbProps.range, caster.Position, caster.Map, currentTarget.Cell, out IntVec3 rangeEndPosition, caster: caster, verb: this);
 
                 if (newTarget != null)
                 {
@@ -227,6 +172,7 @@ namespace AthenaFramework
                     currentTarget = newTargetInfo;
                     currentDestination = newTargetInfo;
                     base.TryCastShot();
+                    currentTarget = cachedTarget;
                 }
                 else
                 {

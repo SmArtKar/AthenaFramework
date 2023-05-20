@@ -14,6 +14,8 @@ using static UnityEngine.GraphicsBuffer;
 
 namespace AthenaFramework
 {
+    #region ===== Damage Modification =====
+
     [HarmonyPatch(typeof(DamageInfo), nameof(DamageInfo.Amount), MethodType.Getter)]
     public static class DamageInfo_AmountGetter
     {
@@ -234,6 +236,10 @@ namespace AthenaFramework
         }
     }
 
+    #endregion
+
+    #region ===== Armor Transpiler =====
+
     [HarmonyPatch(typeof(ArmorUtility), nameof(ArmorUtility.GetPostArmorDamage))]
     public static class ArmorUtility_ArmorTranspiler
     {
@@ -277,7 +283,7 @@ namespace AthenaFramework
             instructionsToInsert.Add(new CodeInstruction(OpCodes.Ldarg_3));
             instructionsToInsert.Add(new CodeInstruction(OpCodes.Ldarg_S, operand2));
             instructionsToInsert.Add(new CodeInstruction(OpCodes.Ldarg_0));
-            instructionsToInsert.Add(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(AthenaArmor), nameof(AthenaArmor.CoversBodyPart), new Type[] { typeof(Thing), typeof(float).MakeByRefType(), typeof(float), typeof(StatDef), typeof(float).MakeByRefType(), typeof(BodyPartRecord), typeof(DamageDef).MakeByRefType(), typeof(Pawn) })));
+            instructionsToInsert.Add(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(AthenaCombatUtility), nameof(AthenaCombatUtility.CoversBodyPart), new Type[] { typeof(Thing), typeof(float).MakeByRefType(), typeof(float), typeof(StatDef), typeof(float).MakeByRefType(), typeof(BodyPartRecord), typeof(DamageDef).MakeByRefType(), typeof(Pawn) })));
             instructionsToInsert.Add(new CodeInstruction(OpCodes.Brfalse_S, ifLabel));
 
             List<CodeInstruction> instructionsToInsert2 = new List<CodeInstruction>();
@@ -290,7 +296,7 @@ namespace AthenaFramework
             instructionsToInsert2.Add(new CodeInstruction(OpCodes.Ldarg_S, operand2));
             instructionsToInsert2.Add(new CodeInstruction(OpCodes.Ldarg_0));
             instructionsToInsert2.Add(new CodeInstruction(OpCodes.Ldloca_S, 6));
-            instructionsToInsert2.Add(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(AthenaArmor), nameof(AthenaArmor.ApplyArmor), new Type[] { typeof(Thing), typeof(float).MakeByRefType(), typeof(float), typeof(StatDef), typeof(float), typeof(BodyPartRecord), typeof(DamageDef).MakeByRefType(), typeof(Pawn), typeof(bool).MakeByRefType() })));
+            instructionsToInsert2.Add(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(AthenaCombatUtility), nameof(AthenaCombatUtility.ApplyArmor), new Type[] { typeof(Thing), typeof(float).MakeByRefType(), typeof(float), typeof(StatDef), typeof(float), typeof(BodyPartRecord), typeof(DamageDef).MakeByRefType(), typeof(Pawn), typeof(bool).MakeByRefType() })));
 
             code.RemoveRange(insertionIndex + 1, 5);
             code.InsertRange(insertionIndex + 1, instructionsToInsert);
@@ -328,7 +334,7 @@ namespace AthenaFramework
             instructionsToInsert3.Add(new CodeInstruction(OpCodes.Ldarg_S, operand2));
             instructionsToInsert3.Add(new CodeInstruction(OpCodes.Ldarg_0));
             instructionsToInsert3.Add(new CodeInstruction(OpCodes.Ldloca_S, 1));
-            instructionsToInsert3.Add(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(AthenaArmor), nameof(AthenaArmor.ApplyArmor), new Type[] { typeof(Thing), typeof(float).MakeByRefType(), typeof(float), typeof(StatDef), typeof(float), typeof(BodyPartRecord), typeof(DamageDef).MakeByRefType(), typeof(Pawn), typeof(bool).MakeByRefType() })));
+            instructionsToInsert3.Add(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(AthenaCombatUtility), nameof(AthenaCombatUtility.ApplyArmor), new Type[] { typeof(Thing), typeof(float).MakeByRefType(), typeof(float), typeof(StatDef), typeof(float), typeof(BodyPartRecord), typeof(DamageDef).MakeByRefType(), typeof(Pawn), typeof(bool).MakeByRefType() })));
 
             code.RemoveRange(insertionIndex2, 12);
             code.InsertRange(insertionIndex2, instructionsToInsert3);
@@ -348,6 +354,10 @@ namespace AthenaFramework
             return code;
         }
     }
+
+    #endregion
+
+    #region ===== Tool Transpiling =====
 
     [HarmonyPatch(typeof(Verb_MeleeAttackDamage), nameof(Verb_MeleeAttackDamage.DamageInfosToApply))]
     public static class MeleeAttack_Damage
@@ -388,7 +398,7 @@ namespace AthenaFramework
             instructionsToInsert.Add(new CodeInstruction(OpCodes.Ldloca_S, operand2));
             instructionsToInsert.Add(new CodeInstruction(OpCodes.Ldarg_0));
             instructionsToInsert.Add(new CodeInstruction(OpCodes.Ldflda, AccessTools.Field(typeof(Verb_MeleeAttackDamage), "target")));
-            instructionsToInsert.Add(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(AthenaArmor), nameof(AthenaArmor.DamageModification), new Type[] { typeof(Verb), typeof(float).MakeByRefType(), typeof(float).MakeByRefType(), typeof(LocalTargetInfo).MakeByRefType() })));
+            instructionsToInsert.Add(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(AthenaCombatUtility), nameof(AthenaCombatUtility.DamageModification), new Type[] { typeof(Verb), typeof(float).MakeByRefType(), typeof(float).MakeByRefType(), typeof(LocalTargetInfo).MakeByRefType() })));
 
             code.InsertRange(insertionIndex + 2, instructionsToInsert);
 
@@ -409,4 +419,7 @@ namespace AthenaFramework
             }
         }
     }
+
+    #endregion
+
 }

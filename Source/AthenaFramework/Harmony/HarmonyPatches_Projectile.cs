@@ -52,7 +52,16 @@ namespace AthenaFramework
     {
         static void Prefix(Projectile __instance, Thing hitThing, ref bool blockedByShield)
         {
-            if (__instance.def == null || __instance.DamageAmount <= 0)
+            if (AthenaCache.projectileCache.TryGetValue(__instance.thingIDNumber, out List<IProjectile> mods))
+            {
+                for (int i = mods.Count - 1; i >= 0; i--)
+                {
+                    IProjectile projectile = mods[i];
+                    projectile.Impact(hitThing, ref blockedByShield);
+                }
+            }
+
+            if (__instance.DamageAmount <= 0)
             {
                 return;
             }
@@ -64,15 +73,6 @@ namespace AthenaFramework
             if (__instance.def.GetModExtension<DamageModifierExtension>() != null)
             {
                 multiplier *= __instance.def.GetModExtension<DamageModifierExtension>().OutgoingDamageMultiplier;
-            }
-
-            if (AthenaCache.projectileCache.TryGetValue(__instance.thingIDNumber, out List<IProjectile> mods))
-            {
-                for (int i = mods.Count - 1; i >= 0; i--)
-                {
-                    IProjectile projectile = mods[i];
-                    projectile.Impact(hitThing, ref blockedByShield);
-                }
             }
 
             if (AthenaCache.damageCache.TryGetValue(__instance.thingIDNumber, out List<IDamageModifier> mods2))

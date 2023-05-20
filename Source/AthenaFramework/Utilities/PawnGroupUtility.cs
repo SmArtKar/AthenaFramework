@@ -12,6 +12,9 @@ namespace AthenaFramework
 {
     public static class PawnGroupUtility
     {
+
+        #region ===== Nearby Pawns =====
+
         public static Dictionary<Pawn, float> NearbyPawnsDistances(IntVec3 cell, Map map, float maxDistance, Faction faction = null, bool hostiles = false, bool checkDowned = false, bool checkDead = false, Func<Pawn, float, bool> additionalCheck = null, Pawn givenPawn = null)
         {
             List<Pawn> pawns = checkDead ? map.mapPawns.AllPawns : map.mapPawns.AllPawnsSpawned;
@@ -88,6 +91,10 @@ namespace AthenaFramework
             return NearbyPawnsDistances(pawn.Position, pawn.Map, maxDistance, (allies || hostiles) ? pawn.Faction : null, hostiles, checkDowned, checkDead, additionalCheck, pawn).Keys.ToList();
         }
 
+        #endregion
+
+        #region ===== Nearby Pawns Thresholds =====
+
         public static bool NearbyPawnsThreshold(IntVec3 cell, Map map, float maxDistance, int requiredAmount, Faction faction = null, bool hostiles = false, bool checkDowned = false, bool checkDead = false, Func<Pawn, float, bool> additionalCheck = null, Pawn givenPawn = null)
         {
             List<Pawn> pawns = checkDead ? map.mapPawns.AllPawns : map.mapPawns.AllPawnsSpawned;
@@ -159,6 +166,10 @@ namespace AthenaFramework
             return NearbyPawnsThreshold(pawn.Position, pawn.Map, maxDistance, requiredAmount, (allies || hostiles) ? pawn.Faction : null, hostiles, checkDowned, checkDead, additionalCheck, pawn);
         }
 
+        #endregion
+
+        #region ===== Pawn Grouping =====
+
         public static List<PawnGroup> GroupPawns(List<Pawn> pawnList, float groupDistance)
         {
             List<PawnGroup> pawnGroups = new List<PawnGroup>();
@@ -207,6 +218,9 @@ namespace AthenaFramework
 
             return pawnGroups;
         }
+
+        #endregion
+
     }
 
     public class PawnGroup

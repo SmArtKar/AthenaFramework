@@ -172,7 +172,7 @@ namespace AthenaFramework
             base.PostExposeData();
             Scribe_Deep.Look(ref moduleHolder, "moduleHolder");
 
-            if (Scribe.mode != LoadSaveMode.LoadingVars)
+            if (Scribe.mode != LoadSaveMode.ResolvingCrossRefs)
             {
                 return;
             }
@@ -236,6 +236,21 @@ namespace AthenaFramework
             };
         }
 
+        public override void PostDestroy(DestroyMode mode, Map previousMap)
+        {
+            base.PostDestroy(mode, previousMap);
+
+            if (!Props.dropModulesOnDestoy)
+            {
+                return;
+            }
+
+            while (moduleHolder.Count > 0)
+            {
+                RemoveModule(moduleHolder[0]);
+            }
+        }
+
         public override IEnumerable<Gizmo> CompGetWornGizmosExtra()
         {
             if (ejectAction == null)
@@ -259,6 +274,9 @@ namespace AthenaFramework
         {
             this.compClass = typeof(CompModular);
         }
+
+        // If all modules should be dropped upon the item getting destroyed
+        public bool dropModulesOnDestoy = true;
 
         // List of open slots
         public List<ModuleSlotPackage> slots = new List<ModuleSlotPackage>();

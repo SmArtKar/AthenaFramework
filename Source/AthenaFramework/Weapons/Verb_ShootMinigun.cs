@@ -12,8 +12,21 @@ namespace AthenaFramework
         public float speedModifier = 0f;
         public IntVec3 lastPosition;
         public bool startedFiring = false;
+        public MinigunExtension cachedExtension;
 
-        public MinigunExtension Extension => EquipmentSource.def.GetModExtension<MinigunExtension>();
+        public MinigunExtension Extension
+        {
+            get
+            {
+                if (cachedExtension == null)
+                {
+                    cachedExtension = EquipmentSource.def.GetModExtension<MinigunExtension>();
+                }
+
+                return cachedExtension;
+            }
+        }
+
         public override int ShotsPerBurst => Extension.unlimitedBurst ? 2 : base.ShotsPerBurst;
 
         public override void BurstingTick()
@@ -29,6 +42,15 @@ namespace AthenaFramework
                 }
 
                 if (lastPosition != Caster.Position)
+                {
+                    Reset();
+                    return;
+                }
+            }
+
+            if (CasterIsPawn)
+            {
+                if (!CasterPawn.Drafted || CasterPawn.TargetCurrentlyAimingAt == null || CasterPawn.stances.stunner.Stunned || CasterPawn.Downed)
                 {
                     Reset();
                     return;

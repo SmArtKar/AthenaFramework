@@ -208,7 +208,7 @@ namespace AthenaFramework
             Scribe_Values.Look(ref primaryColor, "primaryColor");
             Scribe_Values.Look(ref secondaryColor, "secondaryColor");
 
-            if (Scribe.mode == LoadSaveMode.LoadingVars)
+            if (Scribe.mode == LoadSaveMode.ResolvingCrossRefs)
             {
                 AthenaCache.AddCache(this, AthenaCache.renderCache, Pawn.thingIDNumber);
             }
@@ -272,7 +272,7 @@ namespace AthenaFramework
         public float attachedMoteScale = 1f;
         // If set to true, attached mote will be destroyed after hediff's removal
         public bool destroyMoteOnRemoval = true;
-        // If this graphic should be rendered only when the pawn is drafted. Overriden by graphic package settings
+        // If this graphic should be rendered only when the pawn is drafted. Overridden by graphic package settings
         public bool onlyRenderWhenDrafted = false;
         // Additional graphic layers with more precise controls. These are drawn on the same layer as pawn by default
         public List<HediffGraphicPackage> additionalGraphics = new List<HediffGraphicPackage>();

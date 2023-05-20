@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using Mono.Unix.Native;
+using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,11 +8,15 @@ using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using Verse;
+using static UnityEngine.GraphicsBuffer;
 
 namespace AthenaFramework
 {
-    public static class AthenaArmor
+    public static class AthenaCombatUtility
     {
+
+        #region ===== Armor Calculations =====
+
         public static bool CoversBodyPart(Thing armor, ref float amount, float armorPenetration, StatDef stat, ref float armorRating, BodyPartRecord part, ref DamageDef damageDef, Pawn pawn)
         {
             bool defaultCover = armor.def.apparel.CoversBodyPart(part);
@@ -91,6 +96,10 @@ namespace AthenaFramework
             }
         }
 
+        #endregion
+
+        #region ===== Tool Utilities =====
+
         public static void DamageModification(Verb verb, ref float damage, ref float armorPenetration, ref LocalTargetInfo target)
         {
             AdvancedTool advTool = verb.tool as AdvancedTool;
@@ -100,6 +109,10 @@ namespace AthenaFramework
                 advTool.DamageModification(verb, ref damage, ref armorPenetration, ref target, verb.CasterPawn);
             }
         }
+
+        #endregion
+
+        #region ===== Ranged Weapon Calculations =====
 
         public static float GetHitChance(IntVec3 aimPosition, Thing target, HitChanceFlags hitFlags, Thing caster = null)
         {
@@ -123,7 +136,7 @@ namespace AthenaFramework
 
             if ((hitFlags & HitChanceFlags.Weather) != 0)
             {
-                if ((caster != null && !caster.Position.Roofed(caster.Map)) || !target.Position.Roofed(target.Map))
+                if (!aimPosition.Roofed(caster.Map) || !target.Position.Roofed(target.Map))
                 {
                     hitChance *= target.Map.weatherManager.CurWeatherAccuracyMultiplier;
                 }
@@ -200,8 +213,222 @@ namespace AthenaFramework
 
             return Math.Max(0.0201f, hitChance + offset);
         }
+
+        public static float DistanceToAccuracy(float dist, float touchAcc, float shortAcc, float medAcc, float longAcc)
+        {
+            if (dist <= 3)
+            {
+                return touchAcc;
+            }
+
+            if (dist <= 12f)
+            {
+                return Mathf.Lerp(touchAcc, shortAcc, (dist - 3f) / 9f);
+            }
+
+            if (dist <= 25f)
+            {
+                return Mathf.Lerp(shortAcc, medAcc, (dist - 12f) / 13f);
+            }
+
+            if (dist <= 40f)
+            {
+                return Mathf.Lerp(medAcc, longAcc, (dist - 25f) / 15f);
+            }
+
+            return longAcc;
+        }
+
+        #endregion
+
+        #region ===== Shoot Lines =====
+
+        public static bool GetShootLine(IntVec3 root, Map map, LocalTargetInfo target, out ShootLine resultingLine, bool canLean = true, CellRect? occupiedRect = null)
+        {
+            if (target.HasThing && target.Thing.Map != map)
+            {
+                resultingLine = default(ShootLine);
+                return false;
+            }
+
+            IntVec3 goodDest;
+
+            if (occupiedRect != null)
+            {
+                foreach (IntVec3 item in occupiedRect)
+                {
+                    if (CanHitFromCellIgnoringRange(item, target, map, out goodDest))
+                    {
+                        resultingLine = new ShootLine(item, goodDest);
+                        return true;
+                    }
+                }
+            }
+
+            if (CanHitFromCellIgnoringRange(root, target, map, out goodDest))
+            {
+                resultingLine = new ShootLine(root, goodDest);
+                return true;
+            }
+
+            if (canLean)
+            {
+                List<IntVec3> leanShootSources = new List<IntVec3>();
+                ShootLeanUtility.LeanShootingSourcesFromTo(root, occupiedRect == null ? root : occupiedRect.Value.ClosestCellTo(root), map, leanShootSources);
+
+                for (int i = 0; i < leanShootSources.Count; i++)
+                {
+                    IntVec3 intVec = leanShootSources[i];
+                    if (CanHitFromCellIgnoringRange(intVec, target, map, out goodDest))
+                    {
+                        resultingLine = new ShootLine(intVec, goodDest);
+                        return true;
+                    }
+                }
+            }
+
+            resultingLine = new ShootLine(root, target.Cell);
+            return false;
+        }
+
+
+        public static bool CanHitFromCellIgnoringRange(IntVec3 sourceCell, LocalTargetInfo target, Map map, out IntVec3 goodDest)
+        {
+            if (target.Thing != null)
+            {
+                if (target.Thing.Map != map)
+                {
+                    goodDest = IntVec3.Invalid;
+                    return false;
+                }
+
+                List<IntVec3> tempDestList = new List<IntVec3>();
+
+                ShootLeanUtility.CalcShootableCellsOf(tempDestList, target.Thing);
+                for (int i = 0; i < tempDestList.Count; i++)
+                {
+                    if (CanHitCellFromCellIgnoringRange(sourceCell, tempDestList[i], map, target.Thing.def.Fillage == FillCategory.Full))
+                    {
+                        goodDest = tempDestList[i];
+                        return true;
+                    }
+                }
+            }
+            else if (CanHitCellFromCellIgnoringRange(sourceCell, target.Cell, map))
+            {
+                goodDest = target.Cell;
+                return true;
+            }
+
+            goodDest = IntVec3.Invalid;
+            return false;
+        }
+
+        public static bool CanHitCellFromCellIgnoringRange(IntVec3 sourceSq, IntVec3 targetLoc, Map map, bool includeCorners = false, bool mustCastOnOpenGround = false)
+        {
+            if (mustCastOnOpenGround && (!targetLoc.Standable(map) || map.thingGrid.CellContains(targetLoc, ThingCategory.Pawn)))
+            {
+                return false;
+            }
+
+            if (!includeCorners)
+            {
+                if (!GenSight.LineOfSight(sourceSq, targetLoc, map, skipFirstCell: true))
+                {
+                    return false;
+                }
+            }
+            else if (!GenSight.LineOfSightToEdges(sourceSq, targetLoc, map, skipFirstCell: true))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        #endregion
+
+        #region ===== Angular Shotguns =====
+
+        public static Thing GetPelletTarget(float angle, float range, IntVec3 shooterPosition, Map map, IntVec3 target, out IntVec3 rangeEndPosition, Thing caster = null, Verb verb = null, HitChanceFlags hitFlags = HitChanceFlags.None)
+        {
+            IntVec3 endPosition = (new IntVec3((int)(Math.Cos(angle) * range), 0, (int)(Math.Sin(angle) * range)));
+            if (target.z < shooterPosition.z)
+            {
+                endPosition.z *= -1;
+            }
+            rangeEndPosition = endPosition + shooterPosition;
+            Thing newTarget = null;
+
+            List<IntVec3> points = GenSight.PointsOnLineOfSight(shooterPosition, rangeEndPosition).Concat(rangeEndPosition).ToList();
+
+            for (int j = 0; j < points.Count; j++)
+            {
+                IntVec3 targetPosition = points[j];
+                if (targetPosition == shooterPosition) //Prevents the caster from shooting himself
+                {
+                    continue;
+                }
+
+                Thing targetBuilding = targetPosition.GetRoofHolderOrImpassable(map);
+                if (targetBuilding != null)
+                {
+                    newTarget = targetBuilding;
+                    break;
+                }
+
+                Thing cover = targetPosition.GetCover(map);
+                if (cover != null)
+                {
+                    if (Rand.Chance(cover.BaseBlockChance()))
+                    {
+                        newTarget = targetBuilding;
+                        break;
+                    }
+                }
+
+                List<Thing> thingList = GridsUtility.GetThingList(targetPosition, map);
+                for (int k = thingList.Count - 1; k >= 0; k--)
+                {
+                    Pawn pawnTarget = thingList[k] as Pawn;
+
+                    if (pawnTarget == null)
+                    {
+                        continue;
+                    }
+
+                    if (caster != null && verb != null)
+                    {
+                        ShotReport shotReport = ShotReport.HitReportFor(caster, verb, pawnTarget);
+                        if (Rand.Chance(shotReport.AimOnTargetChance))
+                        {
+                            newTarget = pawnTarget;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        if (Rand.Chance(GetHitChance(shooterPosition, pawnTarget, hitFlags, caster)))
+                        {
+                            newTarget = pawnTarget;
+                            break;
+                        }
+                    }
+                }
+
+                if (newTarget != null)
+                {
+                    break;
+                }
+            }
+
+            return newTarget;
+        }
+
+        #endregion
+
     }
-    
+
     [Flags]
     public enum HitChanceFlags
     {

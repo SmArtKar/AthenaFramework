@@ -70,12 +70,10 @@ namespace AthenaFramework
             Scribe_Values.Look(ref freeRecharge, "freeRecharge");
             Scribe_Values.Look(ref impactAngleVect, "impactAngleVect");
 
-            if (Scribe.mode != LoadSaveMode.LoadingVars)
+            if (Scribe.mode == LoadSaveMode.ResolvingCrossRefs)
             {
-                return;
+                AthenaCache.AddCache(this, AthenaCache.responderCache, Pawn.thingIDNumber);
             }
-
-            AthenaCache.AddCache(this, AthenaCache.responderCache, Pawn.thingIDNumber);
         }
 
         public override void CompPostMake()

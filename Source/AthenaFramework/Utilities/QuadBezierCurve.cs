@@ -97,8 +97,9 @@ namespace AthenaFramework
             }
 
             CurvePoint firstPoint = new CurvePoint(x, y);
-            points.RemoveAt(0);
-            points.RemoveAt(0);
+            CurvePoint lastPoint = points[2];
+            points.Clear();
+            points.Add(lastPoint);
             points.Add(firstPoint);
             points.Add(newPoint);
         }

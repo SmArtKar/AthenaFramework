@@ -47,6 +47,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Abilities\CompAbility_SingularTracker.cs" />
+    <Compile Include="Drones\Comps\CompAbility_DroneTargeting.cs" />
+    <Compile Include="Drones\Comps\DroneComp_AutoDeployment.cs" />
+    <Compile Include="Drones\Comps\DroneComp_ManualTargeting.cs" />
+    <Compile Include="Drones\Comps\DroneComp_EasiestEnemyTargeting.cs" />
+    <Compile Include="Drones\Comps\DroneComp_ManualDeployment.cs" />
+    <Compile Include="Drones\Comps\DroneComp_MassDeployment.cs" />
+    <Compile Include="Drones\Comps\DroneComp_ClosestEnemyTargeting.cs" />
+    <Compile Include="Drones\Comps\DroneComp_ParentPawnTargeting.cs" />
+    <Compile Include="Drones\Comps\DroneComp_ProjectileAttack.cs" />
+    <Compile Include="Drones\Drone.cs" />
+    <Compile Include="Drones\DroneComp.cs" />
+    <Compile Include="Drones\DroneDef.cs" />
+    <Compile Include="Drones\DroneEnums.cs" />
+    <Compile Include="Drones\DroneGraphicPackage.cs" />
+    <Compile Include="Drones\Hediff_DroneHandler.cs" />
     <Compile Include="Genes\AthenaGeneTemplateDef.cs" />
     <Compile Include="Genes\GeneGenerationHandler.cs" />
     <Compile Include="Harmony\HarmonyPatches_HideParts.cs" />
@@ -84,7 +99,7 @@
     <Compile Include="Things\CompPerquisiteEquippable.cs" />
     <Compile Include="Things\CompUsable\CompUsable_Module.cs" />
     <Compile Include="Things\CompUsable\CompUsable_HediffModule.cs" />
-    <Compile Include="Utilities\AthenaArmor.cs" />
+    <Compile Include="Utilities\AthenaCombatUtility.cs" />
     <Compile Include="Utilities\AthenaDefOf.cs" />
     <Compile Include="Utilities\PawnGroupUtility.cs" />
     <Compile Include="Utilities\PawnRegionUtility.cs" />
@@ -123,6 +138,7 @@
     <Compile Include="Things\MinPreySizeExtension.cs" />
     <Compile Include="Weapons\Projectiles\ProjectileComp_Bouncy.cs" />
     <Compile Include="Weapons\Projectiles\ProjectileComp_RoofCollapse.cs" />
+    <Compile Include="Weapons\Projectiles\ProjectileComp_Scattershot.cs" />
     <Compile Include="Weapons\Projectiles\ProjectileComp_ThingSpawner.cs" />
     <Compile Include="Weapons\Projectiles\ProjectileComp_Trail.cs" />
     <Compile Include="Things\HediffGiverExtension.cs" />
@@ -135,6 +151,7 @@
     <Compile Include="Weapons\AimAngleOffsetExtension.cs" />
     <Compile Include="Weapons\Projectiles\ProjectileComp_ImpactEffect.cs" />
     <Compile Include="Weapons\Tool_Detonation.cs" />
+    <Compile Include="Weapons\Verb_EliteShot.cs" />
     <Compile Include="Weapons\Verb_ShootMinigun.cs" />
     <Compile Include="Weapons\Verb_ShootRunningBeam.cs" />
   </ItemGroup>
