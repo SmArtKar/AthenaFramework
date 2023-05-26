@@ -6,12 +6,6 @@ using System.Threading.Tasks;
 
 namespace AthenaFramework
 {
-    public enum DroneDisplayType
-    {
-        Trail,          // Follows the pawn in a trail, multiple drones will extend the tail
-        Front           // Always in front of the pawn, smoothly changes its position when the pawn rotates. Multiple drones form a triangle structure
-    }
-
     public enum DroneRepairType
     {
         None,                // There's no way for the drone to recover health
