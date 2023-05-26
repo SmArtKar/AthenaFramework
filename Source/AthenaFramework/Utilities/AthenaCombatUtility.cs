@@ -239,6 +239,18 @@ namespace AthenaFramework
             return longAcc;
         }
 
+        public static Thing GetRandomCoverToMissInto(LocalTargetInfo target, IntVec3 firerPos, Map map)
+        {
+            List<CoverInfo> covers = CoverUtility.CalculateCoverGiverSet(target, firerPos, map);
+
+            if (covers.TryRandomElementByWeight((CoverInfo c) => c.BlockChance, out var result))
+            {
+                return result.Thing;
+            }
+
+            return null;
+        }
+
         #endregion
 
         #region ===== Shoot Lines =====

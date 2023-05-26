@@ -8,9 +8,9 @@ using RimWorld;
 
 namespace AthenaFramework
 {
-    public class HediffComp_PerquisiteHediff : HediffComp
+    public class HediffComp_PrerequisiteHediff : HediffComp
     {
-        private HediffCompProperties_PerquisiteHediff Props => props as HediffCompProperties_PerquisiteHediff;
+        private HediffCompProperties_PrerequisiteHediff Props => props as HediffCompProperties_PrerequisiteHediff;
 
         public override void CompPostTick(ref float severityAdjustment)
         {
@@ -21,13 +21,13 @@ namespace AthenaFramework
                 return;
             }
 
-            List<HediffDef> remainingDefs = new List<HediffDef>(Props.perquisites);
+            List<HediffDef> remainingDefs = new List<HediffDef>(Props.prerequisites);
 
             for (int i = Pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
             {
                 Hediff hediff = Pawn.health.hediffSet.hediffs[i];
 
-                if (Props.samePartPerquisites && parent.Part != hediff.Part)
+                if (Props.samePartPrerequisites && parent.Part != hediff.Part)
                 {
                     continue;
                 }
@@ -45,7 +45,7 @@ namespace AthenaFramework
 
             if (Props.replacementDef == null)
             {
-                Log.Error("Attempted to use HediffComp_PerquisiteHediff on " + parent.def.defName + " without specifying a replacementDef");
+                Log.Error("Attempted to use HediffComp_PrerequisiteHediff on " + parent.def.defName + " without specifying a replacementDef");
                 return;
             }
 
@@ -54,7 +54,7 @@ namespace AthenaFramework
 
             if (restorer == null)
             {
-                Log.Error("Attempted to use HediffComp_PerquisiteHediff on " + parent.def.defName + " with " + Props.replacementDef.defName + " missing HediffComp_HediffRestorer");
+                Log.Error("Attempted to use HediffComp_PrerequisiteHediff on " + parent.def.defName + " with " + Props.replacementDef.defName + " missing HediffComp_HediffRestorer");
                 return;
             }
 
@@ -64,13 +64,13 @@ namespace AthenaFramework
 
         public virtual bool ShouldReenable(Pawn pawn)
         {
-            List<HediffDef> remainingDefs = new List<HediffDef>(Props.perquisites);
+            List<HediffDef> remainingDefs = new List<HediffDef>(Props.prerequisites);
 
             for (int i = Pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
             {
                 Hediff hediff = Pawn.health.hediffSet.hediffs[i];
 
-                if (Props.samePartPerquisites && parent.Part != hediff.Part)
+                if (Props.samePartPrerequisites && parent.Part != hediff.Part)
                 {
                     continue;
                 }
@@ -90,37 +90,37 @@ namespace AthenaFramework
         }
     }
 
-    public class HediffCompProperties_PerquisiteHediff : HediffCompProperties
+    public class HediffCompProperties_PrerequisiteHediff : HediffCompProperties
     {
-        public HediffCompProperties_PerquisiteHediff()
+        public HediffCompProperties_PrerequisiteHediff()
         {
-            this.compClass = typeof(HediffComp_PerquisiteHediff);
+            this.compClass = typeof(HediffComp_PrerequisiteHediff);
         }
 
-        public List<HediffDef> perquisites;
-        // If hediff can be implanted without perquisites
-        public bool applyWithoutPerquisites = false;
-        // Wherever perquisite hediffs must be located on the same bodypart
-        public bool samePartPerquisites = false;
-        // If hediff should be disabled if one or multiple perquisites are missing
+        public List<HediffDef> prerequisites;
+        // If hediff can be implanted without prerequisites
+        public bool applyWithoutPrerequisites = false;
+        // Wherever prerequisite hediffs must be located on the same bodypart
+        public bool samePartPrerequisites = false;
+        // If hediff should be disabled if one or multiple prerequisites are missing
         public bool disableIfMissing = true;
         //Def of a hediff that will replace this hediff upon being disabled
         public HediffDef replacementDef;
 
         public virtual bool ValidSurgery(Recipe_Surgery recipe, Pawn pawn, BodyPartRecord part)
         {
-            if (applyWithoutPerquisites || perquisites == null)
+            if (applyWithoutPrerequisites || prerequisites == null)
             {
                 return true;
             }
 
-            List<HediffDef> remainingDefs = new List<HediffDef>(perquisites);
+            List<HediffDef> remainingDefs = new List<HediffDef>(prerequisites);
 
             for (int i = pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
             {
                 Hediff hediff = pawn.health.hediffSet.hediffs[i];
                 
-                if (samePartPerquisites && part != hediff.Part)
+                if (samePartPrerequisites && part != hediff.Part)
                 {
                     continue;
                 }

@@ -40,7 +40,7 @@ namespace AthenaFramework
         {
             base.CompExposeData();
 
-            if (Scribe.mode != LoadSaveMode.ResolvingCrossRefs)
+            if (Scribe.mode != LoadSaveMode.LoadingVars)
             {
                 return;
             }

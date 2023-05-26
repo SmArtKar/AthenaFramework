@@ -8,12 +8,13 @@ using RimWorld;
 using UnityEngine;
 using UnityEngine.UI;
 using Verse;
+using Verse.AI;
 using Verse.Sound;
 
 namespace AthenaFramework
 {
     [StaticConstructorOnStartup]
-    public class HediffComp_Modular : HediffComp, IStageOverride, IHediffGraphicGiver
+    public class HediffComp_Modular : HediffComp, IStageOverride, IHediffGraphicGiver //, IFloatMenu
     {
         private HediffCompProperties_Modular Props => props as HediffCompProperties_Modular;
 
@@ -152,6 +153,7 @@ namespace AthenaFramework
         {
             base.CompPostMake();
             moduleHolder = new ThingOwner<ThingWithComps>();
+            // AthenaCache.AddCache(this, AthenaCache.menuCache, Pawn.thingIDNumber);
         }
 
         public virtual HediffStage GetStage(HediffStage stage)
@@ -189,18 +191,25 @@ namespace AthenaFramework
             base.CompExposeData();
             Scribe_Deep.Look(ref moduleHolder, "moduleHolder");
 
-            if (Scribe.mode != LoadSaveMode.ResolvingCrossRefs)
+            if (Scribe.mode == LoadSaveMode.ResolvingCrossRefs)
             {
+                if (AthenaCache.renderCache.TryGetValue(Pawn.thingIDNumber, out List<IRenderable> mods))
+                {
+                    for (int i = mods.Count - 1; i >= 0; i--)
+                    {
+                        IRenderable renderable = mods[i];
+                        renderable.RecacheGraphicData();
+                    }
+                }
+
+                // AthenaCache.AddCache(this, AthenaCache.menuCache, Pawn.thingIDNumber);
+
                 return;
             }
 
-            if (AthenaCache.renderCache.TryGetValue(Pawn.thingIDNumber, out List<IRenderable> mods))
+            if (Scribe.mode != LoadSaveMode.LoadingVars)
             {
-                for (int i = mods.Count - 1; i >= 0; i--)
-                {
-                    IRenderable renderable = mods[i];
-                    renderable.RecacheGraphicData();
-                }
+                return;
             }
 
             if (moduleHolder == null)
@@ -220,6 +229,8 @@ namespace AthenaFramework
         public override void CompPostPostRemoved()
         {
             base.CompPostPostRemoved();
+
+            // AthenaCache.RemoveCache(this, AthenaCache.menuCache, Pawn.thingIDNumber);
 
             if (!Props.dropModulesOnRemoval)
             {
@@ -282,6 +293,47 @@ namespace AthenaFramework
             yield return ejectAction;
             yield break;
         }
+
+        /*
+
+        public IEnumerable<FloatMenuOption> ItemFloatMenuOptions(Pawn selPawn)
+        {
+            for (int i = selPawn.inventory.innerContainer.Count - 1; i >= 0; i--)
+            {
+                Thing item = selPawn.inventory.innerContainer[i];
+                CompUsable_HediffModule comp = item.TryGetComp<CompUsable_HediffModule>();
+                CompUseEffect_HediffModule module = item.TryGetComp<CompUseEffect_HediffModule>();
+
+                if (comp == null || module == null)
+                {
+                    continue;
+                }
+
+                List<ModuleSlotPackage> slots = GetOpenSlots(module);
+
+                for (int k = slots.Count - 1; k >= 0; k--)
+                {
+                    ModuleSlotPackage slot = slots[k];
+                    Action action = delegate ()
+                    {
+                        if (selPawn.CanReserveAndReach(Pawn, PathEndMode.Touch, Danger.Deadly, 1, -1, null, false))
+                        {
+                            StartModuleJob(pawn, comp, parentComp, slot, Props.ignoreOtherReservations);
+                        }
+                    };
+
+                    FloatMenuOption floatMenuOption = FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption(comp.FloatMenuOptionLabel(selPawn) + " (" + slots[k].slotName + ")", action), selPawn, Pawn, "ReservedBy", null);
+                    yield return floatMenuOption;
+                }
+            }
+
+            yield break;
+        }
+
+        public IEnumerable<FloatMenuOption> PawnFloatMenuOptions(ThingWithComps thing) { yield break; }
+
+        */
+
     }
 
     public class HediffCompProperties_Modular : HediffCompProperties

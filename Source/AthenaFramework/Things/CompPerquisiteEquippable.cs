@@ -8,15 +8,15 @@ using RimWorld;
 
 namespace AthenaFramework
 {
-    public class CompPerquisiteEquippable : ThingComp, IPreventEquip
+    public class CompPrerequisiteEquippable : ThingComp, IPreventEquip
     {
-        public CompProperties_PerquisiteEquippable Props => props as CompProperties_PerquisiteEquippable;
+        public CompProperties_PrerequisiteEquippable Props => props as CompProperties_PrerequisiteEquippable;
 
         public override void CompTickRare()
         {
             base.CompTickRare();
 
-            if (!Props.dropWithoutPerquisites)
+            if (!Props.dropWithoutPrerequisites)
             {
                 return;
             }
@@ -35,7 +35,7 @@ namespace AthenaFramework
                 return;
             }
 
-            List<HediffDef> remainingDefs = new List<HediffDef>(Props.perquisites);
+            List<HediffDef> remainingDefs = new List<HediffDef>(Props.prerequisites);
 
             for (int i = pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
             {
@@ -57,7 +57,7 @@ namespace AthenaFramework
 
         public bool PreventEquip(Pawn pawn, out string cantReason)
         {
-            List<HediffDef> remainingDefs = new List<HediffDef>(Props.perquisites);
+            List<HediffDef> remainingDefs = new List<HediffDef>(Props.prerequisites);
 
             for (int i = pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
             {
@@ -93,17 +93,17 @@ namespace AthenaFramework
         }
     }
 
-    public class CompProperties_PerquisiteEquippable : CompProperties
+    public class CompProperties_PrerequisiteEquippable : CompProperties
     {
-        public CompProperties_PerquisiteEquippable()
+        public CompProperties_PrerequisiteEquippable()
         {
-            this.compClass = typeof(CompPerquisiteEquippable);
+            this.compClass = typeof(CompPrerequisiteEquippable);
         }
 
-        // List of perquisite hediffs that are required for apparel to be equipped
-        public List<HediffDef> perquisites;
-        // If equipment should be dropped without perquisite hediffs
-        public bool dropWithoutPerquisites = false;
+        // List of prerequisite hediffs that are required for apparel to be equipped
+        public List<HediffDef> prerequisites;
+        // If equipment should be dropped without prerequisite hediffs
+        public bool dropWithoutPrerequisites = false;
         // Text that's displayed when required hediffs are missing
         public string cantReason = "Missing required hediffs";
     }

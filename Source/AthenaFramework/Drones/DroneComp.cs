@@ -71,6 +71,21 @@ namespace AthenaFramework
         {
             return (null, 0f);
         }
+
+        public virtual IntVec3? PositionOverride()
+        {
+            return null;
+        }
+
+        public virtual Vector3 DrawPosOffset()
+        {
+            return Vector3.zero;
+        }
+
+        public virtual bool DisableHoveringAnimation()
+        {
+            return false;
+        }
     }
 
     public class DroneCompProperties

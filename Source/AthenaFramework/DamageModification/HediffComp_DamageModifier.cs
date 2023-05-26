@@ -74,7 +74,7 @@ namespace AthenaFramework
         {
             base.CompExposeData();
 
-            if (Scribe.mode != LoadSaveMode.ResolvingCrossRefs)
+            if (Scribe.mode == LoadSaveMode.ResolvingCrossRefs)
             {
                 AthenaCache.AddCache(this, AthenaCache.damageCache, Pawn.thingIDNumber);
             }

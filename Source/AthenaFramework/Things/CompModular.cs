@@ -6,11 +6,12 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using Verse;
+using Verse.AI;
 
 namespace AthenaFramework
 {
     [StaticConstructorOnStartup]
-    public class CompModular : ThingComp, IEquippableGraphicGiver
+    public class CompModular : ThingComp, IEquippableGraphicGiver //, IFloatMenu
     {
         private CompProperties_Modular Props => props as CompProperties_Modular;
 
@@ -165,6 +166,7 @@ namespace AthenaFramework
         {
             base.PostPostMake();
             moduleHolder = new ThingOwner<ThingWithComps>();
+            // AthenaCache.AddCache(this, AthenaCache.menuCache, parent.thingIDNumber);
         }
 
         public override void PostExposeData()
@@ -172,18 +174,25 @@ namespace AthenaFramework
             base.PostExposeData();
             Scribe_Deep.Look(ref moduleHolder, "moduleHolder");
 
-            if (Scribe.mode != LoadSaveMode.ResolvingCrossRefs)
+            if (Scribe.mode == LoadSaveMode.ResolvingCrossRefs)
             {
+                if (AthenaCache.renderCache.TryGetValue(parent.thingIDNumber, out List<IRenderable> mods))
+                {
+                    for (int i = mods.Count - 1; i >= 0; i--)
+                    {
+                        IRenderable renderable = mods[i];
+                        renderable.RecacheGraphicData();
+                    }
+                }
+
+                // AthenaCache.AddCache(this, AthenaCache.menuCache, parent.thingIDNumber);
+
                 return;
             }
 
-            if (AthenaCache.renderCache.TryGetValue(parent.thingIDNumber, out List<IRenderable> mods))
+            if (Scribe.mode == LoadSaveMode.LoadingVars)
             {
-                for (int i = mods.Count - 1; i >= 0; i--)
-                {
-                    IRenderable renderable = mods[i];
-                    renderable.RecacheGraphicData();
-                }
+                return;
             }
 
             if (moduleHolder == null)
@@ -240,6 +249,8 @@ namespace AthenaFramework
         {
             base.PostDestroy(mode, previousMap);
 
+            // AthenaCache.RemoveCache(this, AthenaCache.menuCache, parent.thingIDNumber);
+
             if (!Props.dropModulesOnDestoy)
             {
                 return;
@@ -266,6 +277,46 @@ namespace AthenaFramework
             yield return ejectAction;
             yield break;
         }
+
+        /*
+
+        public IEnumerable<FloatMenuOption> ItemFloatMenuOptions(Pawn selPawn)
+        {
+            for (int i = selPawn.inventory.innerContainer.Count - 1; i >= 0; i--)
+            {
+                Thing item = selPawn.inventory.innerContainer[i];
+                CompUsable_Module comp = item.TryGetComp<CompUsable_Module>();
+                CompUseEffect_Module module = item.TryGetComp<CompUseEffect_Module>();
+
+                if (comp == null || module == null)
+                {
+                    continue;
+                }
+
+                List<ModuleSlotPackage> slots = GetOpenSlots(module);
+
+                for (int k = slots.Count - 1; k >= 0; k--)
+                {
+                    ModuleSlotPackage slot = slots[k];
+                    Action action = delegate ()
+                    {
+                        if (selPawn.CanReserveAndReach(parent, PathEndMode.Touch, Danger.Deadly, 1, -1, null, false))
+                        {
+                            StartModuleJob(pawn, comp, parentComp, slot, Props.ignoreOtherReservations);
+                        }
+                    };
+
+                    FloatMenuOption floatMenuOption = FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption(comp.FloatMenuOptionLabel(selPawn) + " (" + slots[k].slotName + ")", action), selPawn, parent, "ReservedBy", null);
+                    yield return floatMenuOption;
+                }
+            }
+
+            yield break;
+        }
+
+        public IEnumerable<FloatMenuOption> PawnFloatMenuOptions(ThingWithComps thing) { yield break; }
+
+        */
     }
 
     public class CompProperties_Modular : CompProperties

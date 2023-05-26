@@ -18,12 +18,12 @@ namespace AthenaFramework
 
             float hitChance = -1f;
             Pawn target = null;
-            HitChanceFlags hitFlags = HitChanceFlags.Gas | HitChanceFlags.Posture | HitChanceFlags.Weather | HitChanceFlags.Size | HitChanceFlags.Execution;
+            HitChanceFlags hitFlags = HitChanceFlags.Posture | HitChanceFlags.Gas | HitChanceFlags.Weather | HitChanceFlags.Size | HitChanceFlags.Execution;
 
             for (int i = hostiles.Count - 1; i >= 0; i--)
             {
                 Pawn potentialTarget = hostiles.Keys.ToList()[i];
-                float newHitChance = AthenaCombatUtility.GetHitChance(Pawn.PositionHeld, potentialTarget, hitFlags);
+                float newHitChance = AthenaCombatUtility.GetHitChance(parent.CurrentPosition, potentialTarget, hitFlags);
                 newHitChance *= parent.GetHitChance((float)Math.Sqrt(hostiles[potentialTarget]));
 
                 if (hitChance > newHitChance && target != null)
@@ -31,7 +31,7 @@ namespace AthenaFramework
                     continue;
                 }
 
-                if (Props.requireLineOfSight && !GenSight.LineOfSight(Pawn.PositionHeld, potentialTarget.PositionHeld, Pawn.MapHeld, true))
+                if (Props.requireLineOfSight && !GenSight.LineOfSight(parent.CurrentPosition, potentialTarget.PositionHeld, Pawn.Map, true))
                 {
                     continue;
                 }

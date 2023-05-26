@@ -124,11 +124,12 @@ namespace AthenaFramework
 
                     for (int k = slots.Count - 1; k >= 0; k--)
                     {
+                        ModuleSlotPackage slot = slots[k];
                         Action action = delegate ()
                         {
                             if (pawn.CanReserveAndReach(parent, PathEndMode.Touch, Danger.Deadly, 1, -1, null, Props.ignoreOtherReservations))
                             {
-                                StartModuleJob(pawn, comp, parentComp, slots[k], Props.ignoreOtherReservations);
+                                StartModuleJob(pawn, comp, parentComp, slot, Props.ignoreOtherReservations);
                             }
                         };
 

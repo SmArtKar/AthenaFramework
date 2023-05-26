@@ -87,6 +87,11 @@ namespace AthenaFramework
                 }
             }
 
+            if (multiplier == 1f && offset == 0f)
+            {
+                return;
+            }
+
             __instance.weaponDamageMultiplier = __instance.weaponDamageMultiplier * multiplier + offset / __instance.DamageAmount;
         }
     }

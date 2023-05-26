@@ -23,7 +23,7 @@ namespace AthenaFramework
         public ThingWithComps equipmentSource;
 
         // When set to false, drone won't be rendered and drone comps won't have ActiveTick method called
-        public bool active = true;
+        public bool active = false;
 
         public float health = 0;
         public List<DroneGraphicPackage> additionalGraphics;
@@ -147,7 +147,7 @@ namespace AthenaFramework
         {
             get
             {
-                if (currentTarget != null && currentTarget.IsValid)
+                if (currentTarget != null && currentTarget.IsValid && (!currentTarget.HasThing || currentTarget.Thing.Map == pawn.Map))
                 {
                     return currentTarget;
                 }
@@ -186,17 +186,58 @@ namespace AthenaFramework
             }
         }
 
+        public virtual Graphic DroneGraphic
+        {
+            get
+            {
+                return def.graphicData.Graphic;
+            }
+        }
+
         public virtual bool UseSecondary => useSecondary;
+
+        public virtual IntVec3 CurrentPosition
+        {
+            get
+            {
+                if (comps != null)
+                {
+                    for (int i = comps.Count - 1; i >= 0; i--)
+                    {
+                        IntVec3? overridePosition = comps[i].PositionOverride();
+
+                        if (overridePosition != null)
+                        {
+                            return overridePosition.Value;
+                        }
+                    }
+                }
+
+                return pawn.PositionHeld;
+            }
+        }
+
+        public virtual Vector3 DrawPos
+        {
+            get
+            {
+                Vector3 drawPos = pawn.DrawPos;
+                drawPos.y = def.defaultLayer.AltitudeFor();
+
+                if (comps != null)
+                {
+                    for (int i = comps.Count - 1; i >= 0; i--)
+                    {
+                        drawPos += comps[i].DrawPosOffset();
+                    }
+                }
+
+                return drawPos;
+            }
+        }
 
         public Drone()
         {
-        }
-
-        public Drone(DroneDef def)
-        {
-            this.def = def;
-            health = def.maxHealth;
-            Initialize();
         }
 
         public Drone(Pawn pawn, DroneDef def)
@@ -212,6 +253,22 @@ namespace AthenaFramework
         public virtual void Initialize()
         {
             InitializeComps();
+            SetupOnPawn();
+        }
+
+        public virtual void SetupOnPawn()
+        {
+            handlerHediff = pawn.health.AddHediff(AthenaDefOf.Athena_DroneHandler) as Hediff_DroneHandler;
+            handlerHediff.drone = this;
+            Deploy();
+        }
+
+        public virtual void CleanRemove() // Used for when the drone is intended to be stored somewhere instead of destroyed
+        {
+            Recall();
+            handlerHediff.CleanRemove();
+            handlerHediff = null;
+            pawn = null;
         }
 
         public virtual void InitializeComps()
@@ -271,7 +328,14 @@ namespace AthenaFramework
 
         public virtual void ExposeData()
         {
-            if (Scribe.mode == LoadSaveMode.ResolvingCrossRefs)
+            Scribe_Defs.Look(ref def, "def");
+            Scribe_References.Look(ref equipmentSource, "equipmentSource");
+            Scribe_References.Look(ref pawn, "pawn");
+            Scribe_References.Look(ref handlerHediff, "handlerHediff");
+            Scribe_Values.Look(ref active, "active");
+            Scribe_Values.Look(ref health, "health");
+
+            if (Scribe.mode == LoadSaveMode.ResolvingCrossRefs && active)
             {
                 InitializeComps();
                 AthenaCache.AddCache(this, AthenaCache.responderCache, pawn.thingIDNumber);
@@ -518,8 +582,29 @@ namespace AthenaFramework
             health = Math.Max(health, MaxHealth);
         }
 
+        public virtual bool DisableHoveringAnimation()
+        {
+
+            if (comps != null)
+            {
+                for (int i = comps.Count - 1; i >= 0; i--)
+                {
+                    if (comps[i].DisableHoveringAnimation())
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
         public virtual void DrawAt(Vector3 drawPos, BodyTypeDef bodyType)
         {
+            drawPos += DrawPos - pawn.DrawPos; //Gets purely offsets without the initial draw pos
+
+            DroneGraphic.Draw(drawPos, pawn.Rotation, pawn);
+
             DrawSecondaries(drawPos, bodyType);
 
             if (comps != null)
@@ -591,7 +676,7 @@ namespace AthenaFramework
             for (int i = additionalGraphics.Count - 1; i >= 0; i++)
             {
                 DroneGraphicPackage package = additionalGraphics[i];
-                
+
                 if (package.firstMask == DronePackageColor.PrimaryColor || package.secondMask == DronePackageColor.PrimaryColor)
                 {
                     usePrimary = true;

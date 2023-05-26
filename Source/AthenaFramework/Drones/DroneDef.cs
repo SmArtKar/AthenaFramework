@@ -13,6 +13,7 @@ namespace AthenaFramework
         public Type droneClass;
 
         public GraphicData graphicData;
+        public AltitudeLayer defaultLayer = AltitudeLayer.MoteOverheadLow;
 
         // Drone's stats, like their damage resistances
         public List<StatModifier> statBases;
@@ -32,9 +33,6 @@ namespace AthenaFramework
 
         // How does the drone recover its health
         public DroneRepairType repairType = DroneRepairType.None;
-
-        // How is the drone displayed
-        public DroneDisplayType displayType = DroneDisplayType.Shoulder;
 
         // How likely the drone is to intercept a hit intended for its owner
         public float hitInterceptChance = 0f;

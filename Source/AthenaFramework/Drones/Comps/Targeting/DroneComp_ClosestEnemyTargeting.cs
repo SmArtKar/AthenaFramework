@@ -28,7 +28,7 @@ namespace AthenaFramework
                     continue;
                 }
 
-                if (Props.requireLineOfSight && !GenSight.LineOfSight(Pawn.PositionHeld, potentialTarget.PositionHeld, Pawn.MapHeld, true))
+                if (Props.requireLineOfSight && !GenSight.LineOfSight(parent.CurrentPosition, potentialTarget.PositionHeld, Pawn.Map, true))
                 {
                     continue;
                 }

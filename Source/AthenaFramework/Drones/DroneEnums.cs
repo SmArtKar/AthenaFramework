@@ -8,14 +8,8 @@ namespace AthenaFramework
 {
     public enum DroneDisplayType
     {
-        None,           // Drone isn't rendered
-        Firefly,        // Drone randomly smoothly flies around the owner, sometimes going behind their back
-        Shoulder,       // Drone flies slightly above and to the side of the owner. Multiple drones with this setting will extend into horizontal lines
-        ShoulderAbove,  // Same as above, but always above the pawn
-        Circling,       // Orbits around the pawn horizontally
-        CirclingAbove,  // Circles above the pawns head above them
         Trail,          // Follows the pawn in a trail, multiple drones will extend the tail
-        Front           // Always in front of the pawn, smoothly changes its position when the pawn rotates
+        Front           // Always in front of the pawn, smoothly changes its position when the pawn rotates. Multiple drones form a triangle structure
     }
 
     public enum DroneRepairType

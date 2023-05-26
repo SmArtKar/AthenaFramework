@@ -67,14 +67,17 @@ namespace AthenaFramework
                 if (bodyDrawType == RotDrawMode.Dessicated && !__instance.pawn.RaceProps.Humanlike && __instance.graphics.dessicatedGraphic != null && !flags.FlagSet(PawnRenderFlags.Portrait))
                 {
                     bodyMesh = null;
+                    Log.Message("DISABLING BODY 1");
                 }
                 else if (__instance.pawn.RaceProps.Humanlike)
                 {
                     bodyMesh = HumanlikeMeshPoolUtility.GetHumanlikeBodySetForPawn(__instance.pawn).MeshAt(facing);
+                    Log.Message("DISABLING BODY 2"); 
                 }
                 else
                 {
                     bodyMesh = __instance.graphics.nakedGraphic.MeshAt(facing);
+                    Log.Message("DISABLING BODY 3");
                 }
 
                 return false;

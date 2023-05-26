@@ -93,7 +93,7 @@ namespace AthenaFramework
 
             for (int i = def.comps.Count - 1; i >= 0; i--)
             {
-                HediffCompProperties_PerquisiteHediff comp = def.comps[i] as HediffCompProperties_PerquisiteHediff;
+                HediffCompProperties_PrerequisiteHediff comp = def.comps[i] as HediffCompProperties_PrerequisiteHediff;
 
                 if (comp == null)
                 {

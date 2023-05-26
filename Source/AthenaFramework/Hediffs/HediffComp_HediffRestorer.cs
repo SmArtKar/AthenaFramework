@@ -79,7 +79,7 @@ namespace AthenaFramework
 
             for (int i = hediffToRestore.comps.Count - 1; i >= 0; i--)
             {
-                HediffComp_PerquisiteHediff comp = hediffToRestore.comps[i] as HediffComp_PerquisiteHediff;
+                HediffComp_PrerequisiteHediff comp = hediffToRestore.comps[i] as HediffComp_PrerequisiteHediff;
 
                 if (!comp.ShouldReenable(Pawn))
                 {

@@ -53,7 +53,7 @@ namespace AthenaFramework
 
         public override (LocalTargetInfo, float) GetNewTarget()
         {
-            if (!storedTarget.IsValid || (Props.requireLineOfSight && !GenSight.LineOfSight(Pawn.PositionHeld, storedTarget.Cell, Pawn.MapHeld, true)))
+            if (!storedTarget.IsValid || (Props.requireLineOfSight && !GenSight.LineOfSight(parent.CurrentPosition, storedTarget.Cell, Pawn.Map, true)))
             {
                 storedTarget = null;
             }

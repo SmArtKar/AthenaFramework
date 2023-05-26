@@ -56,7 +56,20 @@ namespace AthenaFramework
         public override void PostRemoved()
         {
             base.PostRemoved();
+
+            if (drone == null)
+            {
+                return;
+            }
+
+            drone.Recall();
             drone.OnDestroyed();
+        }
+
+        public virtual void CleanRemove()
+        {
+            drone = null;
+            pawn.health.RemoveHediff(this);
         }
     }
 }
