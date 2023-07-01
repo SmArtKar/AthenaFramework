@@ -49,7 +49,7 @@ namespace AthenaFramework
         public override IEnumerable<FloatMenuOption> CompFloatMenuOptions(Pawn pawn)
         {
             string text;
-            string label = FloatMenuOptionLabel(pawn);
+            string label = "Install {0}".Formatted(parent.Label);
 
             if (!CanBeUsedBy(pawn, out text))
             {
@@ -128,7 +128,14 @@ namespace AthenaFramework
                             }
                         };
 
-                        FloatMenuOption floatMenuOption = FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption(label + (hediff.Part != null && hediff.Part.Label != null ? " (" + hediff.Part.Label + ")" : "") + " (" + slots[k].slotName + ")", action, Icon, IconColor, Props.floatMenuOptionPriority, null, null, 0f, null, null, true, 0, HorizontalJustification.Left, false), pawn, parent, "ReservedBy", null);
+                        string labeled = "Install {0} in {1} ({2})".Formatted(parent.Label, hediff.Label, slots[k].slotName);
+
+                        if (hediff.Part != null && hediff.Part.Label != null)
+                        {
+                            labeled = "Install {0} in {1} ({2}, {3})".Formatted(parent.Label, hediff.Label, hediff.Part.Label, slots[k].slotName);
+                        }
+
+                        FloatMenuOption floatMenuOption = FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption(labeled, action, Icon, IconColor, Props.floatMenuOptionPriority, null, null, 0f, null, null, true, 0, HorizontalJustification.Left, false), pawn, parent, "ReservedBy", null);
                         yield return floatMenuOption;
                     }
                 }
@@ -139,7 +146,7 @@ namespace AthenaFramework
 
         public virtual void StartModuleJob(Pawn pawn, HediffComp_Modular modular, CompUseEffect_HediffModule parentComp, ModuleSlotPackage slot, bool forced = false)
         {
-            parentComp.comp = modular;
+            parentComp.ownerHediff = modular.parent;
             parentComp.usedSlot = slot.slotID;
             TryStartUseJob(pawn, null, forced);
         }

@@ -12,8 +12,15 @@ namespace AthenaFramework
     {
         private DroneCompProperties_EasiestEnemyTargeting Props => props as DroneCompProperties_EasiestEnemyTargeting;
 
-        public override (LocalTargetInfo, float) GetNewTarget()
+        public override void ActiveTick()
         {
+            base.ActiveTick();
+
+            if (!Pawn.IsHashIntervalTick(Props.searchInterval))
+            {
+                return;
+            }
+
             Dictionary<Pawn, float> hostiles = PawnRegionUtility.NearbyPawnsDistances(Pawn, Props.rangeOverride ?? parent.EnemyDetectionRange, hostiles: true);
 
             float hitChance = -1f;
@@ -23,8 +30,8 @@ namespace AthenaFramework
             for (int i = hostiles.Count - 1; i >= 0; i--)
             {
                 Pawn potentialTarget = hostiles.Keys.ToList()[i];
-                float newHitChance = AthenaCombatUtility.GetHitChance(parent.CurrentPosition, potentialTarget, hitFlags);
-                newHitChance *= parent.GetHitChance((float)Math.Sqrt(hostiles[potentialTarget]));
+                float newHitChance = AthenaCombatUtility.GetRangedHitChance(parent.CurrentPosition, potentialTarget, hitFlags);
+                newHitChance *= parent.GetRangedHitChance((float)Math.Sqrt(hostiles[potentialTarget]));
 
                 if (hitChance > newHitChance && target != null)
                 {
@@ -40,7 +47,10 @@ namespace AthenaFramework
                 target = potentialTarget;
             }
 
-            return (target, Props.targetPriority);
+            if (target != null)
+            {
+                parent.SetTarget(target, Props.targetPriority);
+            }
         }
     }
 
@@ -49,6 +59,10 @@ namespace AthenaFramework
         public float targetPriority = 20f;
         public float? rangeOverride;
         public bool requireLineOfSight = true;
+
+        // How often (in ticks) will the comp try to find a new target
+
+        public int searchInterval = 15;
 
         public DroneCompProperties_EasiestEnemyTargeting()
         {

@@ -17,7 +17,7 @@ namespace AthenaFramework
         {
             base.CompPostPostAdd(dinfo);
 
-            for (int i = Props.abilityDefs.Count; i >= 0; i--)
+            for (int i = Props.abilityDefs.Count - 1; i >= 0; i--)
             {
                 Ability ability = parent.pawn.abilities.GetAbility(Props.abilityDefs[i]);
 

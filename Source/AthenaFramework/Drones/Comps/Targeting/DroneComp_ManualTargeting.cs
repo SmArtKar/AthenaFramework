@@ -13,7 +13,10 @@ namespace AthenaFramework
     {
         public DroneCompProperties_ManualTargeting Props => props as DroneCompProperties_ManualTargeting;
 
-        public LocalTargetInfo storedTarget;
+        public virtual void ApplyTarget(LocalTargetInfo target)
+        {
+            parent.SetTarget(target, Props.targetPriority);
+        }
 
         public override void OnDeployed()
         {
@@ -50,23 +53,11 @@ namespace AthenaFramework
 
             Pawn.abilities.RemoveAbility(Props.targeterAbility);
         }
-
-        public override (LocalTargetInfo, float) GetNewTarget()
-        {
-            if (!storedTarget.IsValid || (Props.requireLineOfSight && !GenSight.LineOfSight(parent.CurrentPosition, storedTarget.Cell, Pawn.Map, true)))
-            {
-                storedTarget = null;
-            }
-
-            return (storedTarget, Props.targetPriority);
-        }
     }
 
     public class DroneCompProperties_ManualTargeting : DroneCompProperties
     {
         public float targetPriority = 100f;
-        public float? rangeOverride;
-        public bool requireLineOfSight = true;
         public AbilityDef targeterAbility;
 
         public DroneCompProperties_ManualTargeting()

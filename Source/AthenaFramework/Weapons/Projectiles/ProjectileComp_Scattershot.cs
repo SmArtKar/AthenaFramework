@@ -21,7 +21,6 @@ namespace AthenaFramework
                 return;
             }
 
-
             AngularShotgunExtension extension = Projectile.def.GetModExtension<AngularShotgunExtension>();
 
             if (extension == null)

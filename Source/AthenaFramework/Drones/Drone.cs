@@ -21,6 +21,7 @@ namespace AthenaFramework
         public Pawn pawn;
         public Hediff_DroneHandler handlerHediff;
         public ThingWithComps equipmentSource;
+        public HediffWithComps hediffSource;
 
         // When set to false, drone won't be rendered and drone comps won't have ActiveTick method called
         public bool active = false;
@@ -36,6 +37,7 @@ namespace AthenaFramework
         public Command_Action paletteAction;
 
         public LocalTargetInfo currentTarget;
+        public float currentTargetPriority = 0f;
 
         public string Label
         {
@@ -143,46 +145,19 @@ namespace AthenaFramework
             }
         }
 
-        public virtual LocalTargetInfo CurrentTarget
-        {
-            get
-            {
-                if (currentTarget != null && currentTarget.IsValid && (!currentTarget.HasThing || currentTarget.Thing.Map == pawn.Map))
-                {
-                    return currentTarget;
-                }
-
-                currentTarget = null;
-                float targetPriority = 0f;
-
-                if (comps != null)
-                {
-                    for (int i = comps.Count - 1; i >= 0; i--)
-                    {
-                        (LocalTargetInfo, float) returnedTarget = comps[i].GetNewTarget();
-
-                        if (returnedTarget.Item1 != null && returnedTarget.Item2 > targetPriority)
-                        {
-                            currentTarget = returnedTarget.Item1;
-                            targetPriority = returnedTarget.Item2;
-                        }
-                    }
-                }
-
-                return currentTarget;
-            }
-
-            set
-            {
-                currentTarget = value;
-            }
-        }
-
         public virtual ThingWithComps EquipmentSource
         {
             get
             {
                 return equipmentSource;
+            }
+        }
+
+        public virtual HediffWithComps HediffSource
+        {
+            get
+            {
+                return hediffSource;
             }
         }
 
@@ -233,6 +208,14 @@ namespace AthenaFramework
                 }
 
                 return drawPos;
+            }
+        }
+
+        public virtual LocalTargetInfo CurrentTarget
+        {
+            get
+            {
+                return currentTarget;
             }
         }
 
@@ -330,6 +313,7 @@ namespace AthenaFramework
         {
             Scribe_Defs.Look(ref def, "def");
             Scribe_References.Look(ref equipmentSource, "equipmentSource");
+            Scribe_References.Look(ref hediffSource, "hediffSource");
             Scribe_References.Look(ref pawn, "pawn");
             Scribe_References.Look(ref handlerHediff, "handlerHediff");
             Scribe_Values.Look(ref active, "active");
@@ -352,7 +336,7 @@ namespace AthenaFramework
 
         public virtual void Tick()
         {
-            if (active)
+            if (active && pawn.Spawned)
             {
                 ActiveTick();
             }
@@ -407,26 +391,6 @@ namespace AthenaFramework
             }
         }
 
-        public virtual void ResetTarget()
-        {
-            currentTarget = null;
-            float targetPriority = 0f;
-
-            if (comps != null)
-            {
-                for (int i = comps.Count - 1; i >= 0; i--)
-                {
-                    (LocalTargetInfo, float) returnedTarget = comps[i].GetNewTarget();
-
-                    if (returnedTarget.Item1 != null && returnedTarget.Item2 > targetPriority)
-                    {
-                        currentTarget = returnedTarget.Item1;
-                        targetPriority = returnedTarget.Item2;
-                    }
-                }
-            }
-        }
-
         public virtual void PreApplyDamage(ref DamageInfo dinfo, ref bool absorbed)
         {
             float hitChance = HitInterceptChance;
@@ -467,6 +431,19 @@ namespace AthenaFramework
                 }
 
                 hitChance *= def.directionalHitChanceMultipliers[(int)Rot4.GetRelativeRotation(pawn.Rotation, hitDir)];
+            }
+
+            if (comps != null)
+            {
+                for (int i = comps.Count - 1; i >= 0; i--)
+                {
+                    comps[i].PrePawnApplyDamage(ref dinfo, ref hitChance, ref absorbed);
+
+                    if (absorbed)
+                    {
+                        return;
+                    }
+                }
             }
 
             if (!Rand.Chance(hitChance))
@@ -722,9 +699,36 @@ namespace AthenaFramework
             }
         }
 
-        public virtual float GetHitChance(float distance)
+        public virtual float GetRangedHitChance(float distance)
         {
             return AthenaCombatUtility.DistanceToAccuracy(distance, TryGetStat(StatDefOf.AccuracyTouch), TryGetStat(StatDefOf.AccuracyShort), TryGetStat(StatDefOf.AccuracyMedium), TryGetStat(StatDefOf.AccuracyLong));
+        }
+
+        public virtual bool SetTarget(LocalTargetInfo newTarget, float targetPriority = -1f)
+        {
+            if (targetPriority != -1 && targetPriority < currentTargetPriority)
+            {
+                return false;
+            }
+
+            if (currentTarget == newTarget)
+            {
+                return true;
+            }
+
+            currentTarget = newTarget;
+
+            if (comps == null)
+            {
+                return true;
+            }
+
+            for (int i = comps.Count - 1; i >= 0; i--)
+            {
+                comps[i].TargetUpdate();
+            }
+
+            return true;
         }
     }
 }

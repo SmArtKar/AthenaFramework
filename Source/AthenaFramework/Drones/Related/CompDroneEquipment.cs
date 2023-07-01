@@ -22,6 +22,7 @@ namespace AthenaFramework
             {
                 drone = new Drone(pawn, Props.droneDef);
                 droneHediff = drone.handlerHediff;
+                drone.equipmentSource = parent;
                 return;
             }
 

@@ -7,6 +7,11 @@
         <description>A handler hediff for {0}. Players should not see this.</description>
         <hediffClass>AthenaFramework.Hediff_DroneHandler</hediffClass>
         <isBad>false</isBad>
+        <stages>
+            <li>
+                <becomeVisible>false</becomeVisible>
+            </li>
+        </stages>
     </HediffDef>
 
 </Defs>

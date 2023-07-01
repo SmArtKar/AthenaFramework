@@ -135,6 +135,12 @@ namespace AthenaFramework
             for (int i = 0; i < points.Count; i++)
             {
                 IntVec3 targetPosition = points[i];
+
+                if (!targetPosition.IsValid)
+                {
+                    continue;
+                }
+
                 if (targetPosition == startPosition)
                 {
                     cellList.Add(targetPosition);

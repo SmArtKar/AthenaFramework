@@ -20,7 +20,14 @@ namespace AthenaFramework
             {
                 if (cachedExtension == null)
                 {
-                    cachedExtension = EquipmentSource.def.GetModExtension<MinigunExtension>();
+                    if (HediffSource != null)
+                    {
+                        cachedExtension = HediffSource.def.GetModExtension<MinigunExtension>();
+                    }
+                    else
+                    {
+                        cachedExtension = EquipmentSource.def.GetModExtension<MinigunExtension>();
+                    }
                 }
 
                 return cachedExtension;

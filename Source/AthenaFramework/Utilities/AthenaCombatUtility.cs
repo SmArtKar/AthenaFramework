@@ -114,7 +114,7 @@ namespace AthenaFramework
 
         #region ===== Ranged Weapon Calculations =====
 
-        public static float GetHitChance(IntVec3 aimPosition, Thing target, HitChanceFlags hitFlags, Thing caster = null)
+        public static float GetRangedHitChance(IntVec3 aimPosition, Thing target, HitChanceFlags hitFlags, Thing caster = null)
         {
             float hitChance = 1f;
             float offset = 0f;
@@ -377,6 +377,12 @@ namespace AthenaFramework
             for (int j = 0; j < points.Count; j++)
             {
                 IntVec3 targetPosition = points[j];
+
+                if (!targetPosition.IsValid)
+                {
+                    continue;
+                }
+
                 if (targetPosition == shooterPosition) //Prevents the caster from shooting himself
                 {
                     continue;
@@ -420,7 +426,7 @@ namespace AthenaFramework
                     }
                     else
                     {
-                        if (Rand.Chance(GetHitChance(shooterPosition, pawnTarget, hitFlags, caster)))
+                        if (Rand.Chance(GetRangedHitChance(shooterPosition, pawnTarget, hitFlags, caster)))
                         {
                             newTarget = pawnTarget;
                             break;
@@ -435,6 +441,113 @@ namespace AthenaFramework
             }
 
             return newTarget;
+        }
+
+        #endregion
+
+        #region ===== Melee Weapon Calculations =====
+
+        public static float GetDodgeChance(LocalTargetInfo target)
+        {
+            if (IsTargetImmobile(target))
+            {
+                return 0f;
+            }
+
+            Pawn pawn = target.Pawn;
+
+            if (pawn == null)
+            {
+                return 0f;
+            }
+
+            if (pawn.stances.curStance is Stance_Busy stance_Busy && stance_Busy.verb != null && !stance_Busy.verb.verbProps.IsMeleeAttack)
+            {
+                return 0f;
+            }
+
+            float dodgeChance = pawn.GetStatValue(StatDefOf.MeleeDodgeChance);
+
+            if (ModsConfig.IdeologyActive)
+            {
+                if (DarknessCombatUtility.IsOutdoorsAndLit(target.Thing))
+                {
+                    dodgeChance += pawn.GetStatValue(StatDefOf.MeleeDodgeChanceOutdoorsLitOffset);
+                }
+                else if (DarknessCombatUtility.IsOutdoorsAndDark(target.Thing))
+                {
+                    dodgeChance += pawn.GetStatValue(StatDefOf.MeleeDodgeChanceOutdoorsDarkOffset);
+                }
+                else if (DarknessCombatUtility.IsIndoorsAndDark(target.Thing))
+                {
+                    dodgeChance += pawn.GetStatValue(StatDefOf.MeleeDodgeChanceIndoorsDarkOffset);
+                }
+                else if (DarknessCombatUtility.IsIndoorsAndLit(target.Thing))
+                {
+                    dodgeChance += pawn.GetStatValue(StatDefOf.MeleeDodgeChanceIndoorsLitOffset);
+                }
+            }
+
+            return dodgeChance;
+        }
+
+        public static bool IsTargetImmobile(LocalTargetInfo target)
+        {
+            Thing thing = target.Thing;
+            Pawn pawn = thing as Pawn;
+
+            if (thing.def.category == ThingCategory.Pawn && !pawn.Downed)
+            {
+                return pawn.GetPosture() != PawnPosture.Standing;
+            }
+
+            return true;
+        }
+
+        public static void ApplyMeleeSlaveSuppression(Pawn attacker, Pawn target, float damageDealt)
+        {
+            if (!attacker.IsColonist || attacker.IsSlave)
+            {
+                return;
+            }
+
+            if (!target.IsSlaveOfColony || !target.health.capacities.CanBeAwake)
+            {
+                return;
+            }
+
+            SlaveRebellionUtility.IncrementMeleeSuppression(attacker, target, damageDealt);
+        }
+
+        public static float GetMeleeHitChance(Pawn attacker, LocalTargetInfo target)
+        {
+            if (IsTargetImmobile(target))
+            {
+                return 1f;
+            }
+
+            float num = attacker.GetStatValue(StatDefOf.MeleeHitChance);
+
+            if (ModsConfig.IdeologyActive && target.HasThing)
+            {
+                if (DarknessCombatUtility.IsOutdoorsAndLit(target.Thing))
+                {
+                    num += attacker.GetStatValue(StatDefOf.MeleeHitChanceOutdoorsLitOffset);
+                }
+                else if (DarknessCombatUtility.IsOutdoorsAndDark(target.Thing))
+                {
+                    num += attacker.GetStatValue(StatDefOf.MeleeHitChanceOutdoorsDarkOffset);
+                }
+                else if (DarknessCombatUtility.IsIndoorsAndDark(target.Thing))
+                {
+                    num += attacker.GetStatValue(StatDefOf.MeleeHitChanceIndoorsDarkOffset);
+                }
+                else if (DarknessCombatUtility.IsIndoorsAndLit(target.Thing))
+                {
+                    num += attacker.GetStatValue(StatDefOf.MeleeHitChanceIndoorsLitOffset);
+                }
+            }
+            return num;
         }
 
         #endregion

@@ -15,9 +15,23 @@ namespace AthenaFramework
         protected Apparel Apparel => parent as Apparel;
         protected Pawn Wearer => Apparel.Wearer;
 
-        public virtual bool PreventBodytype(BodyTypeDef bodyType)
+        public virtual bool CustomApparelTexture(BodyTypeDef bodyType, Apparel apparel, ref ApparelGraphicRecord rec)
         {
-            return Props.preventBodytype;
+            if (apparel.WornGraphicPath.NullOrEmpty())
+            {
+                return false;
+            }
+
+            Shader shader = ShaderDatabase.Cutout;
+            if (apparel.def.apparel.useWornGraphicMask)
+            {
+                shader = ShaderDatabase.CutoutComplex;
+            }
+
+            Graphic graphic = GraphicDatabase.Get<Graphic_Multi>(apparel.WornGraphicPath, shader, apparel.def.graphicData.drawSize, apparel.DrawColor);
+            rec = new ApparelGraphicRecord(graphic, apparel);
+
+            return true;
         }
 
         public virtual bool HideBody

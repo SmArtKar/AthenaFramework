@@ -20,6 +20,19 @@ namespace AthenaFramework
 
         public override int ShotsPerBurst => verbProps.burstShotCount;
 
+        public AngularShotgunExtension ShotgunExtension
+        {
+            get
+            {
+                if (HediffSource != null)
+                {
+                    return HediffSource.def.GetModExtension<AngularShotgunExtension>();
+                }
+
+                return EquipmentSource.def.GetModExtension<AngularShotgunExtension>();
+            }
+        }
+
         public override void WarmupComplete()
         {
             base.WarmupComplete();
@@ -51,7 +64,7 @@ namespace AthenaFramework
             cachedCasterPosition = caster.Position;
             cachedTargetPosition = target.Cell;
 
-            AngularShotgunExtension extension = EquipmentSource.def.GetModExtension<AngularShotgunExtension>();
+            AngularShotgunExtension extension = ShotgunExtension;
             float angle = (float)Math.Acos(Vector2.Dot((new Vector2(target.Cell.x, target.Cell.z) - new Vector2(caster.Position.x, caster.Position.z)).normalized, new Vector2(1, 0)));
             float pelletAngle = (float)(extension.pelletAngle * (Math.PI) / 180);
             float pelletAngleAmount = (extension.pelletCount - 1) / 2;
@@ -87,6 +100,12 @@ namespace AthenaFramework
             for (int i = 0; i < points.Count; i++)
             {
                 IntVec3 targetPosition = points[i];
+
+                if (!targetPosition.IsValid) 
+                { 
+                    continue; 
+                }
+
                 if (targetPosition == startPosition)
                 {
                     cellList.Add(targetPosition);
@@ -135,11 +154,11 @@ namespace AthenaFramework
                 return false;
             }
 
-            AngularShotgunExtension extension = EquipmentSource.def.GetModExtension<AngularShotgunExtension>();
+            AngularShotgunExtension extension = ShotgunExtension;
 
             if (extension == null)
             {
-                Log.Error(String.Format("{0} attempted to use Verb_ShootAngularShotgun without an AngularShotgunExtension mod extension", EquipmentSource.def.defName));
+                Log.Error(String.Format("{0} attempted to use Verb_ShootAngularShotgun without an AngularShotgunExtension mod extension", HediffSource == null ? EquipmentSource.def.defName : HediffSource.def.defName));
                 return false;
             }
 

@@ -14,7 +14,8 @@ namespace AthenaFramework
         private new CompProperties_UseEffectHediffModule Props => props as CompProperties_UseEffectHediffModule;
 
         public string usedSlot;
-        public HediffComp_Modular comp;
+        public HediffComp_Modular ownerComp;
+        public HediffWithComps ownerHediff;
         public List<HediffComp> linkedComps = new List<HediffComp>();
         public List<Hediff> linkedHediffs = new List<Hediff>();
 
@@ -58,18 +59,38 @@ namespace AthenaFramework
             }
         }
 
-        public virtual ModuleSlotPackage GetSlot
+        public virtual HediffComp_Modular OwnerComp
         {
             get
             {
-                if (comp == null)
+                if (ownerComp != null)
+                {
+                    return ownerComp;
+                }
+
+                if (ownerHediff == null)
                 {
                     return null;
                 }
 
-                for (int i = comp.GetAllSlots.Count - 1; i >= 0; i--)
+                ownerComp = ownerHediff.TryGetComp<HediffComp_Modular>();
+
+                return ownerComp;
+            }
+        }
+
+        public virtual ModuleSlotPackage GetSlot
+        {
+            get
+            {
+                if (OwnerComp == null)
                 {
-                    ModuleSlotPackage slot = comp.GetAllSlots[i];
+                    return null;
+                }
+
+                for (int i = OwnerComp.GetAllSlots.Count - 1; i >= 0; i--)
+                {
+                    ModuleSlotPackage slot = OwnerComp.GetAllSlots[i];
 
                     if (slot.slotID == usedSlot)
                     {
@@ -152,11 +173,18 @@ namespace AthenaFramework
         public override void PostExposeData()
         {
             base.PostExposeData();
+            Scribe_References.Look(ref ownerHediff, "ownerHediff");
+            Scribe_Values.Look(ref usedSlot, "usedSlot");
             Scribe_Collections.Look(ref linkedHediffs, "linkedHediffs", LookMode.Reference);
         }
 
         public virtual void PostInit(HediffComp_Modular holder)
         {
+            if (Props.comps == null)
+            {
+                return;
+            }
+
             for (int i = Props.comps.Count - 1; i >= 0; i--)
             {
                 HediffComp hediffComp = null;
@@ -193,13 +221,14 @@ namespace AthenaFramework
 
         public override void DoEffect(Pawn user)
         {
-            if (comp == null || comp.parent == null || comp.Pawn == null)
+            if (OwnerComp == null || OwnerComp.parent == null || OwnerComp.Pawn == null)
             {
-                comp = null;
+                ownerComp = null;
+                ownerHediff = null;
                 return;
             }
 
-            comp.InstallModule(parent);
+            OwnerComp.InstallModule(parent);
         }
 
         public override bool CanBeUsedBy(Pawn pawn, out string failReason)

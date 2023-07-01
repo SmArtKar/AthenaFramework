@@ -11,8 +11,15 @@ namespace AthenaFramework
     {
         private DroneCompProperties_ClosestEnemyTargeting Props => props as DroneCompProperties_ClosestEnemyTargeting;
 
-        public override (LocalTargetInfo, float) GetNewTarget()
+        public override void ActiveTick()
         {
+            base.ActiveTick();
+
+            if (!Pawn.IsHashIntervalTick(Props.searchInterval))
+            {
+                return;
+            }
+
             Dictionary<Pawn, float> hostiles = PawnRegionUtility.NearbyPawnsDistances(Pawn, Props.rangeOverride ?? parent.EnemyDetectionRange, hostiles: true);
 
             float minRange = -1f;
@@ -37,7 +44,10 @@ namespace AthenaFramework
                 target = potentialTarget;
             }
 
-            return (target, Props.targetPriority);
+            if (target != null)
+            {
+                parent.SetTarget(target, Props.targetPriority);
+            }
         }
     }
 
@@ -46,6 +56,10 @@ namespace AthenaFramework
         public float targetPriority = 15f;
         public float? rangeOverride;
         public bool requireLineOfSight = true;
+
+        // How often (in ticks) will the comp try to find a new target
+
+        public int searchInterval = 15;
 
         public DroneCompProperties_ClosestEnemyTargeting()
         {

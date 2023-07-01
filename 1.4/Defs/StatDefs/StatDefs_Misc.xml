@@ -27,4 +27,17 @@
         <cacheable>true</cacheable>
     </StatDef>
 
+    <StatDef>
+        <defName>Athena_PawnValueMultiplier</defName>
+        <label>pawn value multiplier</label>
+        <description>Market value multiplier for pawns. Applies after everything else.</description>
+        <category>PawnMisc</category>
+        <alwaysHide>true</alwaysHide>
+        <defaultBaseValue>1</defaultBaseValue>
+        <toStringStyle>PercentZero</toStringStyle>
+        <minValue>0</minValue>
+        <displayPriorityInCategory>3940</displayPriorityInCategory>
+        <cacheable>true</cacheable>
+    </StatDef>
+
 </Defs>

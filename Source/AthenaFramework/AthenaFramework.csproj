@@ -47,10 +47,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Abilities\CompAbility_SingularTracker.cs" />
+    <Compile Include="Drones\Comps\DroneComp_MeleeAttack.cs" />
     <Compile Include="Drones\Comps\Targeting\CompAbility_DroneTargeting.cs" />
     <Compile Include="Drones\Comps\DroneComp_AngleShotgun.cs" />
     <Compile Include="Drones\Comps\Deployment\DroneComp_AutoDeployment.cs" />
     <Compile Include="Drones\Comps\DroneComp_HediffAOE.cs" />
+    <Compile Include="Drones\Comps\Targeting\DroneComp_DesignatedTileTargeting.cs" />
     <Compile Include="Drones\Comps\Targeting\DroneComp_ManualTargeting.cs" />
     <Compile Include="Drones\Comps\Targeting\DroneComp_EasiestEnemyTargeting.cs" />
     <Compile Include="Drones\Comps\Deployment\DroneComp_ManualDeployment.cs" />
@@ -78,8 +80,11 @@
     <Compile Include="Hediffs\HediffComp_CompApplicator.cs" />
     <Compile Include="Hediffs\HediffComp_GiveSingularAbility.cs" />
     <Compile Include="Interfaces\IProjectile.cs" />
+    <Compile Include="Things\CompApparelGeneVariations.cs" />
     <Compile Include="Things\CompEquippableAbility.cs" />
     <Compile Include="Things\CompHediffOnDamage.cs" />
+    <Compile Include="Things\CompGeneLockedEquippable .cs" />
+    <Compile Include="Things\GeneLockedBuildableExtension.cs" />
     <Compile Include="Weapons\AdvancedTool.cs" />
     <Compile Include="Interfaces\IColorSelector.cs" />
     <Compile Include="Interfaces\IDamageModifier.cs" />
@@ -97,7 +102,7 @@
     <Compile Include="Hediffs\Classes\Hediff_ModularImplant.cs" />
     <Compile Include="Hediffs\HediffComp_Armored.cs" />
     <Compile Include="Hediffs\HediffComp_Modular.cs" />
-    <Compile Include="Hediffs\HediffComp_PerquisiteHediff.cs" />
+    <Compile Include="Hediffs\HediffComp_PrerequisiteHediff.cs" />
     <Compile Include="Hediffs\ModuleStructures\ApparelGraphicPackage.cs" />
     <Compile Include="Hediffs\ModuleStructures\Dialog_ColorPalette.cs" />
     <Compile Include="Hediffs\ModuleStructures\HediffGraphicPackage.cs" />
@@ -106,7 +111,7 @@
     <Compile Include="Interfaces\IRenderable.cs" />
     <Compile Include="Interfaces\IStageOverride.cs" />
     <Compile Include="Interfaces\IStatModifier.cs" />
-    <Compile Include="Things\CompPerquisiteEquippable.cs" />
+    <Compile Include="Things\CompPrerequisiteEquippable.cs" />
     <Compile Include="Things\CompUsable\CompUsable_Module.cs" />
     <Compile Include="Things\CompUsable\CompUsable_HediffModule.cs" />
     <Compile Include="Utilities\AthenaCombatUtility.cs" />

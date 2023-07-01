@@ -60,7 +60,7 @@ namespace AthenaFramework
         public override IEnumerable<FloatMenuOption> CompFloatMenuOptions(Pawn pawn)
         {
             string text;
-            string label = FloatMenuOptionLabel(pawn);
+            string label = "Install {0}".Formatted(parent.Label);
 
             if (!CanBeUsedBy(pawn, out text))
             {
@@ -133,7 +133,7 @@ namespace AthenaFramework
                             }
                         };
 
-                        FloatMenuOption floatMenuOption = FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption(label + " (" + slots[k].slotName + ")", action, Icon, IconColor, Props.floatMenuOptionPriority, null, null, 0f, null, null, true, 0, HorizontalJustification.Left, false), pawn, parent, "ReservedBy", null);
+                        FloatMenuOption floatMenuOption = FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("Install {0} in {1} ({2})".Formatted(parent.Label, thing.Label, slots[k].slotName), action, Icon, IconColor, Props.floatMenuOptionPriority, null, null, 0f, null, null, true, 0, HorizontalJustification.Left, false), pawn, parent, "ReservedBy", null);
                         yield return floatMenuOption;
                     }
                 }
@@ -165,7 +165,7 @@ namespace AthenaFramework
                             }
                         };
 
-                        FloatMenuOption floatMenuOption = FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption(label + " (" + slots[k].slotName + ")", action, Icon, IconColor, Props.floatMenuOptionPriority, null, null, 0f, null, null, true, 0, HorizontalJustification.Left, false), pawn, parent, "ReservedBy", null);
+                        FloatMenuOption floatMenuOption = FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("Install {0} in {1} ({2})".Formatted(parent.Label, thing.Label, slots[k].slotName), action, Icon, IconColor, Props.floatMenuOptionPriority, null, null, 0f, null, null, true, 0, HorizontalJustification.Left, false), pawn, parent, "ReservedBy", null);
                         yield return floatMenuOption;
                     }
                 }
@@ -176,9 +176,10 @@ namespace AthenaFramework
 
         public virtual void StartModuleJob(Pawn pawn, CompModular modular, CompUseEffect_Module parentComp, ModuleSlotPackage slot, bool forced = false)
         {
-            parentComp.comp = modular;
+            parentComp.ownerThing = modular.parent;
             parentComp.usedSlot = slot.slotID;
             TryStartUseJob(pawn, null, forced);
         }
+
     }
 }

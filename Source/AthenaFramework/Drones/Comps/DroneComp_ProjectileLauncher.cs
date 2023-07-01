@@ -19,7 +19,7 @@ namespace AthenaFramework
         public int burstTicksLeft = 0;
         public bool bursting = false;
 
-        public float recoil = 0;
+        public Vector3 recoil;
 
         public LocalTargetInfo target;
 
@@ -104,7 +104,7 @@ namespace AthenaFramework
         {
             get
             {
-                if (parent.EquipmentSource == null)
+                if (parent.EquipmentSource != null)
                 {
                     return null;
                 }
@@ -118,13 +118,19 @@ namespace AthenaFramework
             }
         }
 
+        public override void TargetUpdate()
+        {
+            base.TargetUpdate();
+            target = parent.CurrentTarget;
+        }
+
         public override void ActiveTick()
         {
             base.ActiveTick();
 
-            if (recoil > 0)
+            if (recoil != Vector3.zero)
             {
-                recoil = Math.Max(recoil - Props.recoilRecovery, 0);
+                recoil = recoil.normalized * Math.Max(0, recoil.magnitude - Props.recoilRecovery);
             }
 
             if (Props.useReloadable && ParentReloadable != null && !ParentReloadable.CanBeUsed)
@@ -135,14 +141,12 @@ namespace AthenaFramework
             if (target == null)
             {
                 target = parent.CurrentTarget;
+            }
 
-                if (target != null && !IsValidTarget(target))
-                {
-                    target = null;
-                    return;
-                }
-
-                StartWarmup();
+            if (!IsValidTarget(target))
+            {
+                InvalidTarget();
+                return;
             }
 
             if (bursting)
@@ -183,14 +187,14 @@ namespace AthenaFramework
 
         public override Vector3 DrawPosOffset()
         {
-            return base.DrawPosOffset() + recoil * new Vector3(-Pawn.Rotation.AsVector2.x, 0, -Pawn.Rotation.AsVector2.y);
+            return base.DrawPosOffset() + recoil;
         }
 
         public virtual void StartBurst()
         {
             if (!IsValidTarget(target))
             {
-                ClearTarget();
+                InvalidTarget();
                 return;
             }
 
@@ -220,7 +224,7 @@ namespace AthenaFramework
 
             if (!Shoot(target))
             {
-                ClearTarget();
+                InvalidTarget();
                 return;
             }
 
@@ -248,7 +252,7 @@ namespace AthenaFramework
             }
         }
 
-        public virtual void ClearTarget()
+        public virtual void InvalidTarget()
         {
             if (aimingEffecter != null)
             {
@@ -274,6 +278,11 @@ namespace AthenaFramework
 
         public virtual bool IsValidTarget(LocalTargetInfo target)
         {
+            if (target == null || !target.IsValid)
+            {
+                return false;
+            }
+
             IntVec3 position = parent.CurrentPosition;
 
             if (target.HasThing && target.Thing.Map != Pawn.Map)
@@ -314,18 +323,17 @@ namespace AthenaFramework
             burstTicksLeft = 0;
             warmupTicksLeft = 0;
             target = null;
-            recoil = 0;
+            recoil = Vector3.zero;
         }
 
         public virtual bool Shoot(LocalTargetInfo target)
         {
             if (!IsValidTarget(target))
             {
-                ClearTarget();
                 return false;
             }
 
-            Find.BattleLog.Add(new BattleLogEntry_RangedFire(Pawn, target.HasThing ? target.Thing : null, (parent.EquipmentSource != null) ? parent.EquipmentSource.def : null, Projectile, BurstShotsCount > 1));
+            Find.BattleLog.Add(new BattleLogEntry_RangedFire(Pawn, target.HasThing ? target.Thing : null, parent.EquipmentSource?.def, Projectile, BurstShotsCount > 1));
 
             Props.soundShot.PlayOneShot(Pawn);
             Props.shotEffecter.Spawn(Pawn, Pawn.Map).Cleanup();
@@ -346,7 +354,7 @@ namespace AthenaFramework
                 return false;
             }
 
-            recoil += Props.recoil;
+            recoil += (Pawn.Position - target.Cell).ToVector3().normalized * Props.recoil;
 
             Vector3 drawPos = parent.DrawPos;
             Projectile projectile = (Projectile)GenSpawn.Spawn(projectileDef, resultingLine.Source, Pawn.Map);
@@ -385,12 +393,18 @@ namespace AthenaFramework
                 }
             }
 
-            float hitChance = parent.GetHitChance(target.Cell.DistanceTo(position));
+            float hitChance = parent.GetRangedHitChance(target.Cell.DistanceTo(position));
 
             if (target.HasThing)
             {
                 HitChanceFlags hitFlags = HitChanceFlags.Posture | HitChanceFlags.Gas | HitChanceFlags.Weather | HitChanceFlags.Size | HitChanceFlags.Execution;
-                hitChance *= AthenaCombatUtility.GetHitChance(position, target.Thing, hitFlags);
+
+                if (Props.useOwnerRangedSkill)
+                {
+                    hitFlags |= HitChanceFlags.ShooterStats;
+                }
+
+                hitChance *= AthenaCombatUtility.GetRangedHitChance(position, target.Thing, hitFlags, Pawn);
             }
 
             Thing randomCover = AthenaCombatUtility.GetRandomCoverToMissInto(target, position, Pawn.Map);
@@ -495,6 +509,9 @@ namespace AthenaFramework
         // Whenever the drone should use CompChangeableProjectile or CompReloadable found on its equipment source
         public bool useReloadable = false;
         public bool useChangeableProjectile = true;
+
+        // When set to true, drone will additionally use owner's ranged hit chance
+        public bool useOwnerRangedSkill = false;
 
         public SoundDef soundAiming;
         public SoundDef soundShot;

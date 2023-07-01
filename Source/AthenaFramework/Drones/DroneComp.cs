@@ -67,9 +67,9 @@ namespace AthenaFramework
         {
         }
 
-        public virtual (LocalTargetInfo, float) GetNewTarget()
+        public virtual void TargetUpdate()
         {
-            return (null, 0f);
+            return;
         }
 
         public virtual IntVec3? PositionOverride()
@@ -85,6 +85,10 @@ namespace AthenaFramework
         public virtual bool DisableHoveringAnimation()
         {
             return false;
+        }
+
+        public virtual void PrePawnApplyDamage(ref DamageInfo dinfo, ref float hitChance, ref bool absorbed)
+        {
         }
     }
 

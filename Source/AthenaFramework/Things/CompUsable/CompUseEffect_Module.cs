@@ -16,7 +16,8 @@ namespace AthenaFramework
 
         public string usedSlot;
         public List<ThingComp> linkedComps = new List<ThingComp>();
-        public CompModular comp;
+        public CompModular ownerComp;
+        public ThingWithComps ownerThing;
 
         public Dictionary<StatDef, float> equippedStatOffsets = new Dictionary<StatDef, float>();
         public Dictionary<StatDef, float> statOffsets = new Dictionary<StatDef, float>();
@@ -69,18 +70,38 @@ namespace AthenaFramework
             }
         }
 
-        public virtual ModuleSlotPackage GetSlot
+        public virtual CompModular OwnerComp
         {
             get
             {
-                if (comp == null)
+                if (ownerComp != null)
+                {
+                    return ownerComp;
+                }
+
+                if (ownerThing == null)
                 {
                     return null;
                 }
 
-                for (int i = comp.GetAllSlots.Count - 1; i >= 0; i--)
+                ownerComp = ownerThing.TryGetComp<CompModular>();
+
+                return ownerComp;
+            }
+        }
+
+        public virtual ModuleSlotPackage GetSlot
+        {
+            get
+            {
+                if (OwnerComp == null)
                 {
-                    ModuleSlotPackage slot = comp.GetAllSlots[i];
+                    return null;
+                }
+
+                for (int i = OwnerComp.GetAllSlots.Count - 1; i >= 0; i--)
+                {
+                    ModuleSlotPackage slot = OwnerComp.GetAllSlots[i];
 
                     if (slot.slotID == usedSlot)
                     {
@@ -94,13 +115,21 @@ namespace AthenaFramework
 
         public override void DoEffect(Pawn user)
         {
-            if (comp == null || comp.parent == null)
+            if (OwnerComp == null || OwnerComp.parent == null)
             {
-                comp = null;
+                ownerThing = null;
+                ownerComp = null;
                 return;
             }
 
-            comp.InstallModule(parent);
+            OwnerComp.InstallModule(parent);
+        }
+
+        public override void PostExposeData()
+        {
+            base.PostExposeData();
+            Scribe_References.Look(ref ownerThing, "ownerThing");
+            Scribe_Values.Look(ref usedSlot, "usedSlot");
         }
 
         public override bool CanBeUsedBy(Pawn pawn, out string failReason)

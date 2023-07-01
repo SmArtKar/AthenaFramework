@@ -11,6 +11,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Verse;
+using Verse.AI;
 
 namespace AthenaFramework
 {
@@ -318,6 +319,54 @@ namespace AthenaFramework
             {
                 xp *= __instance.pawn.GetStatValue(AthenaDefOf.Athena_SkillLoss);
             }
+        }
+    }
+
+    [HarmonyPatch(typeof(GenConstruct), nameof(GenConstruct.CanConstruct), new Type[] { typeof(Thing), typeof(Pawn), typeof(bool), typeof(bool) })]
+    public static class GenConstruct_CanConstruct
+    {
+        public static void Postfix(Thing t, Pawn p, ref bool __result)
+        {
+            if (!__result)
+            {
+                return;
+            }
+
+            GeneLockedExtension extension = t.def.GetModExtension<GeneLockedExtension>();
+
+            if (extension != null && !extension.CanCreate(p))
+            {
+                __result = false;
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(Bill), nameof(Bill.PawnAllowedToStartAnew))]
+    public static class Bill_PawnAllowedToStartAnew
+    {
+        public static void Postfix(Bill __instance, Pawn p, ref bool __result)
+        {
+            if (!__result)
+            {
+                return;
+            }
+
+            GeneLockedExtension extension = __instance.recipe.GetModExtension<GeneLockedExtension>();
+
+            if (extension != null && !extension.CanCreate(p))
+            {
+                JobFailReason.Is(extension.cantReason);
+                __result = false;
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(PriceUtility), nameof(PriceUtility.PawnQualityPriceFactor))]
+    public static class PriceUtility_PawnQualityPriceFactor
+    {
+        public static void Postfix(Pawn pawn, ref float __result)
+        {
+            __result *= pawn.GetStatValue(AthenaDefOf.Athena_PawnValueMultiplier);
         }
     }
 }

@@ -6,12 +6,35 @@ using System.Threading.Tasks;
 using Verse;
 using RimWorld;
 using UnityEngine;
+using Mono.Posix;
 
 namespace AthenaFramework
 {
     public class HediffComp_Armored : HediffComp, IArmored
     {
         private HediffCompProperties_Armored Props => props as HediffCompProperties_Armored;
+
+        public override string CompTipStringExtra
+        {
+            get
+            {
+                string resStr = "";
+
+                for (int i = Props.armorStats.Count - 1; i >= 0; i--)
+                {
+                    StatModifier statMod = Props.armorStats[i];
+                    resStr = resStr + "{0}: {1}{2}% \n".Formatted(statMod.stat.LabelCap, statMod.value > 0 ? "+" : "", statMod.value * 100f);
+                }
+
+                for (int i = Props.defArmors.Count - 1; i >= 0; i--)
+                {
+                    DamageDefArmor defArmor = Props.defArmors[i];
+                    resStr = resStr + "{0}: {1}{2}% \n".Formatted(defArmor.damageDef.LabelCap, defArmor.value > 0 ? "+" : "", defArmor.value * 100f);
+                }
+
+                return resStr;
+            }
+        }
 
         public override void CompPostMake()
         {

@@ -33,7 +33,8 @@ namespace AthenaFramework
 
                     if (comp != null && comp.Props.targeterAbility == parent.def)
                     {
-                        comp.storedTarget = target;
+                        comp.ApplyTarget(target);
+                        return;
                     }
                 }
             }

@@ -11,7 +11,7 @@ namespace AthenaFramework
 {
     public interface IBodyModifier
     {
-        public abstract bool PreventBodytype(BodyTypeDef bodyType);
+        public abstract bool CustomApparelTexture(BodyTypeDef bodyType, Apparel apparel, ref ApparelGraphicRecord rec);
 
         public abstract bool HideBody { get; }
 

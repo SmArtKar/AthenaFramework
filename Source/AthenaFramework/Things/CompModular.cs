@@ -166,6 +166,8 @@ namespace AthenaFramework
         {
             base.PostPostMake();
             moduleHolder = new ThingOwner<ThingWithComps>();
+            RecacheGizmo();
+
             // AthenaCache.AddCache(this, AthenaCache.menuCache, parent.thingIDNumber);
         }
 
@@ -236,7 +238,7 @@ namespace AthenaFramework
             }
 
             ejectAction = new Command_Action();
-            ejectAction.defaultLabel = "Eject module";
+            ejectAction.defaultLabel = "Eject module from " + parent.LabelCap;
             ejectAction.defaultDesc = "Eject a module from " + parent.LabelCap;
             ejectAction.icon = cachedEjectTex;
             ejectAction.action = delegate ()

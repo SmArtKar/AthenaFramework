@@ -212,8 +212,8 @@ namespace AthenaFramework
                 return;
             }
 
-            BattleLogEntry_RangedImpact impactLog = new BattleLogEntry_RangedImpact(caster, hitThing, currentTarget.Thing, base.EquipmentSource.def, null, null);
-            DamageInfo damageInfo = new DamageInfo(verbProps.beamDamageDef, verbProps.beamDamageDef.defaultDamage, verbProps.beamDamageDef.defaultArmorPenetration, (hitThing.Position - caster.Position).AngleFlat, caster, null, EquipmentSource.def, DamageInfo.SourceCategory.ThingOrUnknown, currentTarget.Thing);
+            BattleLogEntry_RangedImpact impactLog = new BattleLogEntry_RangedImpact(caster, hitThing, currentTarget.Thing, EquipmentSource?.def, null, null);
+            DamageInfo damageInfo = new DamageInfo(verbProps.beamDamageDef, verbProps.beamDamageDef.defaultDamage, verbProps.beamDamageDef.defaultArmorPenetration, (hitThing.Position - caster.Position).AngleFlat, caster, null, EquipmentSource?.def, DamageInfo.SourceCategory.ThingOrUnknown, currentTarget.Thing);
             hitThing.TakeDamage(damageInfo).AssociateWithLog(impactLog);
 
             if (hitThing.CanEverAttachFire() && Rand.Chance(verbProps.beamChanceToAttachFire))

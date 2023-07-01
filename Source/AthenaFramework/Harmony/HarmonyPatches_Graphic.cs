@@ -74,22 +74,8 @@ namespace AthenaFramework
                     continue;
                 }
 
-                if (customBody.PreventBodytype(bodyType))
+                if (customBody.CustomApparelTexture(bodyType, apparel, ref rec))
                 {
-                    if (apparel.WornGraphicPath.NullOrEmpty())
-                    {
-                        return true;
-                    }
-
-                    Shader shader = ShaderDatabase.Cutout;
-                    if (apparel.def.apparel.useWornGraphicMask)
-                    {
-                        shader = ShaderDatabase.CutoutComplex;
-                    }
-
-                    Graphic graphic = GraphicDatabase.Get<Graphic_Multi>(apparel.WornGraphicPath, shader, apparel.def.graphicData.drawSize, apparel.DrawColor);
-                    rec = new ApparelGraphicRecord(graphic, apparel);
-
                     __result = true;
                     return false;
                 }

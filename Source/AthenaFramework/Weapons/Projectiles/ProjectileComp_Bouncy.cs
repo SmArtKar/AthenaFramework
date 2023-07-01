@@ -92,7 +92,7 @@ namespace AthenaFramework
 
                     HitChanceFlags flags = HitChanceFlags.Size | HitChanceFlags.Posture | HitChanceFlags.Execution;
 
-                    if (Rand.Chance(AthenaCombatUtility.GetHitChance(lastPosition, pawnTarget, flags)))
+                    if (Rand.Chance(AthenaCombatUtility.GetRangedHitChance(lastPosition, pawnTarget, flags)))
                     {
                         target = pawnTarget;
                         break;

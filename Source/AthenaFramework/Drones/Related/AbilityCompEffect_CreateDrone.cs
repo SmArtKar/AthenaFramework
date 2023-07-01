@@ -10,7 +10,7 @@ namespace AthenaFramework
 {
     public class AbilityCompEffect_CreateDrone : CompAbilityEffect
     {
-        private CompProperties_AbilityCreateDrone Props => props as CompProperties_AbilityCreateDrone;
+        private new CompProperties_AbilityCreateDrone Props => props as CompProperties_AbilityCreateDrone;
 
         public override void Apply(LocalTargetInfo target, LocalTargetInfo dest)
         {

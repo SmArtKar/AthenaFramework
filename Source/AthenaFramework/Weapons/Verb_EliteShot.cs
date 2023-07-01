@@ -19,7 +19,14 @@ namespace AthenaFramework
             {
                 if (cachedExtension == null)
                 {
-                    cachedExtension = EquipmentSource.def.GetModExtension<EliteShotExtension>();
+                    if (HediffSource != null)
+                    {
+                        cachedExtension = HediffSource.def.GetModExtension<EliteShotExtension>();
+                    } 
+                    else
+                    {
+                        cachedExtension = EquipmentSource.def.GetModExtension<EliteShotExtension>();
+                    }
                 }
 
                 return cachedExtension;
