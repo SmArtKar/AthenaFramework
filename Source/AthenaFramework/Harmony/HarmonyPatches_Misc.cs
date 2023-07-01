@@ -332,7 +332,7 @@ namespace AthenaFramework
                 return;
             }
 
-            GeneLockedExtension extension = t.def.GetModExtension<GeneLockedExtension>();
+            GeneLockedRecipeExtension extension = t.def.GetModExtension<GeneLockedRecipeExtension>();
 
             if (extension != null && !extension.CanCreate(p))
             {
@@ -351,7 +351,7 @@ namespace AthenaFramework
                 return;
             }
 
-            GeneLockedExtension extension = __instance.recipe.GetModExtension<GeneLockedExtension>();
+            GeneLockedRecipeExtension extension = __instance.recipe.GetModExtension<GeneLockedRecipeExtension>();
 
             if (extension != null && !extension.CanCreate(p))
             {

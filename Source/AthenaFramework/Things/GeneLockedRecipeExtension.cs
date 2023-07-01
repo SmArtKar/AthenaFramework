@@ -9,7 +9,7 @@ using static HarmonyLib.Code;
 
 namespace AthenaFramework
 {
-    public class GeneLockedExtension : DefModExtension
+    public class GeneLockedRecipeExtension : DefModExtension
     {
         // List of genes that a pawn must have to build this building or use the recipe
         public List<GeneDef> requiredGenes;
