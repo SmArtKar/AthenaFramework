@@ -143,8 +143,8 @@ namespace AthenaFramework
 
         public virtual void AdjustBeam(Vector3 firstPoint, Vector3 secondPoint)
         {
-            this.firstPoint = firstPoint.Yto0();
-            this.secondPoint = secondPoint.Yto0();
+            this.firstPoint = firstPoint;
+            this.secondPoint = secondPoint;
 
             matrix.SetTRS((firstPoint + secondPoint) / 2, Quaternion.LookRotation(secondPoint - firstPoint), new Vector3(def.graphicData.drawSize.x, 1f, (firstPoint - secondPoint).magnitude));
             if (!activeBeam) //Would cause a lot of lag for active beams

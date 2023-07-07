@@ -20,6 +20,8 @@ namespace AthenaFramework
         public List<HediffDef> hediffDefs;
         // Faction that's required to trigger the effect
         public FactionDef factionDef;
+        // List of genes that are would trigger the effect
+        public List<GeneDef> geneDefs;
         // List of mutually exclusive effects. If any effect with a common element in this field has been applied, this effect won't apply
         public List<string> excluded;
         // Same as above, but applies to all damage modification from this pawn/object, it's apparel, it's hediffs, etc. Does not intercept with excluded.
@@ -127,6 +129,30 @@ namespace AthenaFramework
                     }
 
                     if (localHediffDefs.Count > 0)
+                    {
+                        return (1f, 0f);
+                    }
+                }
+
+                if (geneDefs != null)
+                {
+                    if (pawn.genes == null)
+                    {
+                        return (1f, 0f);
+                    }
+
+                    bool foundGene = false;
+
+                    for (int i = geneDefs.Count - 1; i >= 0; i--)
+                    {
+                        if (pawn.genes.HasGene(geneDefs[i]))
+                        {
+                            foundGene = true;
+                            break;
+                        }
+                    }
+
+                    if (!foundGene)
                     {
                         return (1f, 0f);
                     }

@@ -102,14 +102,20 @@ namespace AthenaFramework
         {
             base.Launch(launcher, origin, usedTarget, intendedTarget, hitFlags, preventFriendlyFire, equipment, targetCoverDef);
 
-            beam = Beam.CreateActiveBeam(launcher, parent, Props.beamDef, origin - launcher.DrawPos);
+            if (Props.beamDef != null)
+            {
+                beam = Beam.CreateActiveBeam(launcher, parent, Props.beamDef, origin - launcher.DrawPos);
+            }
         }
 
         public override void Impact(Thing hitThing, ref bool blockedByShield)
         {
             base.Impact(hitThing, ref blockedByShield);
 
-            beam.AdjustBeam(Projectile.Launcher.DrawPos + beam.startOffset, parent.DrawPos);
+            if (beam != null)
+            {
+                beam.AdjustBeam(Projectile.Launcher.DrawPos + beam.startOffset, parent.DrawPos);
+            }
         }
     }
 

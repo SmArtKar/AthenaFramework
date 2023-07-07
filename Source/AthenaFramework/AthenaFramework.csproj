@@ -80,11 +80,11 @@
     <Compile Include="Hediffs\HediffComp_CompApplicator.cs" />
     <Compile Include="Hediffs\HediffComp_GiveSingularAbility.cs" />
     <Compile Include="Interfaces\IProjectile.cs" />
-    <Compile Include="Things\CompApparelGeneVariations.cs" />
+    <Compile Include="Apparel\CompApparelGeneVariations.cs" />
     <Compile Include="Things\CompEquippableAbility.cs" />
     <Compile Include="Things\CompHediffOnDamage.cs" />
     <Compile Include="Things\CompGeneLockedEquippable .cs" />
-    <Compile Include="Things\GeneLockedBuildableExtension.cs" />
+    <Compile Include="Things\GeneLockedRecipeExtension.cs" />
     <Compile Include="Weapons\AdvancedTool.cs" />
     <Compile Include="Interfaces\IColorSelector.cs" />
     <Compile Include="Interfaces\IDamageModifier.cs" />

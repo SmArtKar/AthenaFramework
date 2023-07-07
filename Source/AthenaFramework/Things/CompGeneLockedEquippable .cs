@@ -71,6 +71,12 @@ namespace AthenaFramework
                 return true;
             }
 
+            if (Props.blacklistedXenotypes != null && Props.blacklistedXenotypes.Contains(pawn.genes.xenotype))
+            {
+                cantReason = Props.cantReason;
+                return true;
+            }
+
             List<GeneDef> remainingDefs = new List<GeneDef>(Props.requiredGenes);
 
             for (int i = pawn.genes.GenesListForReading.Count - 1; i >= 0; i--)
@@ -80,6 +86,12 @@ namespace AthenaFramework
                 if (remainingDefs.Contains(gene.def))
                 {
                     remainingDefs.Remove(gene.def);
+                }
+
+                if (Props.blacklistedGenes != null && Props.blacklistedGenes.Contains(gene.def))
+                {
+                    cantReason = Props.cantReason;
+                    return true;
                 }
             }
 
@@ -117,6 +129,9 @@ namespace AthenaFramework
         public List<GeneDef> requiredGenes;
         // Xenotype that the pawn must have to equip this item
         public XenotypeDef requiredXenotype;
+        // Genes and xenotypes that prevent this item from being equipped
+        public List<GeneDef> blacklistedGenes;
+        public List<XenotypeDef> blacklistedXenotypes;
         // If equipment should be dropped when the pawn doesn't have required genes/xenotype
         public bool dropWithoutRequirements = false;
         // Text that's displayed when required genes/xenotyopes are missing
