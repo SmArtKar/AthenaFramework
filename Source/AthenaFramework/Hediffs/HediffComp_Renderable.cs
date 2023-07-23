@@ -14,7 +14,6 @@ namespace AthenaFramework
     public class HediffComp_Renderable : HediffComp, IRenderable, IColorSelector
     {
         private HediffCompProperties_Renderable Props => props as HediffCompProperties_Renderable;
-        private static readonly float altitude = AltitudeLayer.MoteOverhead.AltitudeFor();
 
         public Mote attachedMote;
         public Effecter attachedEffecter;
@@ -70,7 +69,7 @@ namespace AthenaFramework
 
             if (Props.graphicData != null)
             {
-                Props.graphicData.Graphic.Draw(new Vector3(drawPos.x, altitude, drawPos.z), Pawn.Rotation, Pawn);
+                Props.graphicData.Graphic.Draw(new Vector3(drawPos.x, Props.altitude.AltitudeFor(), drawPos.z), Pawn.Rotation, Pawn);
             }
 
             DrawSecondaries(drawPos, bodyType);
@@ -262,6 +261,8 @@ namespace AthenaFramework
 
         // Displayed graphic. This graphic is always drawn above the pawn at MoteOverhead altitude layer
         public GraphicData graphicData;
+        // Altitude for graphic rendering
+        public AltitudeLayer altitude = AltitudeLayer.MoteOverhead;
         // Mote attached to the hediff
         public ThingDef attachedMoteDef;
         // Effecter attached to the hediff
