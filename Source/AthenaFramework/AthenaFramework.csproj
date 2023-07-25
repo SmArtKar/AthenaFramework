@@ -48,6 +48,7 @@
   <ItemGroup>
     <Compile Include="Abilities\CompAbility_SingularTracker.cs" />
     <Compile Include="Drones\Comps\DroneComp_MeleeAttack.cs" />
+    <Compile Include="Drones\Comps\DroneComp_PassiveRepair.cs" />
     <Compile Include="Drones\Comps\Targeting\CompAbility_DroneTargeting.cs" />
     <Compile Include="Drones\Comps\DroneComp_AngleShotgun.cs" />
     <Compile Include="Drones\Comps\Deployment\DroneComp_AutoDeployment.cs" />
@@ -68,10 +69,10 @@
     <Compile Include="Drones\Drone.cs" />
     <Compile Include="Drones\DroneComp.cs" />
     <Compile Include="Drones\DroneDef.cs" />
-    <Compile Include="Drones\DroneEnums.cs" />
     <Compile Include="Drones\DroneGraphicPackage.cs" />
-    <Compile Include="Drones\Related\AbilityCompEffect_CreateDrone.cs" />
+    <Compile Include="Drones\Related\AbilityCompEffect_CreateUnlinkedDrone.cs" />
     <Compile Include="Drones\Related\CompDroneEquipment.cs" />
+    <Compile Include="Drones\Related\Gizmo_DroneHealthStatus.cs" />
     <Compile Include="Drones\Related\Hediff_DroneHandler.cs" />
     <Compile Include="Drones\Related\Hediff_DroneOwner.cs" />
     <Compile Include="Genes\AthenaGeneTemplateDef.cs" />

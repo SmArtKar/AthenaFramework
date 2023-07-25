@@ -68,7 +68,7 @@ namespace AthenaFramework
                 damageDef = DamageDefOf.Blunt;
             }
 
-            Vector3 direction = (target.Thing.Position - Pawn.Position).ToVector3();
+            Vector3 direction = (target.Thing.Position - parent.CurrentPosition).ToVector3();
             DamageInfo damageInfo = new DamageInfo(damageDef, damage, armorPen, -1f, Pawn, null, parent.EquipmentSource?.def, DamageInfo.SourceCategory.ThingOrUnknown, null, !Pawn.Drafted);
             damageInfo.SetBodyRegion(BodyPartHeight.Undefined, BodyPartDepth.Outside);
             damageInfo.SetAngle(direction);
@@ -103,18 +103,28 @@ namespace AthenaFramework
             return Props.soundMiss;
         }
 
+        public virtual bool CanAttack(LocalTargetInfo target)
+        {
+            if (!target.IsValid || target.Thing == null || !target.Thing.Spawned)
+            {
+                return false;
+            }
+
+            if (target.Cell.DistanceToSquared(parent.CurrentPosition) > 2.1f)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         public virtual void Attack(Thing target)
         {
             Pawn pawn = target as Pawn;
 
-            if (target.Position.DistanceToSquared(Pawn.Position) > 2.1f)
-            {
-                return;
-            }
-
             attackCooldown = CooldownFor(target);
 
-            if (pawn != null && !pawn.Dead && pawn.Spawned)
+            if (pawn != null && !pawn.Dead)
             {
                 pawn.stances.stagger.StaggerFor(95);
             }
@@ -175,19 +185,27 @@ namespace AthenaFramework
         {
             base.PrePawnApplyDamage(ref dinfo, ref hitChance, ref absorbed);
 
-            if (dinfo.Def.isRanged || dinfo.Def.isExplosive)
+            if ((dinfo.Def.isRanged && !Props.parryRanged) || dinfo.Def.isExplosive)
             {
                 return;
             }
 
-            if (Rand.Chance(Props.riposteChance) && dinfo.Instigator != null)
+            if (parent.CurrentPosition != Pawn.Position) //Cannot block if we're mid ranged attack
             {
-                Attack(dinfo.Instigator);
+                return;
+            }
 
-                if (Props.blockOnRiposte)
+            if (Rand.Chance(Props.riposteChance) && dinfo.Instigator != null && !dinfo.Def.isRanged)
+            {
+                if (CanAttack(dinfo.Instigator))
                 {
-                    absorbed = true;
-                    return;
+                    Attack(dinfo.Instigator);
+
+                    if (Props.blockOnRiposte)
+                    {
+                        absorbed = true;
+                        return;
+                    }
                 }
             }
 
@@ -204,8 +222,6 @@ namespace AthenaFramework
                 {
                     FleckMaker.Static(Pawn.DrawPos, Pawn.Map, Props.impactFleck);
                 }
-
-                return;
             }
         }
 
@@ -225,17 +241,10 @@ namespace AthenaFramework
                 return;
             }
 
-            if (!parent.CurrentTarget.IsValid || parent.CurrentTarget.Thing == null)
+            if (CanAttack(parent.CurrentTarget))
             {
-                return;
+                Attack(parent.CurrentTarget.Thing);
             }
-
-            if (!parent.CurrentTarget.Thing.Spawned || parent.CurrentTarget.Thing.Position.DistanceToSquared(Pawn.Position) > 2.1f)
-            {
-                return;
-            }
-
-            Attack(parent.CurrentTarget.Thing);
         }
     }
 
@@ -269,6 +278,9 @@ namespace AthenaFramework
         // How likely the drone is to block an incoming melee attack
         public float meleeBlockChance = 0f;
         public bool blockOnRiposte = true;
+
+        // If the drone can parry projectiles
+        public bool parryRanged = false;
 
         // Random factor for melee damage, 0.8-1.2 is vanilla values
         public FloatRange damageRandomFactor = new FloatRange(0.8f, 1.2f);

@@ -41,6 +41,7 @@ namespace AthenaFramework
 
             if (!Props.dronePersist)
             {
+                drone.equipmentSource = null;
                 drone.Destroy();
                 drone = null;
                 droneHediff = null;

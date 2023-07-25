@@ -1,31 +1,27 @@
-﻿using RimWorld;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using Verse;
-using static HarmonyLib.Code;
 
 namespace AthenaFramework
 {
     [StaticConstructorOnStartup]
-    public class Gizmo_HediffShieldStatus : Gizmo
+    public class Gizmo_DroneHealthStatus : Gizmo
     {
-        public HediffComp_Shield shieldHediff;
+        public Drone drone;
 
-        public static readonly Texture2D FullShieldBarTex = SolidColorMaterials.NewSolidColorTexture(new Color(0.2f, 0.2f, 0.24f));
-        public static readonly Texture2D EmptyShieldBarTex = SolidColorMaterials.NewSolidColorTexture(Color.clear);
+        public static readonly Texture2D FullHealthBarTex = SolidColorMaterials.NewSolidColorTexture(new Color(0.2f, 0.2f, 0.24f));
+        public static readonly Texture2D EmptyHealthBarTex = SolidColorMaterials.NewSolidColorTexture(Color.clear);
 
-        private HediffCompProperties_Shield props => shieldHediff.props as HediffCompProperties_Shield;
+        static Gizmo_DroneHealthStatus() { }
 
-        static Gizmo_HediffShieldStatus() { }
-
-        public Gizmo_HediffShieldStatus(HediffComp_Shield shield)
+        public Gizmo_DroneHealthStatus(Drone drone)
         {
             Order = -101f;
-            shieldHediff = shield;
+            this.drone = drone;
         }
 
         public override float GetWidth(float maxWidth)
@@ -42,15 +38,15 @@ namespace AthenaFramework
             textRect.height = backgroundRect.height / 2f - 12f;
             Text.Font = GameFont.Small;
             Text.Anchor = TextAnchor.MiddleCenter;
-            Widgets.Label(textRect, props.gizmoTitle);
+            Widgets.Label(textRect, drone.LabelCap + (drone.broken ? " " + drone.def.brokenLabel : ""));
             Rect barRect = drawRect;
             barRect.yMin = drawRect.y + drawRect.height / 2f;
-            float num = shieldHediff.energy / Mathf.Max(1f, shieldHediff.MaxEnergy);
-            Widgets.FillableBar(barRect, num, Gizmo_HediffShieldStatus.FullShieldBarTex, Gizmo_HediffShieldStatus.EmptyShieldBarTex, false);
+            float num = Math.Min(drone.health, drone.MaxHealth) / drone.MaxHealth;
+            Widgets.FillableBar(barRect, num, Gizmo_DroneHealthStatus.FullHealthBarTex, Gizmo_DroneHealthStatus.EmptyHealthBarTex, false);
             Text.Font = GameFont.Small;
-            Widgets.Label(barRect, (shieldHediff.energy).ToString("F0") + " / " + (shieldHediff.MaxEnergy).ToString("F0"));
+            Widgets.Label(barRect, (drone.health).ToString("F0") + " / " + (drone.MaxHealth).ToString("F0"));
             Text.Anchor = TextAnchor.UpperLeft;
-            TooltipHandler.TipRegion(drawRect, props.gizmoTip);
+            TooltipHandler.TipRegion(drawRect, drone.def.description);
             return new GizmoResult(GizmoState.Clear);
         }
     }

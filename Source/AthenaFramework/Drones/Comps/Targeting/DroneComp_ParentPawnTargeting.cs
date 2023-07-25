@@ -11,10 +11,19 @@ namespace AthenaFramework
     {
         private DroneCompProperties_ParentPawnTargeting Props => props as DroneCompProperties_ParentPawnTargeting;
 
-        public override void ActiveTick()
+        public override bool RecacheTarget(out LocalTargetInfo newTarget, out float newPriority, float rangeOverride = -1f, List<LocalTargetInfo> blacklist = null)
         {
-            base.ActiveTick();
-            parent.SetTarget(Pawn.TargetCurrentlyAimingAt, Props.targetPriority);
+            base.RecacheTarget(out newTarget, out newPriority);
+
+            if (Pawn.TargetCurrentlyAimingAt == null)
+            {
+                return false;
+            }
+
+            newTarget = Pawn.TargetCurrentlyAimingAt;
+            newPriority = Props.targetPriority;
+
+            return true;
         }
     }
 

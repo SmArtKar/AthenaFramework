@@ -49,6 +49,18 @@ namespace AthenaFramework
                 deployAction.action = parent.Deploy;
             }
 
+            if (parent.broken)
+            {
+                if (!deployAction.disabled)
+                {
+                    deployAction.Disable(Props.brokenReasonString);
+                }
+            }
+            else if (deployAction.disabled)
+            {
+                deployAction.disabled = false;
+            }
+
             yield return deployAction;
             yield break;
         }
@@ -61,6 +73,8 @@ namespace AthenaFramework
 
         public string deployString = "Deploy {0}";
         public string recallString = "Recall {0}";
+
+        public string brokenReasonString = "{0} is broken";
 
         public DroneCompProperties_ManualDeployment()
         {

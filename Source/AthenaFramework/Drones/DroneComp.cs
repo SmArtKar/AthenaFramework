@@ -31,6 +31,7 @@ namespace AthenaFramework
         }
 
         // Only called when the drone is active
+
         public virtual void ActiveTick()
         {
         }
@@ -51,7 +52,7 @@ namespace AthenaFramework
         {
         }
 
-        public virtual void Destroyed()
+        public virtual void OnDestroyed()
         {
         }
 
@@ -64,6 +65,10 @@ namespace AthenaFramework
         }
 
         public virtual void PostApplyDamage(DamageInfo dinfo)
+        {
+        }
+
+        public virtual void OnSetup()
         {
         }
 
@@ -82,13 +87,25 @@ namespace AthenaFramework
             return Vector3.zero;
         }
 
+        public virtual bool DrawPosOverride(ref Vector3 pos)
+        {
+            return false;
+        }
+
         public virtual bool DisableHoveringAnimation()
         {
             return false;
         }
 
-        public virtual void PrePawnApplyDamage(ref DamageInfo dinfo, ref float hitChance, ref bool absorbed)
+        public virtual void PrePawnApplyDamage(ref DamageInfo dinfo, ref float hitChance, ref bool absorbed) { }
+
+        public virtual void TryGetStat(StatDef stat, ref float value) { }
+
+        public virtual bool RecacheTarget(out LocalTargetInfo newTarget, out float newPriority, float rangeOverride = -1f, List<LocalTargetInfo> blacklist = null)
         {
+            newTarget = null;
+            newPriority = 0f;
+            return false;
         }
     }
 

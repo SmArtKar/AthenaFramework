@@ -12,6 +12,8 @@ namespace AthenaFramework
     {
         private DroneCompProperties_HediffAOE Props => props as DroneCompProperties_HediffAOE;
 
+        public List<Pawn> affectedPawns = new List<Pawn>();
+
         public override void ActiveTick()
         {
             base.ActiveTick();
@@ -24,11 +26,13 @@ namespace AthenaFramework
             List<Pawn> pawns = Pawn.Map.mapPawns.AllPawnsSpawned;
             float checkDistance = Props.radius * Props.radius;
 
+            List<Pawn> leftPawns = new List<Pawn>(affectedPawns);
+
             for (int i = pawns.Count - 1; i >= 0; i--)
             {
                 Pawn pawn = pawns[i];
 
-                if (pawn.Position.DistanceToSquared(Pawn.Position) > checkDistance)
+                if (pawn.Position.DistanceToSquared(parent.CurrentPosition) > checkDistance)
                 {
                     continue;
                 }
@@ -36,6 +40,18 @@ namespace AthenaFramework
                 if ((Props.hostileOnly && !pawn.HostileTo(Pawn)) || (Props.friendlyOnly && pawn.HostileTo(Pawn)))
                 {
                     continue;
+                }
+
+                if (Props.instantRemoval)
+                {
+                    if (affectedPawns.Contains(pawn))
+                    {
+                        leftPawns.Remove(pawn);
+                    }
+                    else
+                    {
+                        affectedPawns.Add(pawn);
+                    }
                 }
 
                 Hediff hediff = pawn.health.hediffSet.GetFirstHediffOfDef(Props.hediffDef);
@@ -67,6 +83,22 @@ namespace AthenaFramework
 
                 hediff.Severity += addedSeverity;
             }
+
+            if (Props.instantRemoval)
+            {
+                for (int i = leftPawns.Count - 1; i >= 0; i--)
+                {
+                    Pawn pawn = leftPawns[i];
+                    Hediff hediff = pawn.health.hediffSet.GetFirstHediffOfDef(Props.hediffDef);
+
+                    if (hediff != null)
+                    {
+                        pawn.health.RemoveHediff(hediff);
+                    }
+
+                    affectedPawns.Remove(pawn);
+                }
+            }
         }
     }
 
@@ -86,6 +118,8 @@ namespace AthenaFramework
         // If only hostiles/friendlies should be affected
         public bool hostileOnly = false;
         public bool friendlyOnly = false;
+        // If set to true, affected pawns will instantly lose the hediff once they exit the drone's AOE
+        public bool instantRemoval = false;
 
         public DroneCompProperties_HediffAOE()
         {

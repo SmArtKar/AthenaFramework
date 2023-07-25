@@ -29,6 +29,9 @@ namespace AthenaFramework
         public float health = 0;
         public List<DroneGraphicPackage> additionalGraphics;
 
+        // Set to true if the drone breaks instead of being destroyed upon death. Prevents the drone from being deployed until its health if fully restored
+        public bool broken = false;
+
         public static readonly Texture2D cachedPaletteTex = ContentFinder<Texture2D>.Get("UI/Gizmos/ColorPalette");
         public Color primaryColor = Color.white;
         public Color secondaryColor = Color.white;
@@ -36,8 +39,12 @@ namespace AthenaFramework
         public bool useSecondary;
         public Command_Action paletteAction;
 
-        public LocalTargetInfo currentTarget;
-        public float currentTargetPriority = 0f;
+        private LocalTargetInfo currentTarget;
+        private float currentTargetPriority = -1f;
+
+        public int lastTargetingTick;
+
+        public Gizmo_DroneHealthStatus healthGizmo;
 
         public string Label
         {
@@ -76,14 +83,6 @@ namespace AthenaFramework
             get
             {
                 return def.maxHealth;
-            }
-        }
-
-        public virtual float RepairPerTick
-        {
-            get
-            {
-                return def.repairPerTick;
             }
         }
 
@@ -204,6 +203,11 @@ namespace AthenaFramework
                     for (int i = comps.Count - 1; i >= 0; i--)
                     {
                         drawPos += comps[i].DrawPosOffset();
+
+                        if (comps[i].DrawPosOverride(ref drawPos))
+                        {
+                            return drawPos;
+                        }
                     }
                 }
 
@@ -215,13 +219,24 @@ namespace AthenaFramework
         {
             get
             {
+                if (Find.TickManager.TicksGame > lastTargetingTick + def.targetRefreshRate || currentTargetPriority == -1f)
+                {
+                    RecacheTarget();
+                }
+
                 return currentTarget;
             }
         }
 
-        public Drone()
+        public virtual float CurrentTargetPriority
         {
+            get
+            {
+                return currentTargetPriority;
+            }
         }
+
+        public Drone() { }
 
         public Drone(Pawn pawn, DroneDef def)
         {
@@ -243,6 +258,15 @@ namespace AthenaFramework
         {
             handlerHediff = pawn.health.AddHediff(AthenaDefOf.Athena_DroneHandler) as Hediff_DroneHandler;
             handlerHediff.drone = this;
+
+            if (comps != null)
+            {
+                for (int i = comps.Count - 1; i >= 0; i--)
+                {
+                    comps[i].OnSetup();
+                }
+            }
+
             Deploy();
         }
 
@@ -278,23 +302,49 @@ namespace AthenaFramework
             }
         }
 
+        public virtual void RecacheTarget()
+        {
+            if (comps == null)
+            {
+                return;
+            }
+
+            bool updatedTarget = false;
+
+            for (int i = comps.Count - 1; i >= 0; i--)
+            {
+                if (comps[i].RecacheTarget(out LocalTargetInfo newTarget, out float newPriority))
+                {
+                    SetTarget(newTarget, newPriority);
+                    updatedTarget = true;
+                }
+            }
+
+            if (!updatedTarget)
+            {
+                SetTarget(null, -1f); // If we were unable to locate a new target, wipe the existing one.
+            }
+        }
+
         public T TryGetComp<T>() where T : DroneComp
         {
-            if (comps != null)
+            if (comps == null)
             {
-                for (int i = comps.Count - 1; i >= 0; i--)
+                return null;
+            }
+
+            for (int i = comps.Count - 1; i >= 0; i--)
+            {
+                if (comps[i] is T result)
                 {
-                    if (comps[i] is T result)
-                    {
-                        return result;
-                    }
+                    return result;
                 }
             }
 
             return null;
         }
 
-        public float TryGetStat(StatDef stat)
+        public virtual float TryGetStat(StatDef stat)
         {
             for (int i = def.statBases.Count - 1; i >= 0; i--)
             {
@@ -302,7 +352,19 @@ namespace AthenaFramework
 
                 if (statMod.stat == stat)
                 {
-                    return statMod.value;
+                    if (comps == null)
+                    {
+                        return statMod.value;
+                    }
+
+                    float value = statMod.value;
+
+                    for (int j = comps.Count - 1; j >= 0; j--)
+                    {
+                        comps[i].TryGetStat(stat, ref value);
+                    }
+
+                    return value;
                 }
             }
 
@@ -348,8 +410,6 @@ namespace AthenaFramework
                     comps[i].Tick();
                 }
             }
-
-            HandleRepairs();
         }
 
         public virtual void ActiveTick()
@@ -365,6 +425,11 @@ namespace AthenaFramework
 
         public virtual void Deploy()
         {
+            if (broken)
+            {
+                return;
+            }
+
             active = true;
             AthenaCache.AddCache(this, AthenaCache.responderCache, pawn.thingIDNumber);
 
@@ -446,6 +511,11 @@ namespace AthenaFramework
                 }
             }
 
+            if (CurrentPosition != pawn.Position) // Cannot block if we're mid ranged attack
+            {
+                hitChance = 0;
+            }
+
             if (!Rand.Chance(hitChance))
             {
                 return;
@@ -498,78 +568,72 @@ namespace AthenaFramework
             }
 
             dinfo.SetAmount(-health);
-            Destroy();
+
+            if (def.deathEffecter != null)
+            {
+                def.deathEffecter.SpawnAttached(pawn, pawn.Map).Cleanup();
+            }
+
+            if (Rand.Chance(def.destroyChance))
+            {
+                Destroy();
+                return;
+            }
+
+            health = 0;
+            broken = true;
+            Recall();
         }
 
         public virtual void Destroy()
         {
+            Recall();
             pawn.health.RemoveHediff(handlerHediff);
-            handlerHediff = null;
         }
 
         public virtual void OnDestroyed()
         {
             AthenaCache.RemoveCache(this, AthenaCache.responderCache, pawn.thingIDNumber);
+            handlerHediff = null;
+            pawn = null;
 
             if (comps != null)
             {
                 for (int i = comps.Count - 1; i >= 0; i--)
                 {
-                    comps[i].Destroyed();
+                    comps[i].OnDestroyed();
                 }
             }
         }
 
-        public virtual void HandleRepairs()
+        public virtual void RepairDrone(float amount, bool allowOverhealth = false)
         {
-            switch (def.repairType)
+            health += amount;
+
+            if (!allowOverhealth)
             {
-                case DroneRepairType.Passive:
-                    health += RepairPerTick;
-                    break;
-
-                case DroneRepairType.OutOfCombat:
-
-                    if (!InCombat)
-                    {
-                        health += RepairPerTick;
-                    }
-
-                    break;
-
-                case DroneRepairType.Recalled:
-
-                    if (!active)
-                    {
-                        health += RepairPerTick;
-                    }
-
-                    break;
-
-                case DroneRepairType.RecalledOutOfCombat:
-
-                    if (!InCombat && !active)
-                    {
-                        health += RepairPerTick;
-                    }
-
-                    break;
+                health = Math.Max(health, MaxHealth);
             }
 
-            health = Math.Max(health, MaxHealth);
+            if (broken && health >= MaxHealth)
+            {
+                broken = false;
+            }
         }
 
         public virtual bool DisableHoveringAnimation()
         {
 
-            if (comps != null)
+            if (comps == null)
             {
-                for (int i = comps.Count - 1; i >= 0; i--)
+                return false;
+            }
+
+            for (int i = comps.Count - 1; i >= 0; i--)
+            {
+                if (comps[i].DisableHoveringAnimation())
                 {
-                    if (comps[i].DisableHoveringAnimation())
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
 
@@ -595,11 +659,6 @@ namespace AthenaFramework
 
         public virtual void DrawSecondaries(Vector3 drawPos, BodyTypeDef bodyType)
         {
-            if (def.additionalGraphics == null)
-            {
-                return;
-            }
-
             if (additionalGraphics == null)
             {
                 RecacheGraphicData();
@@ -667,7 +726,7 @@ namespace AthenaFramework
             }
         }
 
-        public virtual IEnumerable<Gizmo> GetGizmosExtra()
+        public virtual IEnumerable<Gizmo> GetGizmos()
         {
             if (usePrimary)
             {
@@ -683,6 +742,16 @@ namespace AthenaFramework
                 }
 
                 yield return paletteAction;
+            }
+
+            if (def.healthDisplay)
+            {
+                if (healthGizmo == null)
+                {
+                    healthGizmo = new Gizmo_DroneHealthStatus(this);
+                }
+
+                yield return healthGizmo;
             }
 
             if (comps == null)
@@ -710,6 +779,8 @@ namespace AthenaFramework
             {
                 return false;
             }
+
+            currentTargetPriority = targetPriority;
 
             if (currentTarget == newTarget)
             {

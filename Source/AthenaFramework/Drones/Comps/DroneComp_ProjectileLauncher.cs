@@ -189,7 +189,6 @@ namespace AthenaFramework
         {
             return base.DrawPosOffset() + recoil;
         }
-
         public virtual void StartBurst()
         {
             if (!IsValidTarget(target))
@@ -354,7 +353,14 @@ namespace AthenaFramework
                 return false;
             }
 
-            recoil += (Pawn.Position - target.Cell).ToVector3().normalized * Props.recoil;
+            if (!Props.mortarRecoil)
+            {
+                recoil += (parent.CurrentPosition - target.Cell).ToVector3().normalized * Props.recoil;
+            }
+            else
+            {
+                recoil += new Vector3(0f, 0f, 1f) * Props.recoil;
+            }
 
             Vector3 drawPos = parent.DrawPos;
             Projectile projectile = (Projectile)GenSpawn.Spawn(projectileDef, resultingLine.Source, Pawn.Map);
@@ -522,6 +528,9 @@ namespace AthenaFramework
         // Recoil is purely visual and has no gameplay impact
         public float recoil = 0.1f;
         public float recoilRecovery = 0.01f;
+
+        // When set to true, the drone instead uses vertical mortar-like recoil instead of horizontal gun recoil
+        public bool mortarRecoil = false;
 
         public ThingDef projectileDef;
 

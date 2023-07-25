@@ -11,23 +11,26 @@ namespace AthenaFramework
     {
         private DroneCompProperties_ClosestEnemyTargeting Props => props as DroneCompProperties_ClosestEnemyTargeting;
 
-        public override void ActiveTick()
+        public override bool RecacheTarget(out LocalTargetInfo newTarget, out float newPriority, float rangeOverride = -1f, List<LocalTargetInfo> blacklist = null)
         {
-            base.ActiveTick();
+            base.RecacheTarget(out newTarget, out newPriority);
 
-            if (!Pawn.IsHashIntervalTick(Props.searchInterval))
-            {
-                return;
-            }
-
-            Dictionary<Pawn, float> hostiles = PawnRegionUtility.NearbyPawnsDistances(Pawn, Props.rangeOverride ?? parent.EnemyDetectionRange, hostiles: true);
+            Dictionary<Pawn, float> hostiles = PawnRegionUtility.NearbyPawnsDistances(parent.CurrentPosition, Pawn.Map, rangeOverride != -1f ? rangeOverride : Props.rangeOverride ?? parent.EnemyDetectionRange, TraverseParms.For(Pawn), givenPawn: Pawn, hostiles: true);
 
             float minRange = -1f;
             Pawn target = null;
 
+            List<Pawn> pawnHostiles = hostiles.Keys.ToList();
+
             for (int i = hostiles.Count - 1; i >= 0; i--)
             {
-                Pawn potentialTarget = hostiles.Keys.ToList()[i];
+                Pawn potentialTarget = pawnHostiles[i];
+
+                if (blacklist != null && blacklist.Contains(potentialTarget))
+                {
+                    continue;
+                }
+
                 float dist = hostiles[potentialTarget];
 
                 if (dist > minRange && target != null)
@@ -44,10 +47,15 @@ namespace AthenaFramework
                 target = potentialTarget;
             }
 
-            if (target != null)
+            if (target == null)
             {
-                parent.SetTarget(target, Props.targetPriority);
+                return false;
             }
+
+            newTarget = target;
+            newPriority = Props.targetPriority;
+
+            return true;
         }
     }
 
@@ -56,10 +64,6 @@ namespace AthenaFramework
         public float targetPriority = 15f;
         public float? rangeOverride;
         public bool requireLineOfSight = true;
-
-        // How often (in ticks) will the comp try to find a new target
-
-        public int searchInterval = 15;
 
         public DroneCompProperties_ClosestEnemyTargeting()
         {

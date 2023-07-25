@@ -80,7 +80,7 @@ namespace AthenaFramework
                 }
             }
 
-            cachedGraphic = gradientGraphics[Math.Min((int)Math.Floor((firstMask == DronePackageColor.DroneHealthGradient ? drone.health / drone.MaxHealth : drone.pawn.health.summaryHealth.SummaryHealthPercent) * gradientVariants), gradientVariants - 1)];
+            cachedGraphic = gradientGraphics[Math.Min((int)Math.Floor((firstMask == DronePackageColor.DroneHealthGradient ? Math.Min(drone.MaxHealth, drone.health) / drone.MaxHealth : drone.pawn.health.summaryHealth.SummaryHealthPercent) * gradientVariants), gradientVariants - 1)];
 
             return cachedGraphic;
         }
@@ -124,7 +124,7 @@ namespace AthenaFramework
                     return drone.pawn.story.favoriteColor;
 
                 case DronePackageColor.DroneHealthGradient:
-                    return ColorGradient[Math.Min((int)Math.Floor(drone.health / drone.MaxHealth * gradientVariants), gradientVariants - 1)];
+                    return ColorGradient[Math.Min((int)Math.Floor(Math.Min(drone.MaxHealth, drone.health) / drone.MaxHealth * gradientVariants), gradientVariants - 1)];
 
                 case DronePackageColor.PawnHealthGradient:
                     return ColorGradient[Math.Min((int)Math.Floor(drone.pawn.health.summaryHealth.SummaryHealthPercent * gradientVariants), gradientVariants - 1)];

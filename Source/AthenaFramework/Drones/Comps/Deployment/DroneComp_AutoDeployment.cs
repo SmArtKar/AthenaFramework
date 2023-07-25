@@ -15,7 +15,7 @@ namespace AthenaFramework
         {
             base.Tick();
 
-            if (!Pawn.IsHashIntervalTick(15))
+            if (!Pawn.IsHashIntervalTick(15) || parent.broken)
             {
                 return;
             }

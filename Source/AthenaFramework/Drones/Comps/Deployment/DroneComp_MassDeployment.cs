@@ -20,11 +20,10 @@ namespace AthenaFramework
         {
             base.Tick();
 
-            if (!Pawn.IsHashIntervalTick(15))
+            if (!Pawn.IsHashIntervalTick(15) || parent.broken)
             {
                 return;
             }
-
 
             otherActiveDrones = false;
             otherInactiveDrones = false;
@@ -43,7 +42,7 @@ namespace AthenaFramework
 
                 Drone drone = handler.drone;
 
-                if (Props.onlySameType && drone.def != parent.def)
+                if (Props.onlySameType && drone.def != parent.def || drone.broken)
                 {
                     continue;
                 }

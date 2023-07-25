@@ -8,9 +8,9 @@ using Verse;
 
 namespace AthenaFramework
 {
-    public class AbilityCompEffect_CreateDrone : CompAbilityEffect
+    public class AbilityCompEffect_CreateUnlinkedDrone : CompAbilityEffect
     {
-        private new CompProperties_AbilityCreateDrone Props => props as CompProperties_AbilityCreateDrone;
+        private new CompProperties_AbilityCreateUnlinkedDrone Props => props as CompProperties_AbilityCreateUnlinkedDrone;
 
         public override void Apply(LocalTargetInfo target, LocalTargetInfo dest)
         {
@@ -25,13 +25,13 @@ namespace AthenaFramework
         }
     }
 
-    public class CompProperties_AbilityCreateDrone : CompProperties_AbilityEffect
+    public class CompProperties_AbilityCreateUnlinkedDrone : CompProperties_AbilityEffect
     {
         public DroneDef droneDef;
 
-        public CompProperties_AbilityCreateDrone()
+        public CompProperties_AbilityCreateUnlinkedDrone()
         {
-            this.compClass = typeof(AbilityCompEffect_CreateDrone);
+            this.compClass = typeof(AbilityCompEffect_CreateUnlinkedDrone);
         }
     }
 }

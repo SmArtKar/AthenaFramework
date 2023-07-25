@@ -13,19 +13,34 @@ namespace AthenaFramework
     {
         public DroneCompProperties_ManualTargeting Props => props as DroneCompProperties_ManualTargeting;
 
-        public virtual void ApplyTarget(LocalTargetInfo target)
+        public Ability linkedTargeter;
+        public LocalTargetInfo storedTarget;
+
+        public override bool RecacheTarget(out LocalTargetInfo newTarget, out float newPriority, float rangeOverride = -1f, List<LocalTargetInfo> blacklist = null)
         {
-            parent.SetTarget(target, Props.targetPriority);
+            base.RecacheTarget(out newTarget, out newPriority);
+
+            if (storedTarget != null)
+            {
+                if (linkedTargeter.verb.ValidateTarget(storedTarget, false))
+                {
+                    newTarget = storedTarget;
+                    newPriority = Props.targetPriority;
+
+                    return true;
+                }
+
+                storedTarget = null;
+            }
+
+            return false;
         }
 
         public override void OnDeployed()
         {
             base.OnDeployed();
-
-            if (Pawn.abilities.GetAbility(Props.targeterAbility) == null)
-            {
-                Pawn.abilities.GainAbility(Props.targeterAbility);
-            }
+            Pawn.abilities.GainAbility(Props.targeterAbility);
+            linkedTargeter = Pawn.abilities.GetAbility(Props.targeterAbility);
         }
 
         public override void OnRecalled()

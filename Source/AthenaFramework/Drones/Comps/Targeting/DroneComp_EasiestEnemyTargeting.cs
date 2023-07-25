@@ -12,24 +12,27 @@ namespace AthenaFramework
     {
         private DroneCompProperties_EasiestEnemyTargeting Props => props as DroneCompProperties_EasiestEnemyTargeting;
 
-        public override void ActiveTick()
+        public override bool RecacheTarget(out LocalTargetInfo newTarget, out float newPriority, float rangeOverride = -1f, List<LocalTargetInfo> blacklist = null)
         {
-            base.ActiveTick();
+            base.RecacheTarget(out newTarget, out newPriority);
 
-            if (!Pawn.IsHashIntervalTick(Props.searchInterval))
-            {
-                return;
-            }
-
-            Dictionary<Pawn, float> hostiles = PawnRegionUtility.NearbyPawnsDistances(Pawn, Props.rangeOverride ?? parent.EnemyDetectionRange, hostiles: true);
+            Dictionary<Pawn, float> hostiles = PawnRegionUtility.NearbyPawnsDistances(parent.CurrentPosition, Pawn.Map, rangeOverride != -1f ? rangeOverride : Props.rangeOverride ?? parent.EnemyDetectionRange, TraverseParms.For(Pawn), givenPawn: Pawn, hostiles: true);
 
             float hitChance = -1f;
             Pawn target = null;
             HitChanceFlags hitFlags = HitChanceFlags.Posture | HitChanceFlags.Gas | HitChanceFlags.Weather | HitChanceFlags.Size | HitChanceFlags.Execution;
 
+            List<Pawn> pawnHostiles = hostiles.Keys.ToList();
+
             for (int i = hostiles.Count - 1; i >= 0; i--)
             {
-                Pawn potentialTarget = hostiles.Keys.ToList()[i];
+                Pawn potentialTarget = pawnHostiles[i];
+
+                if (blacklist.Contains(potentialTarget))
+                {
+                    continue;
+                }
+
                 float newHitChance = AthenaCombatUtility.GetRangedHitChance(parent.CurrentPosition, potentialTarget, hitFlags);
                 newHitChance *= parent.GetRangedHitChance((float)Math.Sqrt(hostiles[potentialTarget]));
 
@@ -47,10 +50,15 @@ namespace AthenaFramework
                 target = potentialTarget;
             }
 
-            if (target != null)
+            if (target == null)
             {
-                parent.SetTarget(target, Props.targetPriority);
+                return false;
             }
+
+            newTarget = target;
+            newPriority = Props.targetPriority;
+
+            return true;
         }
     }
 
@@ -59,10 +67,6 @@ namespace AthenaFramework
         public float targetPriority = 20f;
         public float? rangeOverride;
         public bool requireLineOfSight = true;
-
-        // How often (in ticks) will the comp try to find a new target
-
-        public int searchInterval = 15;
 
         public DroneCompProperties_EasiestEnemyTargeting()
         {

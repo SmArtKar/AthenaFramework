@@ -64,12 +64,18 @@ namespace AthenaFramework
 
             drone.Recall();
             drone.OnDestroyed();
+            drone = null;
         }
 
         public virtual void CleanRemove()
         {
             drone = null;
             pawn.health.RemoveHediff(this);
+        }
+
+        public override IEnumerable<Gizmo> GetGizmos()
+        {
+            return drone.GetGizmos();
         }
     }
 }

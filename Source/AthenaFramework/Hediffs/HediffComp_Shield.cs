@@ -332,8 +332,7 @@ namespace AthenaFramework
                 {
                     if (gizmo == null)
                     {
-                        gizmo = new Gizmo_HediffShieldStatus();
-                        gizmo.shieldHediff = this;
+                        gizmo = new Gizmo_HediffShieldStatus(this);
                     }
 
                     yield return gizmo;

@@ -25,17 +25,11 @@ namespace AthenaFramework
                     continue;
                 }
 
-                Drone drone = hediff.drone;
+                DroneComp_ManualTargeting comp = hediff.drone.TryGetComp<DroneComp_ManualTargeting>();
 
-                for (int j = drone.comps.Count - 1; j >= 0; j++)
+                if (comp != null && comp.Props.targeterAbility == parent.def)
                 {
-                    DroneComp_ManualTargeting comp = drone.comps[j] as DroneComp_ManualTargeting;
-
-                    if (comp != null && comp.Props.targeterAbility == parent.def)
-                    {
-                        comp.ApplyTarget(target);
-                        return;
-                    }
+                    comp.storedTarget = target;
                 }
             }
         }
