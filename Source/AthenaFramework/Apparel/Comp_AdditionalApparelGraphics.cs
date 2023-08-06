@@ -192,6 +192,8 @@ namespace AthenaFramework
             {
                 attachedEffecter = Props.attachedEffecterDef.SpawnAttached(Pawn, Pawn.Map);
             }
+
+            RecacheGraphicData();
         }
 
         public override void Notify_Unequipped(Pawn pawn)

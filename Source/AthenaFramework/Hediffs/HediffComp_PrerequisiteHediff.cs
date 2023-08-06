@@ -21,24 +21,7 @@ namespace AthenaFramework
                 return;
             }
 
-            List<HediffDef> remainingDefs = new List<HediffDef>(Props.prerequisites);
-
-            for (int i = Pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
-            {
-                Hediff hediff = Pawn.health.hediffSet.hediffs[i];
-
-                if (Props.samePartPrerequisites && parent.Part != hediff.Part)
-                {
-                    continue;
-                }
-
-                if (remainingDefs.Contains(hediff.def))
-                {
-                    remainingDefs.Remove(hediff.def);
-                }
-            }
-
-            if (remainingDefs.Count == 0)
+            if (Props.ValidPawn(Pawn, parent.Part))
             {
                 return;
             }
@@ -64,29 +47,7 @@ namespace AthenaFramework
 
         public virtual bool ShouldReenable(Pawn pawn)
         {
-            List<HediffDef> remainingDefs = new List<HediffDef>(Props.prerequisites);
-
-            for (int i = Pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
-            {
-                Hediff hediff = Pawn.health.hediffSet.hediffs[i];
-
-                if (Props.samePartPrerequisites && parent.Part != hediff.Part)
-                {
-                    continue;
-                }
-
-                if (remainingDefs.Contains(hediff.def))
-                {
-                    remainingDefs.Remove(hediff.def);
-                }
-            }
-
-            if (remainingDefs.Count == 0)
-            {
-                return true;
-            }
-
-            return false;
+            return Props.ValidPawn(pawn, parent.Part);
         }
     }
 
@@ -98,6 +59,8 @@ namespace AthenaFramework
         }
 
         public List<HediffDef> prerequisites;
+        // List of genes that the pawn should have for the item to be equipped
+        public List<GeneDef> genePrerequisites;
         // If hediff can be implanted without prerequisites
         public bool applyWithoutPrerequisites = false;
         // Wherever prerequisite hediffs must be located on the same bodypart
@@ -107,6 +70,46 @@ namespace AthenaFramework
         //Def of a hediff that will replace this hediff upon being disabled
         public HediffDef replacementDef;
 
+        public virtual bool ValidPawn(Pawn pawn, BodyPartRecord part)
+        {
+            if (genePrerequisites != null && genePrerequisites.Count > 0 && pawn.genes == null)
+            {
+                return false;
+            }
+
+            for (int i = genePrerequisites.Count - 1; i >= 0; i--)
+            {
+                if (!pawn.genes.HasGene(genePrerequisites[i]))
+                {
+                    return false;
+                }
+            }
+
+            List<HediffDef> remainingHediffs = new List<HediffDef>(prerequisites);
+
+            for (int i = pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
+            {
+                Hediff hediff = pawn.health.hediffSet.hediffs[i];
+
+                if (samePartPrerequisites && part != hediff.Part)
+                {
+                    continue;
+                }
+
+                if (remainingHediffs.Contains(hediff.def))
+                {
+                    remainingHediffs.Remove(hediff.def);
+                }
+            }
+
+            if (remainingHediffs.Count > 0)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         public virtual bool ValidSurgery(Recipe_Surgery recipe, Pawn pawn, BodyPartRecord part)
         {
             if (applyWithoutPrerequisites || prerequisites == null)
@@ -114,24 +117,7 @@ namespace AthenaFramework
                 return true;
             }
 
-            List<HediffDef> remainingDefs = new List<HediffDef>(prerequisites);
-
-            for (int i = pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
-            {
-                Hediff hediff = pawn.health.hediffSet.hediffs[i];
-                
-                if (samePartPrerequisites && part != hediff.Part)
-                {
-                    continue;
-                }
-
-                if (remainingDefs.Contains(hediff.def))
-                {
-                    remainingDefs.Remove(hediff.def);
-                }
-            }
-
-            return remainingDefs.Count == 0;
+            return ValidPawn(pawn, part);
         }
     }
 }

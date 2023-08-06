@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Verse;
 using RimWorld;
+using static HarmonyLib.Code;
 
 namespace AthenaFramework
 {
@@ -35,19 +36,7 @@ namespace AthenaFramework
                 return;
             }
 
-            List<HediffDef> remainingDefs = new List<HediffDef>(Props.prerequisites);
-
-            for (int i = pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
-            {
-                Hediff hediff = pawn.health.hediffSet.hediffs[i];
-
-                if (remainingDefs.Contains(hediff.def))
-                {
-                    remainingDefs.Remove(hediff.def);
-                }
-            }
-
-            if (remainingDefs.Count == 0)
+            if (!Props.ValidPawn(pawn))
             {
                 return;
             }
@@ -100,11 +89,68 @@ namespace AthenaFramework
             this.compClass = typeof(CompPrerequisiteEquippable);
         }
 
-        // List of prerequisite hediffs that are required for apparel to be equipped
+        // List of prerequisite hediffs that are required for the item to be equipped
         public List<HediffDef> prerequisites;
+        // List of equipment that the pawn should have for the item to be equipped
+        public List<ThingDef> equipmentPrerequisites;
+        // List of genes that the pawn should have for the item to be equipped
+        public List<GeneDef> genePrerequisites;
         // If equipment should be dropped without prerequisite hediffs
         public bool dropWithoutPrerequisites = false;
         // Text that's displayed when required hediffs are missing
         public string cantReason = "Missing required hediffs";
+
+        public virtual bool ValidPawn(Pawn pawn)
+        {
+            if (genePrerequisites != null && genePrerequisites.Count > 0 && pawn.genes == null)
+            {
+                return false;
+            }
+
+            for (int i = genePrerequisites.Count - 1; i >= 0; i--)
+            {
+                if (!pawn.genes.HasGene(genePrerequisites[i]))
+                {
+                    return false;
+                }
+            }
+
+            List<ThingDef> remainingThings = new List<ThingDef>(equipmentPrerequisites);
+            List<ThingWithComps> equipment = pawn.equipment.AllEquipmentListForReading;
+
+            for (int i = equipment.Count - 1; i >= 0; i--)
+            {
+                ThingWithComps thing = equipment[i];
+
+                if (remainingThings.Contains(thing.def))
+                {
+                    remainingThings.Remove(thing.def);
+                }
+            }
+
+            if (remainingThings.Count > 0)
+            {
+                return false;
+            }
+
+            List<HediffDef> remainingHediffs = new List<HediffDef>(prerequisites);
+
+            for (int i = pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
+            {
+                Hediff hediff = pawn.health.hediffSet.hediffs[i];
+
+                if (remainingHediffs.Contains(hediff.def))
+                {
+                    remainingHediffs.Remove(hediff.def);
+                }
+            }
+
+            if (remainingHediffs.Count > 0)
+            {
+                return false;
+            }
+
+            return true;
+        }
     }
 }
