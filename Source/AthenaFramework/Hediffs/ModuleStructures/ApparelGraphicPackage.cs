@@ -37,7 +37,7 @@ namespace AthenaFramework
                 Color firstColor1 = GetColor(firstMask, apparel) ?? graphicData.color;
                 Color secondColor1 = GetColor(secondMask, apparel) ?? graphicData.colorTwo;
 
-                if (firstColor1 == cachedFirstColor && secondColor1 == cachedSecondColor)
+                if (firstColor1 == cachedFirstColor && secondColor1 == cachedSecondColor && cachedGraphic != null)
                 {
                     return cachedGraphic;
                 }

@@ -164,6 +164,12 @@ namespace AthenaFramework
                     CompModular comp = thing.AllComps[j] as CompModular;
                     if (comp != null && comp.GetOpenSlots(this).Count > 0)
                     {
+
+                        if (Props.prerequisites != null && !Props.prerequisites.ValidPawn(pawn))
+                        {
+                            continue;
+                        }
+
                         failReason = null;
                         return true;
                     }
@@ -503,6 +509,9 @@ namespace AthenaFramework
         public List<StatModifier> armorStats;
         // If block VFX should be metallic
         public bool metallicBlock = false;
+        // Prerequisite properties for the module, with the module only be able to be installed if the owner pawn fits the criteria. Assign the values in the props as you would normally
+        // Does nothing if the owner isn't a pawn
+        public CompProperties_PrerequisiteEquippable prerequisites;
     }
 
     public enum ArmorMode

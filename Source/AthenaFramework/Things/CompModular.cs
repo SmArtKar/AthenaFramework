@@ -280,8 +280,6 @@ namespace AthenaFramework
             yield break;
         }
 
-        /*
-
         public IEnumerable<FloatMenuOption> ItemFloatMenuOptions(Pawn selPawn)
         {
             for (int i = selPawn.inventory.innerContainer.Count - 1; i >= 0; i--)
@@ -304,7 +302,7 @@ namespace AthenaFramework
                     {
                         if (selPawn.CanReserveAndReach(parent, PathEndMode.Touch, Danger.Deadly, 1, -1, null, false))
                         {
-                            StartModuleJob(pawn, comp, parentComp, slot, Props.ignoreOtherReservations);
+                            //StartModuleJob(pawn, comp);
                         }
                     };
 
@@ -318,7 +316,6 @@ namespace AthenaFramework
 
         public IEnumerable<FloatMenuOption> PawnFloatMenuOptions(ThingWithComps thing) { yield break; }
 
-        */
     }
 
     public class CompProperties_Modular : CompProperties

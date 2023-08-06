@@ -253,6 +253,11 @@ namespace AthenaFramework
 
                     if (comp != null && comp.GetOpenSlots(this).Count > 0)
                     {
+                        if (Props.prerequisites != null && !Props.prerequisites.ValidPawn(pawn, hediff.Part))
+                        {
+                            continue;
+                        }
+
                         failReason = null;
                         return true;
                     }
@@ -291,5 +296,7 @@ namespace AthenaFramework
         public List<HediffDef> hediffs;
         // List of additional graphics that are applied if the parent pawn has an IRenderable that accepts hediff graphic packages linked to it
         public List<HediffGraphicPackage> additionalGraphics;
+        // Prerequisite properties for the module, with the module only be able to be installed if the pawn fits the criteria. Assign the values in the props as you would normally
+        public HediffCompProperties_PrerequisiteHediff prerequisites;
     }
 }

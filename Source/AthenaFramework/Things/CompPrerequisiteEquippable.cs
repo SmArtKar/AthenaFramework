@@ -97,8 +97,8 @@ namespace AthenaFramework
         public List<GeneDef> genePrerequisites;
         // If equipment should be dropped without prerequisite hediffs
         public bool dropWithoutPrerequisites = false;
-        // Text that's displayed when required hediffs are missing
-        public string cantReason = "Missing required hediffs";
+        // Text that's displayed when the pawn is not fitting the criteria
+        public string cantReason = "Missing prerequisites.";
 
         public virtual bool ValidPawn(Pawn pawn)
         {

@@ -55,7 +55,7 @@ namespace AthenaFramework
 
             Color firstColor = GetColor(firstMask, hediff) ?? graphicData.color;
 
-            if (firstColor == cachedFirstColor && secondColor == cachedSecondColor)
+            if (firstColor == cachedFirstColor && secondColor == cachedSecondColor && cachedGraphic != null)
             {
                 return cachedGraphic;
             }
