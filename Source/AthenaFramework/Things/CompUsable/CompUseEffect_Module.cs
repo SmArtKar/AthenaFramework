@@ -184,10 +184,10 @@ namespace AthenaFramework
         {
             if (CurrentArmorMode != ArmorMode.None)
             {
-                AthenaCache.AddCache(this, AthenaCache.armorCache, comp.parent.thingIDNumber);
+                AthenaCache.AddCache(this, ref AthenaCache.armorCache, comp.parent.thingIDNumber);
             }
 
-            AthenaCache.AddCache(this, AthenaCache.statmodCache, comp.parent.thingIDNumber);
+            AthenaCache.AddCache(this, ref AthenaCache.statmodCache, comp.parent.thingIDNumber);
 
             if (Props.installSound != null)
             {
@@ -250,10 +250,10 @@ namespace AthenaFramework
         {
             if (CurrentArmorMode != ArmorMode.None)
             {
-                AthenaCache.AddCache(this, AthenaCache.armorCache, comp.parent.thingIDNumber);
+                AthenaCache.AddCache(this, ref AthenaCache.armorCache, comp.parent.thingIDNumber);
             }
 
-            AthenaCache.AddCache(this, AthenaCache.statmodCache, comp.parent.thingIDNumber);
+            AthenaCache.AddCache(this, ref AthenaCache.statmodCache, comp.parent.thingIDNumber);
 
             if (Props.comps == null)
             {

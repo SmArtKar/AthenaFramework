@@ -245,7 +245,7 @@ namespace AthenaFramework
             health = def.maxHealth;
             Initialize();
 
-            AthenaCache.AddCache(this, AthenaCache.responderCache, pawn.thingIDNumber);
+            AthenaCache.AddCache(this, ref AthenaCache.responderCache, pawn.thingIDNumber);
         }
 
         public virtual void Initialize()
@@ -384,7 +384,7 @@ namespace AthenaFramework
             if (Scribe.mode == LoadSaveMode.ResolvingCrossRefs && active)
             {
                 InitializeComps();
-                AthenaCache.AddCache(this, AthenaCache.responderCache, pawn.thingIDNumber);
+                AthenaCache.AddCache(this, ref AthenaCache.responderCache, pawn.thingIDNumber);
             }
 
             if (comps != null)
@@ -431,7 +431,7 @@ namespace AthenaFramework
             }
 
             active = true;
-            AthenaCache.AddCache(this, AthenaCache.responderCache, pawn.thingIDNumber);
+            AthenaCache.AddCache(this, ref AthenaCache.responderCache, pawn.thingIDNumber);
 
             if (comps != null)
             {

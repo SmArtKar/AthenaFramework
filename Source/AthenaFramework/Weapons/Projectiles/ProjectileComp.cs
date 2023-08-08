@@ -22,7 +22,7 @@ namespace AthenaFramework
         public override void Initialize(CompProperties props)
         {
             base.Initialize(props);
-            AthenaCache.AddCache(this, AthenaCache.projectileCache, parent.thingIDNumber);
+            AthenaCache.AddCache(this, ref AthenaCache.projectileCache, parent.thingIDNumber);
         }
 
         public override void PostDestroy(DestroyMode mode, Map previousMap)

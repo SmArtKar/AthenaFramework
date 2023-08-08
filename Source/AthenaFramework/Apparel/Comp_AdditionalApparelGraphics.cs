@@ -181,7 +181,7 @@ namespace AthenaFramework
         public override void Notify_Equipped(Pawn pawn)
         {
             base.Notify_Equipped(pawn);
-            AthenaCache.AddCache(this, AthenaCache.renderCache, pawn.thingIDNumber);
+            AthenaCache.AddCache(this, ref AthenaCache.renderCache, pawn.thingIDNumber);
 
             if (Props.attachedMoteDef != null)
             {

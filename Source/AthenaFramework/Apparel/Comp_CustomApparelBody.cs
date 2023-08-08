@@ -98,15 +98,15 @@ namespace AthenaFramework
         public override void Notify_Equipped(Pawn pawn)
 		{
             base.Notify_Equipped(pawn);
-            AthenaCache.AddCache(this, AthenaCache.bodyCache, pawn.thingIDNumber);
-            pawn.Drawer.renderer.graphics.ResolveAllGraphics();
+            AthenaCache.AddCache(this, ref AthenaCache.bodyCache, pawn.thingIDNumber);
+            pawn.Drawer.renderer.graphics.nakedGraphic = null;
         }
 
         public override void Notify_Unequipped(Pawn pawn)
         {
             base.Notify_Unequipped(pawn);
             AthenaCache.RemoveCache(this, AthenaCache.bodyCache, pawn.thingIDNumber);
-            pawn.Drawer.renderer.graphics.ResolveAllGraphics();
+            pawn.Drawer.renderer.graphics.nakedGraphic = null;
         }
 
         public virtual void FurMat(Rot4 facing, bool portrait, bool cached, ref Material furMat) { }

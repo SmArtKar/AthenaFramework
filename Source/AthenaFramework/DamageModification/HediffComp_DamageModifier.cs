@@ -67,7 +67,7 @@ namespace AthenaFramework
         public override void CompPostMake()
         {
             base.CompPostMake();
-            AthenaCache.AddCache(this, AthenaCache.damageCache, Pawn.thingIDNumber);
+            AthenaCache.AddCache(this, ref AthenaCache.damageCache, Pawn.thingIDNumber);
         }
 
         public override void CompExposeData()
@@ -76,7 +76,7 @@ namespace AthenaFramework
 
             if (Scribe.mode == LoadSaveMode.ResolvingCrossRefs)
             {
-                AthenaCache.AddCache(this, AthenaCache.damageCache, Pawn.thingIDNumber);
+                AthenaCache.AddCache(this, ref AthenaCache.damageCache, Pawn.thingIDNumber);
             }
         }
 

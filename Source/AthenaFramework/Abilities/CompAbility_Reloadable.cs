@@ -74,7 +74,7 @@ namespace AthenaFramework
         {
             base.Initialize(props);
             remainingCharges = Props.maxCharges;
-            AthenaCache.AddCache(this, AthenaCache.menuCache, Pawn.thingIDNumber);
+            AthenaCache.AddCache(this, ref AthenaCache.menuCache, Pawn.thingIDNumber);
         }
 
         public override void PostExposeData()

@@ -35,8 +35,13 @@ namespace AthenaFramework
         public static Dictionary<int, List<IPreventEquip>> equipCache;
         public static Dictionary<int, List<IFloatMenu>> menuCache;
 
-        public static void AddCache<T>(T elem, Dictionary<int, List<T>> cacheList, int id)
+        public static void AddCache<T>(T elem, ref Dictionary<int, List<T>> cacheList, int id)
         {
+            if (cacheList == null)
+            {
+                Reset();
+            }
+
             if (cacheList.TryGetValue(id, out List<T> mods))
             {
                 if (!mods.Contains(elem))

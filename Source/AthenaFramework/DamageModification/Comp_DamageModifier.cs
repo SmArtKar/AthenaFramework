@@ -58,7 +58,7 @@ namespace AthenaFramework
 
             if (Props.workOnEquip)
             {
-                AthenaCache.AddCache(this, AthenaCache.damageCache, pawn.thingIDNumber);
+                AthenaCache.AddCache(this, ref AthenaCache.damageCache, pawn.thingIDNumber);
             }
 
             if (Props.workOnParent && !Props.workWhenEquipped)
@@ -78,7 +78,7 @@ namespace AthenaFramework
 
             if (Props.workOnParent && !Props.workWhenEquipped)
             {
-                AthenaCache.AddCache(this, AthenaCache.damageCache, parent.thingIDNumber);
+                AthenaCache.AddCache(this, ref AthenaCache.damageCache, parent.thingIDNumber);
             }
         }
 
@@ -88,7 +88,7 @@ namespace AthenaFramework
 
             if (Props.workOnParent)
             {
-                AthenaCache.AddCache(this, AthenaCache.damageCache, parent.thingIDNumber);
+                AthenaCache.AddCache(this, ref AthenaCache.damageCache, parent.thingIDNumber);
             }
         }
 

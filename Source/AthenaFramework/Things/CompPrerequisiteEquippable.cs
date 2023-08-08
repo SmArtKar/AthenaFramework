@@ -72,7 +72,7 @@ namespace AthenaFramework
         {
             base.Initialize(props);
 
-            AthenaCache.AddCache(this, AthenaCache.equipCache, parent.thingIDNumber);
+            AthenaCache.AddCache(this, ref AthenaCache.equipCache, parent.thingIDNumber);
         }
 
         public override void PostDestroy(DestroyMode mode, Map previousMap)

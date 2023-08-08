@@ -72,7 +72,7 @@ namespace AthenaFramework
 
             if (Scribe.mode == LoadSaveMode.ResolvingCrossRefs)
             {
-                AthenaCache.AddCache(this, AthenaCache.responderCache, Pawn.thingIDNumber);
+                AthenaCache.AddCache(this, ref AthenaCache.responderCache, Pawn.thingIDNumber);
             }
         }
 
@@ -80,7 +80,7 @@ namespace AthenaFramework
         {
             base.CompPostMake();
             energy = MaxEnergy * Props.energyOnStart;
-            AthenaCache.AddCache(this, AthenaCache.responderCache, Pawn.thingIDNumber);
+            AthenaCache.AddCache(this, ref AthenaCache.responderCache, Pawn.thingIDNumber);
         }
 
         public override void CompPostPostRemoved()
