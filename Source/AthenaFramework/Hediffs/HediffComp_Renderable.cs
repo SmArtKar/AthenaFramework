@@ -371,8 +371,8 @@ namespace AthenaFramework
         public List<HediffGraphicPackage> additionalGraphics = new List<HediffGraphicPackage>();
 
         // If any packages use primary/secondary color picker fields, these fields determine hediff's initial primary/secondary colors
-        public ColorPackageGenerator primaryGenerator = ColorPackageGenerator.None;
-        public ColorPackageGenerator secondaryGenerator = ColorPackageGenerator.None;
+        public ColorPackageGenerator primaryGenerator = ColorPackageGenerator.Default;
+        public ColorPackageGenerator secondaryGenerator = ColorPackageGenerator.Default;
         // Default colors in case generator(s) is set to none
         public Color defaultPrimary = Color.white;
         public Color defaultSecondary = Color.white;
