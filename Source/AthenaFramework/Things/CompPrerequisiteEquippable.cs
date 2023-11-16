@@ -13,9 +13,14 @@ namespace AthenaFramework
     {
         public CompProperties_PrerequisiteEquippable Props => props as CompProperties_PrerequisiteEquippable;
 
-        public override void CompTickRare()
+        public override void CompTick()
         {
-            base.CompTickRare();
+            base.CompTick();
+
+            if (!parent.IsHashIntervalTick(180))
+            {
+                return;
+            }
 
             if (!Props.dropWithoutPrerequisites)
             {

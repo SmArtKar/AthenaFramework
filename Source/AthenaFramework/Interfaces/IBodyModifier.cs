@@ -23,6 +23,8 @@ namespace AthenaFramework
 
         public abstract bool CustomBodytype(ref BodyTypeDef bodyType);
 
+        public abstract bool CustomHeadtype(ref HeadTypeDef headType);
+
         public abstract void FurMat(Rot4 facing, bool portrait, bool cached, ref Material furMat);
 
         // Must be added to AthenaCache.bodyCache to work

@@ -47,6 +47,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Abilities\CompAbility_SingularTracker.cs" />
+    <Compile Include="Abilities\CompAbility_ThingScatter.cs" />
+    <Compile Include="Apparel\Comp_DraftedApparelGraphics.cs" />
+    <Compile Include="Apparel\Comp_ShieldEquipment.cs" />
     <Compile Include="Drones\Comps\DroneComp_MeleeAttack.cs" />
     <Compile Include="Drones\Comps\DroneComp_PassiveRepair.cs" />
     <Compile Include="Drones\Comps\Targeting\CompAbility_DroneTargeting.cs" />
@@ -77,7 +80,9 @@
     <Compile Include="Drones\Related\Hediff_DroneOwner.cs" />
     <Compile Include="Genes\AthenaGeneTemplateDef.cs" />
     <Compile Include="Genes\GeneGenerationHandler.cs" />
+    <Compile Include="Gizmos\Gizmo_ShieldStatus.cs" />
     <Compile Include="Harmony\HarmonyPatches_HideParts.cs" />
+    <Compile Include="Hediffs\HediffComp_DraftedGraphics.cs" />
     <Compile Include="Hediffs\HediffComp_CompApplicator.cs" />
     <Compile Include="Hediffs\HediffComp_GiveSingularAbility.cs" />
     <Compile Include="Interfaces\IProjectile.cs" />
@@ -85,6 +90,7 @@
     <Compile Include="Things\CompEquippableAbility.cs" />
     <Compile Include="Things\CompHediffOnDamage.cs" />
     <Compile Include="Things\CompGeneLockedEquippable .cs" />
+    <Compile Include="Things\CompUsable\CompUseEffect_ShieldRecharge.cs" />
     <Compile Include="Things\GeneLockedRecipeExtension.cs" />
     <Compile Include="Weapons\AdvancedTool.cs" />
     <Compile Include="Interfaces\IColorSelector.cs" />
@@ -166,14 +172,16 @@
     <Compile Include="Abilities\CompAbilityEffect_ShootRunningBeam.cs" />
     <Compile Include="Weapons\AimAngleOffsetExtension.cs" />
     <Compile Include="Weapons\Projectiles\ProjectileComp_ImpactEffect.cs" />
+    <Compile Include="Weapons\Projectiles\Projectile_AOEHediff.cs" />
     <Compile Include="Weapons\Tool_Detonation.cs" />
+    <Compile Include="Weapons\Verb_RandomShot.cs" />
     <Compile Include="Weapons\Verb_EliteShot.cs" />
     <Compile Include="Weapons\Verb_ShootMinigun.cs" />
     <Compile Include="Weapons\Verb_ShootRunningBeam.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Krafs.Publicizer">
-      <Version>2.1.0</Version>
+      <Version>2.*</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>

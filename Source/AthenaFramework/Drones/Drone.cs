@@ -110,7 +110,7 @@ namespace AthenaFramework
             }
         }
 
-        public bool InCombat
+        public virtual bool InCombat
         {
             get
             {
@@ -667,12 +667,13 @@ namespace AthenaFramework
             for (int i = additionalGraphics.Count - 1; i >= 0; i--)
             {
                 DroneGraphicPackage package = additionalGraphics[i];
-                Vector3 offset = new Vector3();
 
-                if (package.onlyRenderWhenDrafted && (pawn.drafter == null || !pawn.drafter.Drafted))
+                if (!package.CanRender(this))
                 {
-                    return;
+                    continue;
                 }
+
+                Vector3 offset = new Vector3();
 
                 if (package.offsets != null)
                 {

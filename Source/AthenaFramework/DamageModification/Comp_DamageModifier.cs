@@ -1,6 +1,7 @@
 ﻿using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using Verse;
 using static HarmonyLib.Code;
 
@@ -99,6 +100,48 @@ namespace AthenaFramework
             if (Props.workOnParent)
             {
                 AthenaCache.RemoveCache(this, AthenaCache.damageCache, parent.thingIDNumber);
+            }
+        }
+
+        public override void PostExposeData()
+        {
+            base.PostExposeData();
+
+            if (Scribe.mode != LoadSaveMode.ResolvingCrossRefs)
+            {
+                return;
+            }
+
+            Apparel apparel = parent as Apparel;
+
+            if (apparel != null && apparel.Wearer != null)
+            {
+                if (Props.workOnEquip)
+                {
+                    AthenaCache.AddCache(this, ref AthenaCache.damageCache, apparel.Wearer.thingIDNumber);
+                }
+
+                if (Props.workOnParent && !Props.workWhenEquipped)
+                {
+                    AthenaCache.RemoveCache(this, AthenaCache.damageCache, parent.thingIDNumber);
+                }
+
+                return;
+            }
+
+            CompEquippable comp = parent.GetComp<CompEquippable>();
+
+            if (comp != null && comp.Holder != null)
+            {
+                if (Props.workOnEquip)
+                {
+                    AthenaCache.AddCache(this, ref AthenaCache.damageCache, comp.Holder.thingIDNumber);
+                }
+
+                if (Props.workOnParent && !Props.workWhenEquipped)
+                {
+                    AthenaCache.RemoveCache(this, AthenaCache.damageCache, parent.thingIDNumber);
+                }
             }
         }
     }

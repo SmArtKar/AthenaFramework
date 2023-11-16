@@ -37,6 +37,16 @@ namespace AthenaFramework
         private Color cachedFirstColor;
         private Color cachedSecondColor;
 
+        public virtual bool CanRender(Drone drone)
+        {
+            if (onlyRenderWhenDrafted && (drone.pawn.drafter == null || !drone.pawn.drafter.Drafted))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         public virtual Graphic GetGraphic(Drone drone)
         {
             if (secondMask == DronePackageColor.PawnHealthGradient || secondMask == DronePackageColor.DroneHealthGradient)

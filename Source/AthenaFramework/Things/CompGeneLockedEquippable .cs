@@ -12,11 +12,11 @@ namespace AthenaFramework
     {
         public CompProperties_GeneLockedEquippable Props => props as CompProperties_GeneLockedEquippable;
 
-        public override void CompTickRare()
+        public override void CompTick()
         {
-            base.CompTickRare();
+            base.CompTick();
 
-            if (!Props.dropWithoutRequirements)
+            if (!parent.IsHashIntervalTick(180))
             {
                 return;
             }

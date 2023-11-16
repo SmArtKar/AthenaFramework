@@ -22,6 +22,7 @@ namespace AthenaFramework
         public bool HideFur => false;
 
         public bool CustomBodytype(ref BodyTypeDef bodyType) { return false; }
+        public bool CustomHeadtype(ref HeadTypeDef headType) { return false; }
         public void FurMat(Rot4 facing, bool portrait, bool cached, ref Material furMat) { }
 
         public bool CustomApparelTexture(BodyTypeDef bodyType, Apparel apparel, ref ApparelGraphicRecord rec)
@@ -76,6 +77,21 @@ namespace AthenaFramework
             base.Notify_Unequipped(pawn);
             AthenaCache.RemoveCache(this, AthenaCache.bodyCache, pawn.thingIDNumber);
             pawn.Drawer.renderer.graphics.nakedGraphic = null;
+        }
+
+        public override void PostExposeData()
+        {
+            base.PostExposeData();
+
+            if (Scribe.mode != LoadSaveMode.ResolvingCrossRefs)
+            {
+                return;
+            }
+            if (Wearer != null)
+            {
+                AthenaCache.AddCache(this, ref AthenaCache.bodyCache, Wearer.thingIDNumber);
+                Wearer.Drawer.renderer.graphics.nakedGraphic = null;
+            }
         }
     }
 

@@ -3,16 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Verse;
 using RimWorld;
-using static HarmonyLib.Code;
 using UnityEngine;
+using Verse;
 using Verse.Sound;
 
 namespace AthenaFramework
 {
-    public class HediffComp_Shield : HediffComp_Renderable, IDamageResponse
+    public class Comp_ShieldEquipment : Comp_AdditionalApparelGraphics
     {
+        private CompProperties_ShieldEquipment Props => props as CompProperties_ShieldEquipment;
+        private Apparel Apparel => parent as Apparel;
+        private Pawn Pawn => Apparel.Wearer;
+
         public float energy;
         public int ticksToReset = -1;
         public int lastImpactTick = -1;
@@ -20,10 +23,8 @@ namespace AthenaFramework
         public bool freeRecharge = false; // Set to true in case you want your shield's next reboot to give it full energy
         public Vector3 impactAngleVect;
 
-        private HediffCompProperties_Shield Props => props as HediffCompProperties_Shield;
-
         public Matrix4x4 matrix;
-        public Gizmo_HediffShieldStatus gizmo;
+        public Gizmo_ShieldStatus gizmo;
 
         public float EnergyPercent
         {
@@ -37,12 +38,7 @@ namespace AthenaFramework
         {
             get
             {
-                if (!Props.affectedByStats)
-                {
-                    return Props.maxEnergy;
-                }
-
-                return Props.maxEnergy * Pawn.GetStatValue(StatDefOf.EnergyShieldEnergyMax);
+                return Props.maxEnergy * parent.GetStatValue(StatDefOf.EnergyShieldEnergyMax);
             }
         }
 
@@ -50,46 +46,133 @@ namespace AthenaFramework
         {
             get
             {
-                if (!Props.affectedByStats)
-                {
-                    return Props.energyRechargeRate;
-                }
-
-                return Props.energyRechargeRate + Pawn.GetStatValue(StatDefOf.EnergyShieldRechargeRate) / 60f;
+                return Props.energyRechargeRate + parent.GetStatValue(StatDefOf.EnergyShieldRechargeRate) / 60f;
             }
         }
 
-        public override void CompExposeData()
+        public override void PostExposeData()
         {
-            base.CompExposeData();
+            base.PostExposeData();
             Scribe_Values.Look(ref energy, "energy");
             Scribe_Values.Look(ref ticksToReset, "ticksToReset");
             Scribe_Values.Look(ref lastImpactTick, "lastImpactTick");
             Scribe_Values.Look(ref lastResetTick, "lastResetTick");
             Scribe_Values.Look(ref freeRecharge, "freeRecharge");
             Scribe_Values.Look(ref impactAngleVect, "impactAngleVect");
+        }
 
-            if (Scribe.mode == LoadSaveMode.ResolvingCrossRefs)
+
+        public virtual void OnDamageAbsorb(ref DamageInfo dinfo)
+        {
+            Props.absorbSound.PlayOneShot(new TargetInfo(Pawn.Position, Pawn.Map, false));
+            impactAngleVect = Vector3Utility.HorizontalVectorFromAngle(dinfo.Angle);
+            Vector3 offsetVector = Pawn.DrawPos + impactAngleVect.RotatedBy(180f) * 0.5f;
+            float damagePower = Mathf.Min(10f, 2f + dinfo.Amount / 10f);
+            FleckMaker.Static(offsetVector, Pawn.MapHeld, Props.absorbFleck, damagePower);
+
+            for (int i = 0; i < damagePower; i++)
             {
-                AthenaCache.AddCache(this, ref AthenaCache.responderCache, Pawn.thingIDNumber);
+                FleckMaker.ThrowDustPuff(offsetVector, Pawn.MapHeld, Rand.Range(0.8f, 1.2f));
+            }
+
+            lastImpactTick = Find.TickManager.TicksGame;
+        }
+
+        public virtual void Shatter(ref DamageInfo dinfo)
+        {
+            energy = 0;
+            ticksToReset = Props.resetDelay;
+
+            float scale = Props.minDrawSize + (Props.maxDrawSize - Props.minDrawSize) * EnergyPercent;
+            if (Props.scaleWithOwner)
+            {
+                if (Pawn.RaceProps.Humanlike)
+                {
+                    scale *= Pawn.DrawSize.x;
+                }
+                else
+                {
+                    scale = (scale - 1) + Pawn.ageTracker.CurKindLifeStage.bodyGraphicData.drawSize.x;
+                }
+            }
+
+            if (Props.shieldBreakEffecter != null)
+            {
+                Props.shieldBreakEffecter.SpawnAttached(Pawn, Pawn.MapHeld, scale * 0.5f);
+            }
+
+            if (Props.breakFleck != null)
+            {
+                FleckMaker.Static(Pawn.DrawPos, Pawn.Map, Props.breakFleck, 12f);
+            }
+
+            for (int i = 0; i < 6; i++)
+            {
+                FleckMaker.ThrowDustPuff(Pawn.DrawPos + Vector3Utility.HorizontalVectorFromAngle(Rand.Range(0, 360)) * Rand.Range(0.3f, 0.6f), Pawn.MapHeld, Rand.Range(0.8f, 1.2f));
+            }
+
+            if (Props.explosionOnShieldBreak)
+            {
+                GenExplosion.DoExplosion(Pawn.Position, Pawn.MapHeld, Props.explosionRadius, Props.explosionDef, Pawn);
             }
         }
 
-        public override void CompPostMake()
+        public virtual void Reset()
         {
-            base.CompPostMake();
-            energy = MaxEnergy * Props.energyOnStart;
-            AthenaCache.AddCache(this, ref AthenaCache.responderCache, Pawn.thingIDNumber);
+            if (Pawn.Spawned)
+            {
+                Props.resetSound.PlayOneShot(new TargetInfo(Pawn.Position, Pawn.MapHeld, false));
+                FleckMaker.ThrowLightningGlow(Pawn.DrawPos, Pawn.MapHeld, 3f);
+            }
+
+            ticksToReset = -1;
+            if (freeRecharge)
+            {
+                energy = MaxEnergy;
+                freeRecharge = false;
+            }
+            else
+            {
+                energy = MaxEnergy * Props.energyOnReset;
+            }
+
+            lastResetTick = Find.TickManager.TicksGame;
         }
 
-        public override void CompPostPostRemoved()
+        public override void PostPostMake()
         {
-            base.CompPostPostRemoved();
-            AthenaCache.RemoveCache(this, AthenaCache.responderCache, Pawn.thingIDNumber);
+            base.PostPostMake();
+            energy = MaxEnergy;
         }
 
-        public virtual void PreApplyDamage(ref DamageInfo dinfo, ref bool absorbed)
+        public override void CompTick()
         {
+            base.CompTick();
+
+            if (ticksToReset > 0)
+            {
+                ticksToReset--;
+
+                if (ticksToReset <= 0)
+                {
+                    Reset();
+                }
+
+                return;
+            }
+
+            if (energy >= MaxEnergy)
+            {
+                return;
+            }
+
+            energy = Math.Min(energy + EnergyRechargeRate, MaxEnergy);
+        }
+
+        public override void PostPreApplyDamage(DamageInfo dinfo, out bool absorbed)
+        {
+            base.PostPreApplyDamage(dinfo, out absorbed);
+
             if (ticksToReset > 0)
             {
                 return;
@@ -157,118 +240,12 @@ namespace AthenaFramework
                 {
                     dinfo.SetAmount(-1 * energy / Props.energyPerDamageModifier);
                 }
-                
+
                 return;
             }
 
             absorbed = true;
             OnDamageAbsorb(ref dinfo);
-        }
-
-        public virtual void OnDamageAbsorb(ref DamageInfo dinfo)
-        {
-            Props.absorbSound.PlayOneShot(new TargetInfo(Pawn.Position, Pawn.Map, false));
-            impactAngleVect = Vector3Utility.HorizontalVectorFromAngle(dinfo.Angle);
-            Vector3 offsetVector = Pawn.DrawPos + impactAngleVect.RotatedBy(180f) * 0.5f;
-            float damagePower = Mathf.Min(10f, 2f + dinfo.Amount / 10f);
-            FleckMaker.Static(offsetVector, Pawn.MapHeld, Props.absorbFleck, damagePower);
-
-            for (int i = 0; i < damagePower; i++)
-            {
-                FleckMaker.ThrowDustPuff(offsetVector, Pawn.MapHeld, Rand.Range(0.8f, 1.2f));
-            }
-
-            lastImpactTick = Find.TickManager.TicksGame;
-        }
-
-        public virtual void Shatter(ref DamageInfo dinfo)
-        {
-            energy = 0;
-            ticksToReset = Props.resetDelay;
-
-            float scale = Props.minDrawSize + (Props.maxDrawSize - Props.minDrawSize) * EnergyPercent;
-            if (Props.scaleWithOwner)
-            {
-                if (Pawn.RaceProps.Humanlike)
-                {
-                    scale *= Pawn.DrawSize.x;
-                }
-                else
-                {
-                    scale = (scale - 1) + Pawn.ageTracker.CurKindLifeStage.bodyGraphicData.drawSize.x;
-                }
-            }
-
-            if (Props.shieldBreakEffecter != null)
-            {
-                Props.shieldBreakEffecter.SpawnAttached(Pawn, Pawn.MapHeld, scale * 0.5f);
-            }
-
-            if (Props.breakFleck != null)
-            {
-                FleckMaker.Static(Pawn.DrawPos, Pawn.Map, Props.breakFleck, 12f);
-            }
-
-            for (int i = 0; i < 6; i++)
-            {
-                FleckMaker.ThrowDustPuff(Pawn.DrawPos + Vector3Utility.HorizontalVectorFromAngle(Rand.Range(0, 360)) * Rand.Range(0.3f, 0.6f), Pawn.MapHeld, Rand.Range(0.8f, 1.2f));
-            }
-
-            if (Props.explosionOnShieldBreak)
-            {
-                GenExplosion.DoExplosion(Pawn.Position, Pawn.MapHeld, Props.explosionRadius, Props.explosionDef, Pawn);
-            }
-
-            if (Props.removeOnBreak)
-            {
-                Pawn.health.RemoveHediff(parent);
-            }
-        }
-
-        public virtual void Reset()
-        {
-            if (Pawn.Spawned)
-            {
-                Props.resetSound.PlayOneShot(new TargetInfo(Pawn.Position, Pawn.MapHeld, false));
-                FleckMaker.ThrowLightningGlow(Pawn.DrawPos, Pawn.MapHeld, 3f);
-            }
-
-            ticksToReset = -1;
-            if (freeRecharge)
-            {
-                energy = MaxEnergy;
-                freeRecharge = false;
-            }
-            else
-            {
-                energy = MaxEnergy * Props.energyOnReset;
-            }
-
-            lastResetTick = Find.TickManager.TicksGame;
-        }
-
-        public override void CompPostTick(ref float severityAdjustment)
-        {
-            base.CompPostTick(ref severityAdjustment);
-
-            if (ticksToReset > 0)
-            {
-                ticksToReset--;
-
-                if (ticksToReset <= 0)
-                {
-                    Reset();
-                }
-
-                return;
-            }
-
-            if (energy >= MaxEnergy)
-            {
-                return;
-            }
-
-            energy = Math.Min(energy + EnergyRechargeRate, MaxEnergy);
         }
 
         public override void DrawAt(Vector3 drawPos, BodyTypeDef bodyType)
@@ -337,9 +314,9 @@ namespace AthenaFramework
 
             for (int i = additionalGraphics.Count - 1; i >= 0; i--)
             {
-                HediffGraphicPackage package = additionalGraphics[i];
+                ApparelGraphicPackage package = additionalGraphics[i];
 
-                if (!package.CanRender(parent, bodyType, Pawn))
+                if (!package.CanRender(Apparel, bodyType, Pawn))
                 {
                     continue;
                 }
@@ -358,13 +335,13 @@ namespace AthenaFramework
                     }
                 }
 
-                package.GetGraphic(parent, bodyType, null, EnergyPercent).Draw(drawPos + offset, Pawn.Rotation, Pawn);
+                package.GetGraphic(Apparel, bodyType, null, EnergyPercent).Draw(drawPos + offset, Pawn.Rotation, Pawn);
             }
         }
 
-        public override IEnumerable<Gizmo> CompGetGizmos()
+        public override IEnumerable<Gizmo> CompGetWornGizmosExtra()
         {
-            foreach (Gizmo gizmo in base.CompGetGizmos())
+            foreach (Gizmo gizmo in base.CompGetWornGizmosExtra())
             {
                 yield return gizmo;
             }
@@ -375,7 +352,7 @@ namespace AthenaFramework
                 {
                     if (gizmo == null)
                     {
-                        gizmo = new Gizmo_HediffShieldStatus(this);
+                        gizmo = new Gizmo_ShieldStatus(this);
                     }
 
                     yield return gizmo;
@@ -386,11 +363,11 @@ namespace AthenaFramework
         }
     }
 
-    public class HediffCompProperties_Shield : HediffCompProperties_Renderable
+    public class CompProperties_ShieldEquipment : CompProperties_AdditionalApparelGraphics
     {
-        public HediffCompProperties_Shield()
+        public CompProperties_ShieldEquipment()
         {
-            this.compClass = typeof(HediffComp_Shield);
+            this.compClass = typeof(Comp_ShieldEquipment);
         }
 
         // Maximum amount of energy that the shield can hold
@@ -403,16 +380,10 @@ namespace AthenaFramework
         public int resetDelay = 1;
         // What fraction of shield's max energy it has after resetting
         public float energyOnReset = 0.2f;
-        // What fraction of shield's max energy should it start after being applied
-        public float energyOnStart = 1f;
         // Whenever the shield blocks all damage/stun from the attack that breaks it or not
         public bool blockOverdamage = true;
         // Whenever the shield reduces damage/stun of the attack that broke it by what energy it had left(considering energyPerDamageModifier and energyPerStunModifier)
         public bool consumeOverdamage = false;
-        // Whenever the shield hediff should be removed upon being broken
-        public bool removeOnBreak = false;
-        // If the shield is affected by parent's shield health and recharge speed stats
-        public bool affectedByStats = true;
 
         // Whenever the shield blocks ranged/explosive/melee damage
         public bool blocksRangedDamage = true;
@@ -456,17 +427,5 @@ namespace AthenaFramework
         public bool scaleWithOwner = true;
         // Whenever the shield should have the vanilla spinning effect. Turn off in case you're using custom asymmetric textures
         public bool spinning = true;
-    }
-
-    public struct DamageInfoPack
-    {
-        public DamageDef damageDef;
-        public float energyModifier = 1f;
-
-        public bool blocksRangedDamage = true;
-        public bool blocksExplosions = true;
-        public bool blocksMeleeDamage = false;
-
-        public DamageInfoPack() { }
     }
 }

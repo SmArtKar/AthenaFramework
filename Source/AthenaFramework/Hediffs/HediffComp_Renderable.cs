@@ -19,8 +19,8 @@ namespace AthenaFramework
         public Effecter attachedEffecter;
 
         public static readonly Texture2D cachedPaletteTex = ContentFinder<Texture2D>.Get("UI/Gizmos/ColorPalette");
-        public Color primaryColor = Color.white;
-        public Color secondaryColor = Color.white;
+        public Color? primaryColor;
+        public Color? secondaryColor;
         public bool? usePrimary;
         public bool? useSecondary;
         public Command_Action paletteAction;
@@ -30,7 +30,53 @@ namespace AthenaFramework
         {
             get
             {
-                return primaryColor;
+                if (primaryColor != null)
+                {
+                    return primaryColor.Value;
+                }
+
+                if ((Props.primaryGenerator & ColorPackageGenerator.Favorite) != 0)
+                {
+                    if (Pawn.story != null && Pawn.story.favoriteColor != null)
+                    {
+                        primaryColor = Pawn.story.favoriteColor;
+                        return primaryColor.Value;
+                    }
+                }
+
+                if ((Props.primaryGenerator & ColorPackageGenerator.Ideology) != 0)
+                {
+                    if (Pawn.Ideo != null)
+                    {
+                        primaryColor = Pawn.Ideo.Color;
+                        return primaryColor.Value;
+                    }
+                }
+
+                if ((Props.primaryGenerator & ColorPackageGenerator.Faction) != 0)
+                {
+                    if (Pawn.Faction != null)
+                    {
+                        primaryColor = Pawn.Faction.Color;
+                        return primaryColor.Value;
+                    }
+                }
+
+                if ((Props.primaryGenerator & ColorPackageGenerator.Random) != 0)
+                {
+                    primaryColor = new Color(Rand.Value, Rand.Value, Rand.Value);
+                    return primaryColor.Value;
+                }
+
+                if ((Props.primaryGenerator & ColorPackageGenerator.White) != 0)
+                {
+                    primaryColor = Color.white;
+                    return primaryColor.Value;
+                }
+
+                primaryColor = Props.defaultPrimary;
+
+                return primaryColor.Value;
             }
 
             set
@@ -43,7 +89,53 @@ namespace AthenaFramework
         {
             get
             {
-                return secondaryColor;
+                if (secondaryColor != null)
+                {
+                    return secondaryColor.Value;
+                }
+
+                if ((Props.secondaryGenerator & ColorPackageGenerator.Favorite) != 0)
+                {
+                    if (Pawn.story != null && Pawn.story.favoriteColor != null)
+                    {
+                        secondaryColor = Pawn.story.favoriteColor;
+                        return secondaryColor.Value;
+                    }
+                }
+
+                if ((Props.secondaryGenerator & ColorPackageGenerator.Ideology) != 0)
+                {
+                    if (Pawn.Ideo != null)
+                    {
+                        secondaryColor = Pawn.Ideo.Color;
+                        return secondaryColor.Value;
+                    }
+                }
+
+                if ((Props.secondaryGenerator & ColorPackageGenerator.Faction) != 0)
+                {
+                    if (Pawn.Faction != null)
+                    {
+                        secondaryColor = Pawn.Faction.Color;
+                        return secondaryColor.Value;
+                    }
+                }
+
+                if ((Props.secondaryGenerator & ColorPackageGenerator.Random) != 0)
+                {
+                    secondaryColor = new Color(Rand.Value, Rand.Value, Rand.Value);
+                    return secondaryColor.Value;
+                }
+
+                if ((Props.secondaryGenerator & ColorPackageGenerator.White) != 0)
+                {
+                    secondaryColor = Color.white;
+                    return secondaryColor.Value;
+                }
+
+                secondaryColor = Props.defaultPrimary;
+
+                return secondaryColor.Value;
             }
 
             set
@@ -92,9 +184,9 @@ namespace AthenaFramework
                 HediffGraphicPackage package = additionalGraphics[i];
                 Vector3 offset = new Vector3();
 
-                if (package.onlyRenderWhenDrafted && (Pawn.drafter == null || !Pawn.drafter.Drafted))
+                if (!package.CanRender(parent, bodyType, Pawn))
                 {
-                    return;
+                    continue;
                 }
 
                 if (package.offsets != null)
@@ -109,7 +201,7 @@ namespace AthenaFramework
                     }
                 }
 
-                package.GetGraphic(parent).Draw(drawPos + offset, Pawn.Rotation, Pawn);
+                package.GetGraphic(parent, bodyType).Draw(drawPos + offset, Pawn.Rotation, Pawn);
             }
         }
 
@@ -259,7 +351,7 @@ namespace AthenaFramework
             this.compClass = typeof(HediffComp_Renderable);
         }
 
-        // Displayed graphic. This graphic is always drawn above the pawn at MoteOverhead altitude layer
+        // Displayed graphic. This graphic is drawn above the pawn at MoteOverhead altitude layer by default
         public GraphicData graphicData;
         // Altitude for graphic rendering
         public AltitudeLayer altitude = AltitudeLayer.MoteOverhead;
@@ -277,5 +369,12 @@ namespace AthenaFramework
         public bool onlyRenderWhenDrafted = false;
         // Additional graphic layers with more precise controls. These are drawn on the same layer as pawn by default
         public List<HediffGraphicPackage> additionalGraphics = new List<HediffGraphicPackage>();
+
+        // If any packages use primary/secondary color picker fields, these fields determine hediff's initial primary/secondary colors
+        public ColorPackageGenerator primaryGenerator = ColorPackageGenerator.None;
+        public ColorPackageGenerator secondaryGenerator = ColorPackageGenerator.None;
+        // Default colors in case generator(s) is set to none
+        public Color defaultPrimary = Color.white;
+        public Color defaultSecondary = Color.white;
     }
 }

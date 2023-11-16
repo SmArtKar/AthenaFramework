@@ -15,6 +15,7 @@ namespace AthenaFramework
     {
         public static Pawn cachedPawn;
         public static BodyTypeDef initialBodytype;
+        public static HeadTypeDef initialHeadtype;
 
         public static void Prefix(PawnGraphicSet __instance)
         {
@@ -27,6 +28,7 @@ namespace AthenaFramework
             }
 
             BodyTypeDef bodyType = __instance.pawn.story.bodyType;
+            HeadTypeDef headType = __instance.pawn.story.headType;
 
             if (!AthenaCache.bodyCache.TryGetValue(__instance.pawn.thingIDNumber, out List<IBodyModifier> mods))
             {
@@ -42,21 +44,37 @@ namespace AthenaFramework
                     cachedPawn = __instance.pawn;
                     initialBodytype = __instance.pawn.story.bodyType;
                     __instance.pawn.story.bodyType = bodyType;
-                    return;
+                }
+
+                if (customBody.CustomHeadtype(ref headType))
+                {
+                    cachedPawn = __instance.pawn;
+                    initialHeadtype = __instance.pawn.story.headType;
+                    __instance.pawn.story.headType = headType;
                 }
             }
         }
 
         public static void Postfix(PawnGraphicSet __instance)
         {
-            if (cachedPawn != __instance.pawn || initialBodytype == null)
+            if (cachedPawn != __instance.pawn)
             {
                 return;
             }
 
-            __instance.pawn.story.bodyType = initialBodytype;
+            if (initialBodytype != null)
+            {
+                __instance.pawn.story.bodyType = initialBodytype;
+                initialBodytype = null;
+            }
+
+            if (initialHeadtype != null)
+            {
+                __instance.pawn.story.headType = initialHeadtype;
+                initialHeadtype = null;
+            }
+
             cachedPawn = null;
-            initialBodytype = null;
         }
     }
 

@@ -14,6 +14,6 @@
     <SourceRoot Include="C:\Program Files (x86)\Microsoft Visual Studio\Shared\NuGetPackages\" />
   </ItemGroup>
   <ImportGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
-    <Import Project="$(NuGetPackageRoot)krafs.publicizer\2.1.0\build\Krafs.Publicizer.props" Condition="Exists('$(NuGetPackageRoot)krafs.publicizer\2.1.0\build\Krafs.Publicizer.props')" />
+    <Import Project="$(NuGetPackageRoot)krafs.publicizer\2.2.1\build\Krafs.Publicizer.props" Condition="Exists('$(NuGetPackageRoot)krafs.publicizer\2.2.1\build\Krafs.Publicizer.props')" />
   </ImportGroup>
 </Project>

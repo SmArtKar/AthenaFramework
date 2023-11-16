@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RimWorld;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -29,72 +30,102 @@ namespace AthenaFramework
         // If this graphic should be rendered only when the pawn is drafted. Overrides the props field
         public bool onlyRenderWhenDrafted = false;
 
+        // If this graphic adds owner's bodytype (if such exists) to its path, similarly to apparel
+        public bool useBodytype = false;
+
         private List<Color> gradientList;
         private List<Graphic> gradientGraphics;
         private Graphic cachedGraphic;
 
         private Color cachedFirstColor;
         private Color cachedSecondColor;
+        private string cachedTexturePath;
 
-        public virtual Graphic GetGraphic(Hediff hediff)
+        public bool UsesGradient => firstMask == HediffPackageColor.SeverityGradient || firstMask == HediffPackageColor.HealthGradient || firstMask == HediffPackageColor.ParentGradient;
+
+        public virtual bool CanRender(Hediff hediff, BodyTypeDef bodyType, Pawn pawn)
         {
-            if (secondMask == HediffPackageColor.SeverityGradient || secondMask == HediffPackageColor.HealthGradient)
+            if (onlyRenderWhenDrafted && (pawn.drafter == null || !pawn.drafter.Drafted))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public virtual Graphic GetGraphic(HediffWithComps hediff, BodyTypeDef bodyType = null, Color? customColor = null, float? customGradientValue = null)
+        {
+            if (secondMask == HediffPackageColor.SeverityGradient || secondMask == HediffPackageColor.HealthGradient || secondMask == HediffPackageColor.ParentGradient)
             {
                 Log.Error("HediffGraphicPackage secondMask set to a gradient. Only firstMask supports gradients");
                 return graphicData.Graphic;
             }
 
-            Color secondColor = GetColor(secondMask, hediff) ?? graphicData.colorTwo; //Getting second color first for the gradient creation
-            bool createdGradient = false;
+            Color firstColor = GetColor(firstMask, hediff, customColor, customGradientValue) ?? graphicData.color;
+            Color secondColor = GetColor(secondMask, hediff, customColor, customGradientValue) ?? graphicData.colorTwo;
 
-            if (gradientGraphics == null && (firstMask == HediffPackageColor.SeverityGradient || firstMask == HediffPackageColor.HealthGradient))
+            string texturePath = graphicData.texPath;
+
+            if (useBodytype && bodyType != null)
             {
-                CreateGradient(secondColor);
-                createdGradient = true;
+                texturePath += "_" + bodyType.defName;
             }
 
-            Color firstColor = GetColor(firstMask, hediff) ?? graphicData.color;
-
-            if (firstColor == cachedFirstColor && secondColor == cachedSecondColor && cachedGraphic != null)
+            if (firstColor == cachedFirstColor && secondColor == cachedSecondColor && texturePath == cachedTexturePath && cachedGraphic != null)
             {
                 return cachedGraphic;
             }
 
             cachedFirstColor = firstColor;
 
-            if (gradientGraphics == null)
+            if (!UsesGradient)
             {
                 cachedSecondColor = secondColor;
-                cachedGraphic = graphicData.Graphic.GetColoredVersion(graphicData.Graphic.Shader, firstColor, secondColor);
+                cachedTexturePath = texturePath;
+
+                cachedGraphic = GraphicDatabase.Get(graphicData.graphicClass, texturePath, graphicData.Graphic.Shader, graphicData.drawSize, firstColor, secondColor);
                 return cachedGraphic;
             }
 
-            if (secondColor != cachedSecondColor)
+            if (secondColor != cachedSecondColor || texturePath != cachedTexturePath)
             {
                 cachedSecondColor = secondColor;
+                cachedTexturePath = texturePath;
 
-                if (!createdGradient)
-                {
-                    CreateGradient(secondColor);
-                }
+                CreateGradient(secondColor, texturePath);
             }
 
-            cachedGraphic = gradientGraphics[Math.Min((int)Math.Floor((firstMask == HediffPackageColor.SeverityGradient ? hediff.Severity : hediff.pawn.health.summaryHealth.SummaryHealthPercent) * gradientVariants), gradientVariants - 1)];
+            int gradientID = 0;
+
+            if (firstMask == HediffPackageColor.SeverityGradient)
+            {
+                gradientID = Math.Min((int)Math.Floor(hediff.Severity * gradientVariants), gradientVariants - 1);
+            }
+            else if (firstMask == HediffPackageColor.HealthGradient)
+            {
+                gradientID = Math.Min((int)Math.Floor(hediff.pawn.health.summaryHealth.SummaryHealthPercent * gradientVariants), gradientVariants - 1);
+            }
+            else if (firstMask == HediffPackageColor.ParentGradient)
+            {
+                gradientID = Math.Min((int)Math.Floor(customGradientValue.Value * gradientVariants), gradientVariants - 1);
+            }
+
+            cachedGraphic = gradientGraphics[gradientID];
 
             return cachedGraphic;
         }
 
-        public virtual void CreateGradient(Color secondColor)
+        public virtual void CreateGradient(Color secondColor, string texturePath)
         {
             gradientGraphics = new List<Graphic>();
 
             for (int i = 0; i < gradientVariants; i++)
             {
-                gradientGraphics.Add(graphicData.Graphic.GetColoredVersion(graphicData.Graphic.Shader, ColorGradient[i], secondColor));
+                gradientGraphics.Add(GraphicDatabase.Get(graphicData.graphicClass, texturePath, graphicData.Graphic.Shader, graphicData.drawSize, ColorGradient[i], secondColor));
             }
         }
 
-        public virtual Color? GetColor(HediffPackageColor type, Hediff hediff)
+        public virtual Color? GetColor(HediffPackageColor type, HediffWithComps hediff, Color? customColor, float? customGradientValue)
         {
             switch (type)
             {
@@ -133,31 +164,57 @@ namespace AthenaFramework
 
                     return hediff.pawn.story.SkinColor;
 
-                case HediffPackageColor.SeverityGradient:
-                    return ColorGradient[Math.Min((int)Math.Floor(hediff.Severity * gradientVariants), gradientVariants - 1)];
-
-                case HediffPackageColor.HealthGradient:
-                    return ColorGradient[Math.Min((int)Math.Floor(hediff.pawn.health.summaryHealth.SummaryHealthPercent * gradientVariants), gradientVariants - 1)];
-
                 case HediffPackageColor.PrimaryColor:
-                    HediffComp_Renderable comp = hediff.TryGetComp<HediffComp_Renderable>();
+                    IColorSelector comp = null;
+
+                    for (int i = hediff.comps.Count - 1; i >= 0; i--)
+                    {
+                        comp = hediff.comps[i] as IColorSelector;
+
+                        if (comp != null)
+                        {
+                            break;
+                        }
+                    }
 
                     if (comp == null)
                     {
                         return null;
                     }
 
-                    return comp.primaryColor;
+                    return comp.PrimaryColor;
 
                 case HediffPackageColor.SecondaryColor:
-                    HediffComp_Renderable comp2 = hediff.TryGetComp<HediffComp_Renderable>();
+                    IColorSelector comp2 = null;
+
+                    for (int i = hediff.comps.Count - 1; i >= 0; i--)
+                    {
+                        comp2 = hediff.comps[i] as IColorSelector;
+
+                        if (comp2 != null)
+                        {
+                            break;
+                        }
+                    }
 
                     if (comp2 == null)
                     {
                         return null;
                     }
 
-                    return comp2.secondaryColor;
+                    return comp2.SecondaryColor;
+
+                case HediffPackageColor.ParentColor:
+                    return customColor;
+
+                case HediffPackageColor.SeverityGradient:
+                    return ColorGradient[Math.Min((int)Math.Floor(hediff.Severity * gradientVariants), gradientVariants - 1)];
+
+                case HediffPackageColor.HealthGradient:
+                    return ColorGradient[Math.Min((int)Math.Floor(hediff.pawn.health.summaryHealth.SummaryHealthPercent * gradientVariants), gradientVariants - 1)];
+
+                case HediffPackageColor.ParentGradient:
+                    return ColorGradient[Math.Min((int)Math.Floor(customGradientValue.Value * gradientVariants), gradientVariants - 1)];
             }
 
             return null;
@@ -204,9 +261,11 @@ namespace AthenaFramework
         IdeoColor,
         FavoriteColor,
         SkinColor,
+        PrimaryColor,
+        SecondaryColor,
+        ParentColor,
         SeverityGradient,
         HealthGradient,
-        PrimaryColor,
-        SecondaryColor
+        ParentGradient,
     }
 }

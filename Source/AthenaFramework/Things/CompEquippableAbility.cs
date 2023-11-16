@@ -12,7 +12,7 @@ namespace AthenaFramework
     {
         private CompProperties_EquippableAbility Props => props as CompProperties_EquippableAbility;
 
-        public int lastAbilityCastTick = -9999;
+        public int lastAbilityCastTick = -99999999;
         public bool addedAbility = false;
 
         public override void Notify_Equipped(Pawn pawn)
@@ -50,6 +50,45 @@ namespace AthenaFramework
             base.PostExposeData();
             Scribe_Values.Look(ref lastAbilityCastTick, "lastAbilityCastTick");
             Scribe_Values.Look(ref addedAbility, "addedAbility");
+
+            if (Scribe.mode != LoadSaveMode.ResolvingCrossRefs)
+            {
+                return;
+            }
+
+            Apparel apparel = parent as Apparel;
+
+            if (apparel != null && apparel.Wearer != null)
+            {
+                if (apparel.Wearer.abilities.GetAbility(Props.ability) != null)
+                {
+                    addedAbility = false;
+                    return;
+                }
+
+                addedAbility = true;
+                apparel.Wearer.abilities.GainAbility(Props.ability);
+                Ability ability = apparel.Wearer.abilities.GetAbility(Props.ability);
+                ability.lastCastTick = lastAbilityCastTick;
+
+                return;
+            }
+
+            CompEquippable comp = parent.GetComp<CompEquippable>();
+
+            if (comp != null && comp.Holder != null)
+            {
+                if (apparel.Wearer.abilities.GetAbility(Props.ability) != null)
+                {
+                    addedAbility = false;
+                    return;
+                }
+
+                addedAbility = true;
+                apparel.Wearer.abilities.GainAbility(Props.ability);
+                Ability ability = apparel.Wearer.abilities.GetAbility(Props.ability);
+                ability.lastCastTick = lastAbilityCastTick;
+            }
         }
     }
 

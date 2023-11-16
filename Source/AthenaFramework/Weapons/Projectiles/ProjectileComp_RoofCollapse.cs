@@ -12,16 +12,23 @@ namespace AthenaFramework
     {
         private CompProperties_ProjectileRoofCollapse Props => props as CompProperties_ProjectileRoofCollapse;
 
-        public override void Impact(Thing hitThing, ref bool blockedByShield)
+        public Thing storedHitThing;
+
+        public override void PostDestroy(DestroyMode mode, Map previousMap)
         {
-            base.Impact(hitThing, ref blockedByShield);
+            base.PostDestroy(mode, previousMap);
+
+            if (storedHitThing == null)
+            {
+                return;
+            }
 
             List<IntVec3> tileOffsets = GenRadial.RadialPatternInRadius(Props.collapseRange).ToList();
             List<IntVec3> collapseTiles = new List<IntVec3>();
 
             for (int i = 0; i < tileOffsets.Count; i++)
             {
-                IntVec3 tile = tileOffsets[i] + (hitThing != null ? hitThing.Position : Projectile.Position); 
+                IntVec3 tile = tileOffsets[i] + (storedHitThing != null ? storedHitThing.Position : Projectile.Position);
 
                 if (!tile.IsValid || tile.GetRoofHolderOrImpassable(Projectile.Map) != null)
                 {
@@ -32,6 +39,12 @@ namespace AthenaFramework
             }
 
             RoofCollapserImmediate.DropRoofInCells(collapseTiles, Projectile.Map);
+        }
+
+        public override void Impact(Thing hitThing, ref bool blockedByShield)
+        {
+            base.Impact(hitThing, ref blockedByShield);
+            storedHitThing = hitThing;
         }
     }
 

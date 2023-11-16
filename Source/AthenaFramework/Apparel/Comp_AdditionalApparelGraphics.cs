@@ -14,11 +14,11 @@ namespace AthenaFramework
     {
         private CompProperties_AdditionalApparelGraphics Props => props as CompProperties_AdditionalApparelGraphics;
         private Apparel Apparel => parent as Apparel;
-        private Pawn Pawn => Apparel.Wearer as Pawn;
+        private Pawn Pawn => Apparel.Wearer;
 
         public static readonly Texture2D cachedPaletteTex = ContentFinder<Texture2D>.Get("UI/Gizmos/ColorPalette");
-        public Color primaryColor = Color.white;
-        public Color secondaryColor = Color.white;
+        public Color? primaryColor;
+        public Color? secondaryColor;
         public bool? usePrimary;
         public bool? useSecondary;
         public Command_Action paletteAction;
@@ -31,7 +31,59 @@ namespace AthenaFramework
         {
             get
             {
-                return primaryColor;
+                if (primaryColor != null)
+                {
+                    return primaryColor.Value;
+                }
+
+                if ((Props.primaryGenerator & ColorPackageGenerator.Favorite) != 0)
+                {
+                    if (Pawn != null && Pawn.story != null && Pawn.story.favoriteColor != null)
+                    {
+                        primaryColor = Pawn.story.favoriteColor;
+                        return primaryColor.Value;
+                    }
+                }
+
+                if ((Props.primaryGenerator & ColorPackageGenerator.Ideology) != 0)
+                {
+                    if (Pawn != null && Pawn.Ideo != null)
+                    {
+                        primaryColor = Pawn.Ideo.Color;
+                        return primaryColor.Value;
+                    }
+                }
+
+                if ((Props.primaryGenerator & ColorPackageGenerator.Faction) != 0)
+                {
+                    if (Pawn != null && Pawn.Faction != null)
+                    {
+                        primaryColor = Pawn.Faction.Color;
+                        return primaryColor.Value;
+                    }
+
+                    if (Apparel.Faction != null)
+                    {
+                        primaryColor = Apparel.Faction.Color;
+                        return primaryColor.Value;
+                    }
+                }
+
+                if ((Props.primaryGenerator & ColorPackageGenerator.Random) != 0)
+                {
+                    primaryColor = new Color(Rand.Value, Rand.Value, Rand.Value);
+                    return primaryColor.Value;
+                }
+
+                if ((Props.primaryGenerator & ColorPackageGenerator.White) != 0)
+                {
+                    primaryColor = Color.white;
+                    return primaryColor.Value;
+                }
+
+                primaryColor = Props.defaultPrimary;
+
+                return primaryColor.Value;
             }
 
             set
@@ -44,7 +96,59 @@ namespace AthenaFramework
         {
             get
             {
-                return secondaryColor;
+                if (secondaryColor != null)
+                {
+                    return secondaryColor.Value;
+                }
+
+                if ((Props.secondaryGenerator & ColorPackageGenerator.Favorite) != 0)
+                {
+                    if (Pawn != null && Pawn.story != null && Pawn.story.favoriteColor != null)
+                    {
+                        secondaryColor = Pawn.story.favoriteColor;
+                        return secondaryColor.Value;
+                    }
+                }
+
+                if ((Props.secondaryGenerator & ColorPackageGenerator.Ideology) != 0)
+                {
+                    if (Pawn != null && Pawn.Ideo != null)
+                    {
+                        secondaryColor = Pawn.Ideo.Color;
+                        return secondaryColor.Value;
+                    }
+                }
+
+                if ((Props.secondaryGenerator & ColorPackageGenerator.Faction) != 0)
+                {
+                    if (Pawn != null && Pawn.Faction != null)
+                    {
+                        secondaryColor = Pawn.Faction.Color;
+                        return secondaryColor.Value;
+                    }
+
+                    if (Apparel.Faction != null)
+                    {
+                        secondaryColor = Apparel.Faction.Color;
+                        return secondaryColor.Value;
+                    }
+                }
+
+                if ((Props.secondaryGenerator & ColorPackageGenerator.Random) != 0)
+                {
+                    secondaryColor = new Color(Rand.Value, Rand.Value, Rand.Value);
+                    return secondaryColor.Value;
+                }
+
+                if ((Props.secondaryGenerator & ColorPackageGenerator.White) != 0)
+                {
+                    secondaryColor = Color.white;
+                    return secondaryColor.Value;
+                }
+
+                secondaryColor = Props.defaultPrimary;
+
+                return secondaryColor.Value;
             }
 
             set
@@ -105,9 +209,41 @@ namespace AthenaFramework
 
         public virtual void DrawAt(Vector3 drawPos, BodyTypeDef bodyType)
         {
+            if (Props.onlyRenderWhenDrafted && (Pawn.drafter == null || !Pawn.drafter.Drafted))
+            {
+                return;
+            }
+
+            if (Props.graphicData != null)
+            {
+                Props.graphicData.Graphic.Draw(new Vector3(drawPos.x, Props.altitude.AltitudeFor(), drawPos.z), Pawn.Rotation, Pawn);
+            }
+
+            DrawSecondaries(drawPos, bodyType);
+        }
+
+
+        public virtual void DrawSecondaries(Vector3 drawPos, BodyTypeDef bodyType)
+        {
+            if (Props.additionalGraphics == null)
+            {
+                return;
+            }
+
+            if (additionalGraphics == null)
+            {
+                RecacheGraphicData();
+            }
+
             for (int i = additionalGraphics.Count - 1; i >= 0; i--)
             {
                 ApparelGraphicPackage package = additionalGraphics[i];
+
+                if (!package.CanRender(Apparel, bodyType, Pawn))
+                {
+                    continue;
+                }
+
                 Vector3 offset = new Vector3();
 
                 if (package.offsets != null)
@@ -228,6 +364,10 @@ namespace AthenaFramework
             this.compClass = typeof(Comp_AdditionalApparelGraphics);
         }
 
+        // Displayed graphic. This graphic is drawn above the pawn at MoteOverhead altitude layer by default
+        public GraphicData graphicData;
+        // Altitude for graphic rendering
+        public AltitudeLayer altitude = AltitudeLayer.MoteOverhead;
         // Mote attached to the equipment piece
         public ThingDef attachedMoteDef;
         // Effecter attached to the equipment piece
@@ -236,7 +376,16 @@ namespace AthenaFramework
         public Vector3 attachedMoteOffset = new Vector3();
         // Scale of the attached mote
         public float attachedMoteScale = 1f;
+        // If graphics should only be rendered when the pawn is drafted
+        public bool onlyRenderWhenDrafted = false;
         // Additional graphic layers with precise controls
-        public List<ApparelGraphicPackage> additionalGraphics = new List<ApparelGraphicPackage>();
+        public List<ApparelGraphicPackage> additionalGraphics;
+
+        // If any packages use primary/secondary color picker fields, these fields determine apparel's initial primary/secondary colors
+        public ColorPackageGenerator primaryGenerator = ColorPackageGenerator.None;
+        public ColorPackageGenerator secondaryGenerator = ColorPackageGenerator.None;
+        // Default colors in case generator(s) is set to none
+        public Color defaultPrimary = Color.white;
+        public Color defaultSecondary = Color.white;
     }
 }

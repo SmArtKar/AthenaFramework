@@ -95,6 +95,35 @@ namespace AthenaFramework
             return false;
         }
 
+        public virtual bool CustomHeadtype(ref HeadTypeDef headType)
+        {
+            if (headType == null)
+            {
+                return false;
+            }
+
+            if (Props.forcedHeadtype != null)
+            {
+                headType = Props.forcedHeadtype;
+                return true;
+            }
+
+            if (Props.headtypePairs != null)
+            {
+                for (int i = Props.headtypePairs.Count - 1; i >= 0; i--)
+                {
+                    HeadtypeSwitch pair = Props.headtypePairs[i];
+                    if (pair.initialHeadtype == headType)
+                    {
+                        headType = pair.newHeadtype;
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
         public override void Notify_Equipped(Pawn pawn)
 		{
             base.Notify_Equipped(pawn);
@@ -107,6 +136,22 @@ namespace AthenaFramework
             base.Notify_Unequipped(pawn);
             AthenaCache.RemoveCache(this, AthenaCache.bodyCache, pawn.thingIDNumber);
             pawn.Drawer.renderer.graphics.nakedGraphic = null;
+        }
+
+        public override void PostExposeData()
+        {
+            base.PostExposeData();
+
+            if (Scribe.mode != LoadSaveMode.ResolvingCrossRefs)
+            {
+                return;
+            }
+
+            if (Wearer != null)
+            {
+                AthenaCache.AddCache(this, ref AthenaCache.bodyCache, Wearer.thingIDNumber);
+                Wearer.Drawer.renderer.graphics.nakedGraphic = null;
+            }
         }
 
         public virtual void FurMat(Rot4 facing, bool portrait, bool cached, ref Material furMat) { }
@@ -123,6 +168,8 @@ namespace AthenaFramework
         public bool preventBodytype = false;
         // If set to a certain bodytype it will force that bodytype onto all apparel that user is wearing. Overrides bodytypePairs
         public BodyTypeDef forcedBodytype;
+        // Same as forcedBodytype, but for the head
+        public HeadTypeDef forcedHeadtype;
         // If the comp should hide the owner's body
         public bool hideBody = false;
         // If the comp should hide the owner's head
@@ -133,13 +180,23 @@ namespace AthenaFramework
         public bool hideHair = false;
         // List of bodytype pairs that will be swapped. Allows to do stuff like making all fatties into hulks and thins into normals
         public List<BodytypeSwitch> bodytypePairs;
+        // Same as bodytypePairs but for heads
+        public List<HeadtypeSwitch> headtypePairs;
     }
 
-    public class BodytypeSwitch
+    public struct BodytypeSwitch
     {
         // Bodytype that will be switched
         public BodyTypeDef initialBodytype;
-        // What bodytype are we switching from
+        // What bodytype are we switching to
         public BodyTypeDef newBodytype;
+    }
+
+    public struct HeadtypeSwitch
+    {
+        // Headtype that will be switched
+        public HeadTypeDef initialHeadtype;
+        // What headtype are we switching to
+        public HeadTypeDef newHeadtype;
     }
 }

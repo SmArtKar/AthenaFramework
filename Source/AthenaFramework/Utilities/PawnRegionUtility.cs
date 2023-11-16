@@ -70,7 +70,7 @@ namespace AthenaFramework
                         continue;
                     }
 
-                    if (!additionalCheck(pawn, distance))
+                    if (additionalCheck != null && !additionalCheck(pawn, distance))
                     {
                         continue;
                     }
@@ -131,7 +131,7 @@ namespace AthenaFramework
                         }
                     }
 
-                    if (!additionalCheck(pawn, distance))
+                    if (additionalCheck != null && !additionalCheck(pawn, distance))
                     {
                         continue;
                     }
@@ -223,7 +223,7 @@ namespace AthenaFramework
                         continue;
                     }
 
-                    if (!additionalCheck(pawn, distance))
+                    if (additionalCheck != null && !additionalCheck(pawn, distance))
                     {
                         continue;
                     }
@@ -281,7 +281,7 @@ namespace AthenaFramework
                         continue;
                     }
 
-                    if (!additionalCheck(pawn, distance))
+                    if (additionalCheck != null && !additionalCheck(pawn, distance))
                     {
                         continue;
                     }

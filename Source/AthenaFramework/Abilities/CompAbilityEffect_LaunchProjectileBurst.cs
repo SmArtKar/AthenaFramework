@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Verse;
+using Verse.Sound;
 
 namespace AthenaFramework
 {
@@ -66,6 +67,11 @@ namespace AthenaFramework
         {
             Projectile proj = GenSpawn.Spawn(Props.projectileDef, parent.pawn.Position, parent.pawn.Map) as Projectile;
             proj.Launch(parent.pawn, parent.pawn.DrawPos, target, target, ProjectileHitFlags.IntendedTarget);
+
+            if (Props.firingSound != null)
+            {
+                Props.firingSound.PlayOneShot(new TargetInfo(parent.pawn.Position, parent.pawn.Map));
+            }
         }
 
         public override bool AICanTargetNow(LocalTargetInfo target)
@@ -86,5 +92,6 @@ namespace AthenaFramework
         public ThingDef projectileDef;
         public int burstCount = 1;
         public int ticksBetweenShots = 5;
+        public SoundDef firingSound;
     }
 }
