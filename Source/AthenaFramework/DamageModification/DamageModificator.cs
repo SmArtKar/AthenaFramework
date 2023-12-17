@@ -96,7 +96,7 @@ namespace AthenaFramework
                 return (1f, 0f);
             }
 
-            if (fleshTypes != null || pawnKinds != null || hediffDefs != null)
+            if (fleshTypes != null || pawnKinds != null || hediffDefs != null || geneDefs != null)
             {
                 if (target is not Pawn)
                 {

@@ -46,6 +46,7 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Abilities\CompAbilityEffect_Shockwave.cs" />
     <Compile Include="Abilities\CompAbility_SingularTracker.cs" />
     <Compile Include="Abilities\CompAbility_ThingScatter.cs" />
     <Compile Include="Apparel\Comp_DraftedApparelGraphics.cs" />
@@ -153,16 +154,16 @@
     <Compile Include="Hediffs\HediffComp_Shield.cs" />
     <Compile Include="Hediffs\HediffComp_DisableOnDamage.cs" />
     <Compile Include="Interfaces\IDamageResponse.cs" />
-    <Compile Include="Weapons\Projectiles\ProjectileComp.cs" />
+    <Compile Include="Weapons\Projectiles\Comps\ProjectileComp.cs" />
     <Compile Include="Apparel\Comp_AdditionalApparelGraphics.cs" />
     <Compile Include="DamageModification\Comp_DamageModifier.cs" />
     <Compile Include="Apparel\Comp_CustomApparelBody.cs" />
     <Compile Include="Things\MinPreySizeExtension.cs" />
-    <Compile Include="Weapons\Projectiles\ProjectileComp_Bouncy.cs" />
-    <Compile Include="Weapons\Projectiles\ProjectileComp_RoofCollapse.cs" />
-    <Compile Include="Weapons\Projectiles\ProjectileComp_Scattershot.cs" />
-    <Compile Include="Weapons\Projectiles\ProjectileComp_ThingSpawner.cs" />
-    <Compile Include="Weapons\Projectiles\ProjectileComp_Trail.cs" />
+    <Compile Include="Weapons\Projectiles\Comps\ProjectileComp_Bouncy.cs" />
+    <Compile Include="Weapons\Projectiles\Comps\ProjectileComp_RoofCollapse.cs" />
+    <Compile Include="Weapons\Projectiles\Comps\ProjectileComp_Scattershot.cs" />
+    <Compile Include="Weapons\Projectiles\Comps\ProjectileComp_ThingSpawner.cs" />
+    <Compile Include="Weapons\Projectiles\Comps\ProjectileComp_Trail.cs" />
     <Compile Include="Things\HediffGiverExtension.cs" />
     <Compile Include="Things\TurretGraphicOverride.cs" />
     <Compile Include="Things\TurretRoofBlocked.cs" />
@@ -171,9 +172,10 @@
     <Compile Include="Abilities\CompAbilityEffect_RevivalConversion.cs" />
     <Compile Include="Abilities\CompAbilityEffect_ShootRunningBeam.cs" />
     <Compile Include="Weapons\AimAngleOffsetExtension.cs" />
-    <Compile Include="Weapons\Projectiles\ProjectileComp_ImpactEffect.cs" />
+    <Compile Include="Weapons\Projectiles\Comps\ProjectileComp_ImpactEffect.cs" />
     <Compile Include="Weapons\Projectiles\Projectile_AOEHediff.cs" />
-    <Compile Include="Weapons\Tool_Detonation.cs" />
+    <Compile Include="Weapons\Projectiles\Projectile_ExplosiveFrag.cs" />
+    <Compile Include="Weapons\Tool_Shockwave.cs" />
     <Compile Include="Weapons\Verb_RandomShot.cs" />
     <Compile Include="Weapons\Verb_EliteShot.cs" />
     <Compile Include="Weapons\Verb_ShootMinigun.cs" />

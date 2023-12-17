@@ -100,14 +100,45 @@ namespace AthenaFramework
 
         #region ===== Tool Utilities =====
 
-        public static void DamageModification(Verb verb, ref float damage, ref float armorPenetration, ref LocalTargetInfo target)
+        public static void ModifyToolDamage(Verb verb, ref DamageInfo dinfo, LocalTargetInfo target, out IEnumerator<DamageInfo> additionalDamage)
         {
+            if (verb.tool == null)
+            {
+                additionalDamage = null;
+                return;
+            }
+
             AdvancedTool advTool = verb.tool as AdvancedTool;
 
-            if (advTool != null)
+            if (advTool == null)
             {
-                advTool.DamageModification(verb, ref damage, ref armorPenetration, ref target, verb.CasterPawn);
+                additionalDamage = null;
+                return;
             }
+
+            advTool.DamageModification(verb, ref dinfo, target, verb.CasterPawn, out additionalDamage);
+        }
+
+        public static void ModifyToolTarget(Verb verb, ref LocalTargetInfo target)
+        {
+            if (verb.tool == null)
+            {
+                return;
+            }
+
+            AdvancedTool advTool = verb.tool as AdvancedTool;
+
+            if (advTool == null)
+            {
+                return;
+            }
+
+            advTool.TargetModification(verb, ref target);
+        }
+
+        public static void Cum(LocalTargetInfo target, Verb verb)
+        {
+            ModifyToolTarget(verb, ref target);
         }
 
         #endregion

@@ -25,11 +25,11 @@ namespace AthenaFramework
         public float? explosionAngle;
         public float explosionRadius;
 
-        public override void DamageModification(Verb verb, ref float damage, ref float armorPenetration, ref LocalTargetInfo target, Pawn caster)
+        public override void DamageModification(Verb verb, ref DamageInfo dinfo, LocalTargetInfo target, Pawn caster, out IEnumerator<DamageInfo> additionalDamage)
         {
             IntVec3 position = caster.Position;
             float angle = Mathf.Atan2(-(target.Cell.z - position.z), target.Cell.x - position.x) * 57.29578f;
-            base.DamageModification(verb, ref damage, ref armorPenetration, ref target, caster);
+            base.DamageModification(verb, ref dinfo, target, caster, out additionalDamage);
             GenExplosion.DoExplosion(position, caster.Map, explosionRadius, explosionDamageDef, caster, explosionDamage, explosionPenetration, weapon: verb.EquipmentSource?.def, 
                 postExplosionSpawnThingDef: spawnedThingDef, postExplosionSpawnThingCount: spawnThingCount, postExplosionSpawnChance: spawnThingChance, postExplosionGasType: explosionGasType,
                 chanceToStartFire: explosionFireChance, damageFalloff: damageFalloff, doVisualEffects: doExplosionVFX, propagationSpeed: propagationSpeed, 

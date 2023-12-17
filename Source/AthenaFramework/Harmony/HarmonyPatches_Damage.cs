@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Verse;
 using Mono.Cecil.Cil;
 using static UnityEngine.GraphicsBuffer;
+using static HarmonyLib.Code;
 
 namespace AthenaFramework
 {
@@ -359,6 +360,8 @@ namespace AthenaFramework
 
     #region ===== Tool Transpiling =====
 
+    /*
+
     [HarmonyPatch(typeof(Verb_MeleeAttackDamage), nameof(Verb_MeleeAttackDamage.DamageInfosToApply))]
     public static class MeleeAttack_Damage
     {
@@ -403,8 +406,29 @@ namespace AthenaFramework
             code.InsertRange(insertionIndex + 2, instructionsToInsert);
 
             return code;
+
+            var code = new List<CodeInstruction>(instructions);
+            int insertionIndex = -1;
+
+            for (int i = 0; i < code.Count - 1; i++)
+            {
+                if (code[i].opcode == OpCodes.Callvirt && (MethodInfo)code[i].operand == AccessTools.Method(typeof(VerbProperties), nameof(VerbProperties.AdjustedArmorPenetration), new Type[] { typeof(Verb), typeof(Pawn) }))
+                {
+                    insertionIndex = i + 1;
+                    break;
+                }
+            }
+
+            List<CodeInstruction> instructionsToInsert = new List<CodeInstruction>();
+            instructionsToInsert.Add(new CodeInstruction(OpCodes.Ldarg_0));
+            instructionsToInsert.Add(new CodeInstruction(OpCodes.Ldarga_S, AccessTools.Field(typeof(Verb_MeleeAttackDamage), "target")));
+            instructionsToInsert.Add(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(AthenaCombatUtility), nameof(AthenaCombatUtility.ModifyToolTarget), new Type[] { typeof(Verb), typeof(LocalTargetInfo).MakeByRefType() })));
+
+            return code;
         }
     }
+
+    */
 
     [HarmonyPatch(typeof(VerbProperties), nameof(VerbProperties.AdjustedCooldown), new Type[] { typeof(Tool), typeof(Pawn), typeof(Thing) })]
     public static class VerbProperties_Cooldown
