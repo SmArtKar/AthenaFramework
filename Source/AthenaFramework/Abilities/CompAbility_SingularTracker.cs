@@ -25,11 +25,10 @@ namespace AthenaFramework
 
         public virtual void RemoveAbility()
         {
-            abilityCount--;
-
             if (abilityCount > 0)
             {
                 parent.pawn.abilities.abilities.Remove(parent);
+                abilityCount--;
             }
         }
     }
