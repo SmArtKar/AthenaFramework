@@ -132,29 +132,29 @@ namespace AthenaFramework
             Scribe_Values.Look(ref usedSlot, "usedSlot");
         }
 
-        public override bool CanBeUsedBy(Pawn pawn, out string failReason)
+        public override AcceptanceReport CanBeUsedBy(Pawn p)
         {
-            if (!base.CanBeUsedBy(pawn, out failReason))
+            AcceptanceReport result = base.CanBeUsedBy(p);
+            if (!result.Accepted)
             {
-                return false;
+                return result;
             }
 
-            for (int i = pawn.equipment.equipment.Count - 1; i >= 0; i--)
+            for (int i = p.equipment.equipment.Count - 1; i >= 0; i--)
             {
-                ThingWithComps thing = pawn.equipment.equipment[i];
+                ThingWithComps thing = p.equipment.equipment[i];
 
                 for (int j = thing.AllComps.Count - 1; j >= 0; j--)
                 {
                     CompModular comp = thing.AllComps[j] as CompModular;
                     if (comp != null && comp.GetOpenSlots(this).Count > 0)
                     {
-                        failReason = null;
                         return true;
                     }
                 }
             }
 
-            List<Apparel> wornApparel = pawn.apparel.WornApparel;
+            List<Apparel> wornApparel = p.apparel.WornApparel;
             for (int i = wornApparel.Count - 1; i >= 0; i--)
             {
                 ThingWithComps thing = wornApparel[i];
@@ -165,19 +165,17 @@ namespace AthenaFramework
                     if (comp != null && comp.GetOpenSlots(this).Count > 0)
                     {
 
-                        if (Props.prerequisites != null && !Props.prerequisites.ValidPawn(pawn))
+                        if (Props.prerequisites != null && !Props.prerequisites.ValidPawn(p))
                         {
                             continue;
                         }
 
-                        failReason = null;
                         return true;
                     }
                 }
             }
 
-            failReason = "Cannot apply: No compatible slots availible.";
-            return false;
+            return "Cannot apply: No compatible slots availible.";
         }
 
         public virtual bool Install(CompModular comp)

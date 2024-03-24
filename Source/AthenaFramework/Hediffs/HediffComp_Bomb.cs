@@ -1,5 +1,4 @@
-﻿using Mono.Unix.Native;
-using RimWorld;
+﻿using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,9 +39,9 @@ namespace AthenaFramework
             GenExplosion.DoExplosion(Pawn.Position, Pawn.Map, Props.radius, Props.damageDef, Pawn, Props.damageAmount, Props.armorPenetration, postExplosionGasType: (Props.gasExplosion ? new GasType?(Props.gasType) : null));
         }
 
-        public override void Notify_PawnDied()
+        public override void Notify_PawnDied(DamageInfo? dinfo, Hediff culprit = null)
         {
-            base.Notify_PawnDied();
+            base.Notify_PawnDied(dinfo, culprit);
 
             if (!Props.explodeOnDeath)
             {

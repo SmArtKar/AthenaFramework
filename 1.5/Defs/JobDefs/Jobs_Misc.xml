@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+    <JobDef>
+        <defName>Athena_ReloadAbility</defName>
+        <driverClass>AthenaFramework.JobDriver_ReloadAbility</driverClass>
+        <reportString>reloading.</reportString>
+        <suspendable>false</suspendable>
+        <allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+    </JobDef>
+        
+    <JobDef>
+        <defName>Athena_InstallModule</defName>
+        <driverClass>JobDriver_UseItem</driverClass>
+        <reportString>installing a module.</reportString>
+        <allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+    </JobDef>
+</Defs>

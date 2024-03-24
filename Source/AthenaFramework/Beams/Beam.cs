@@ -153,7 +153,7 @@ namespace AthenaFramework
             }
         }
 
-        public override void Draw()
+        public override void DrawAt(Vector3 drawLoc, bool flip = false)
         {
             if (curMat == null)
             {
@@ -169,16 +169,7 @@ namespace AthenaFramework
             }
 
             Graphics.DrawMesh(MeshPool.plane10, matrix, curMat, 0);
-
-            for (int i = AllComps.Count - 1; i >= 0; i--)
-            {
-                BeamComp comp = AllComps[i] as BeamComp;
-
-                if (comp != null)
-                {
-                    comp.PostDraw();
-                }
-            }
+            Comps_PostDraw();
         }
 
         public override void Tick()

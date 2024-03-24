@@ -2,7 +2,6 @@
 using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
-using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -367,6 +366,34 @@ namespace AthenaFramework
         public static void Postfix(Pawn pawn, ref float __result)
         {
             __result *= pawn.GetStatValue(AthenaDefOf.Athena_PawnValueMultiplier);
+        }
+    }
+
+    [HarmonyPatch(typeof(Pawn), nameof(Pawn.ButcherProducts))]
+    public static class Pawn_ButcherProducts
+    {
+        public static void Postfix(Pawn __instance, ref IEnumerable<Thing> __result, float efficiency)
+        {
+            if (__instance.genes == null)
+            {
+                return;
+            }
+
+            for (int i = __instance.genes.GenesListForReading.Count - 1; i >= 0; i--)
+            {
+                Gene gene = __instance.genes.GenesListForReading[i];
+                GeneButcherProductExtension extension = gene.def.GetModExtension<GeneButcherProductExtension>();
+
+                if (extension != null)
+                {
+                    foreach (var drop in extension.additionalDrops)
+                    {
+                        Thing thing = ThingMaker.MakeThing(drop.Key);
+                        thing.stackCount = (int)Math.Floor(drop.Value * (extension.affectedByEfficiency ? efficiency : 1));
+                        __result = __result.Concat(thing);
+                    }
+                }
+            }
         }
     }
 }

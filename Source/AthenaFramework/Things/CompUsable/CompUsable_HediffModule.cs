@@ -12,18 +12,19 @@ namespace AthenaFramework
 {
     public class CompUsable_HediffModule : CompUsable
     {
-        public override bool CanBeUsedBy(Pawn pawn, out string failReason)
+        public override AcceptanceReport CanBeUsedBy(Pawn p, bool forced = false, bool ignoreReserveAndReachable = false)
         {
-            if (!base.CanBeUsedBy(pawn, out failReason))
+            AcceptanceReport result = base.CanBeUsedBy(p, forced, ignoreReserveAndReachable);
+            if (!result.Accepted)
             {
-                return false;
+                return result;
             }
 
             CompUseEffect_HediffModule parentComp = parent.TryGetComp<CompUseEffect_HediffModule>();
 
-            for (int i = pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
+            for (int i = p.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
             {
-                HediffWithComps hediff = pawn.health.hediffSet.hediffs[i] as HediffWithComps;
+                HediffWithComps hediff = p.health.hediffSet.hediffs[i] as HediffWithComps;
 
                 if (hediff == null)
                 {
@@ -36,24 +37,22 @@ namespace AthenaFramework
 
                     if (comp != null && comp.GetOpenSlots(parentComp).Count > 0)
                     {
-                        failReason = null;
                         return true;
                     }
                 }
             }
 
-            failReason = "Cannot apply: No compatible slots availible.";
-            return false;
+            return "Cannot apply: No compatible slots availible.";
         }
 
         public override IEnumerable<FloatMenuOption> CompFloatMenuOptions(Pawn pawn)
         {
-            string text;
             string label = "Install {0}".Formatted(parent.Label);
 
-            if (!CanBeUsedBy(pawn, out text))
+            AcceptanceReport report = CanBeUsedBy(pawn, true, Props.ignoreOtherReservations);
+            if (!report.Accepted)
             {
-                yield return new FloatMenuOption(label + ((text != null) ? (" (" + text + ")") : ""), null, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0);
+                yield return new FloatMenuOption(label + ((report.Reason != null) ? (" (" + report.Reason + ")") : ""), null, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0);
                 yield break;
             }
 

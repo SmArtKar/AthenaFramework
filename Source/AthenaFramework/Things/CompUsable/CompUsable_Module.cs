@@ -12,18 +12,19 @@ namespace AthenaFramework
 { 
     public class CompUsable_Module : CompUsable
     {
-        public override bool CanBeUsedBy(Pawn pawn, out string failReason)
+        public override AcceptanceReport CanBeUsedBy(Pawn p, bool forced = false, bool ignoreReserveAndReachable = false)
         {
-            if (!base.CanBeUsedBy(pawn, out failReason))
+            AcceptanceReport result = base.CanBeUsedBy(p, forced, ignoreReserveAndReachable);
+            if (!result.Accepted)
             {
-                return false;
+                return result;
             }
 
             CompUseEffect_Module parentComp = parent.TryGetComp<CompUseEffect_Module>();
 
-            for (int i = pawn.equipment.equipment.Count - 1; i >= 0; i--)
+            for (int i = p.equipment.equipment.Count - 1; i >= 0; i--)
             {
-                ThingWithComps thing = pawn.equipment.equipment[i];
+                ThingWithComps thing = p.equipment.equipment[i];
 
                 for (int j = thing.AllComps.Count - 1; j >= 0; j--)
                 {
@@ -31,13 +32,12 @@ namespace AthenaFramework
 
                     if (comp != null && comp.GetOpenSlots(parentComp).Count > 0)
                     {
-                        failReason = null;
                         return true;
                     }
                 }
             }
 
-            List<Apparel> wornApparel = pawn.apparel.WornApparel;
+            List<Apparel> wornApparel = p.apparel.WornApparel;
             for (int i = wornApparel.Count - 1; i >= 0; i--)
             {
                 ThingWithComps thing = wornApparel[i];
@@ -47,24 +47,22 @@ namespace AthenaFramework
                     CompModular comp = thing.AllComps[j] as CompModular;
                     if (comp != null && comp.GetOpenSlots(parentComp).Count > 0)
                     {
-                        failReason = null;
                         return true;
                     }
                 }
             }
 
-            failReason = "Cannot apply: No compatible slots availible.";
-            return false;
+            return "Cannot apply: No compatible slots availible.";
         }
 
         public override IEnumerable<FloatMenuOption> CompFloatMenuOptions(Pawn pawn)
         {
-            string text;
             string label = "Install {0}".Formatted(parent.Label);
 
-            if (!CanBeUsedBy(pawn, out text))
+            AcceptanceReport report = CanBeUsedBy(pawn, true, Props.ignoreOtherReservations);
+            if (!report.Accepted)
             {
-                yield return new FloatMenuOption(label + ((text != null) ? (" (" + text + ")") : ""), null, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0);
+                yield return new FloatMenuOption(label + ((report.Reason != null) ? (" (" + report.Reason + ")") : ""), null, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0);
                 yield break;
             }
 
@@ -127,13 +125,14 @@ namespace AthenaFramework
                         ModuleSlotPackage slot = slots[k];
                         Action action = delegate ()
                         {
+                            int m = k;
                             if (pawn.CanReserveAndReach(parent, PathEndMode.Touch, Danger.Deadly, 1, -1, null, Props.ignoreOtherReservations))
                             {
-                                StartModuleJob(pawn, comp, parentComp, slot, Props.ignoreOtherReservations);
+                                StartModuleJob(pawn, comp, parentComp, slots[m], Props.ignoreOtherReservations);
                             }
                         };
 
-                        FloatMenuOption floatMenuOption = FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("Install {0} in {1} ({2})".Formatted(parent.Label, thing.Label, slots[k].slotName), action, Icon, IconColor, Props.floatMenuOptionPriority, null, null, 0f, null, null, true, 0, HorizontalJustification.Left, false), pawn, parent, "ReservedBy", null);
+                        FloatMenuOption floatMenuOption = FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("Install {0} in {1} ({2})".Formatted(parent.Label, thing.Label, slot.slotName), action, Icon, IconColor, Props.floatMenuOptionPriority, null, null, 0f, null, null, true, 0, HorizontalJustification.Left, false), pawn, parent, "ReservedBy", null);
                         yield return floatMenuOption;
                     }
                 }
@@ -157,15 +156,17 @@ namespace AthenaFramework
 
                     for (int k = slots.Count - 1; k >= 0; k--)
                     {
+                        ModuleSlotPackage slot = slots[k];
                         Action action = delegate ()
                         {
+                            int m = k;
                             if (pawn.CanReserveAndReach(parent, PathEndMode.Touch, Danger.Deadly, 1, -1, null, Props.ignoreOtherReservations))
                             {
-                                StartModuleJob(pawn, comp, parentComp, slots[k], Props.ignoreOtherReservations);
+                                StartModuleJob(pawn, comp, parentComp, slots[m], Props.ignoreOtherReservations);
                             }
                         };
 
-                        FloatMenuOption floatMenuOption = FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("Install {0} in {1} ({2})".Formatted(parent.Label, thing.Label, slots[k].slotName), action, Icon, IconColor, Props.floatMenuOptionPriority, null, null, 0f, null, null, true, 0, HorizontalJustification.Left, false), pawn, parent, "ReservedBy", null);
+                        FloatMenuOption floatMenuOption = FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("Install {0} in {1} ({2})".Formatted(parent.Label, thing.Label, slot.slotName), action, Icon, IconColor, Props.floatMenuOptionPriority, null, null, 0f, null, null, true, 0, HorizontalJustification.Left, false), pawn, parent, "ReservedBy", null);
                         yield return floatMenuOption;
                     }
                 }

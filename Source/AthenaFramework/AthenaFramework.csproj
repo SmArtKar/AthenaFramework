@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\1.4\Assemblies\</OutputPath>
+    <OutputPath>..\..\1.5\Assemblies\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -36,11 +36,28 @@
       <HintPath>..\..\..\..\..\..\workshop\content\294100\2009463077\Current\Assemblies\0Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>..\..\..\..\RimWorldWin64_Data\Managed\Assembly-CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>..\..\..\..\RimWorldWin64_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>..\..\..\..\RimWorldWin64_Data\Managed\UnityEngine.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UIElementsModule">
+      <HintPath>..\..\..\..\RimWorldWin64_Data\Managed\UnityEngine.UIElementsModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>..\..\..\..\RimWorldWin64_Data\Managed\UnityEngine.UIModule.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
@@ -51,36 +68,9 @@
     <Compile Include="Abilities\CompAbility_ThingScatter.cs" />
     <Compile Include="Apparel\Comp_DraftedApparelGraphics.cs" />
     <Compile Include="Apparel\Comp_ShieldEquipment.cs" />
-    <Compile Include="Drones\Comps\DroneComp_MeleeAttack.cs" />
-    <Compile Include="Drones\Comps\DroneComp_PassiveRepair.cs" />
-    <Compile Include="Drones\Comps\Targeting\CompAbility_DroneTargeting.cs" />
-    <Compile Include="Drones\Comps\DroneComp_AngleShotgun.cs" />
-    <Compile Include="Drones\Comps\Deployment\DroneComp_AutoDeployment.cs" />
-    <Compile Include="Drones\Comps\DroneComp_HediffAOE.cs" />
-    <Compile Include="Drones\Comps\Targeting\DroneComp_DesignatedTileTargeting.cs" />
-    <Compile Include="Drones\Comps\Targeting\DroneComp_ManualTargeting.cs" />
-    <Compile Include="Drones\Comps\Targeting\DroneComp_EasiestEnemyTargeting.cs" />
-    <Compile Include="Drones\Comps\Deployment\DroneComp_ManualDeployment.cs" />
-    <Compile Include="Drones\Comps\Deployment\DroneComp_MassDeployment.cs" />
-    <Compile Include="Drones\Comps\Targeting\DroneComp_ClosestEnemyTargeting.cs" />
-    <Compile Include="Drones\Comps\Targeting\DroneComp_ParentPawnTargeting.cs" />
-    <Compile Include="Drones\Comps\DroneComp_ProjectileLauncher.cs" />
-    <Compile Include="Drones\Comps\RenderComps\DroneComp_DisplayFirefly.cs" />
-    <Compile Include="Drones\Comps\RenderComps\DroneComp_DisplayCircling.cs" />
-    <Compile Include="Drones\Comps\RenderComps\DroneComp_DisplayFront.cs" />
-    <Compile Include="Drones\Comps\RenderComps\DroneComp_DisplayShoulder.cs" />
-    <Compile Include="Drones\Comps\RenderComps\DroneComp_DisplayTrail.cs" />
-    <Compile Include="Drones\Drone.cs" />
-    <Compile Include="Drones\DroneComp.cs" />
-    <Compile Include="Drones\DroneDef.cs" />
-    <Compile Include="Drones\DroneGraphicPackage.cs" />
-    <Compile Include="Drones\Related\AbilityCompEffect_CreateUnlinkedDrone.cs" />
-    <Compile Include="Drones\Related\CompDroneEquipment.cs" />
-    <Compile Include="Drones\Related\Gizmo_DroneHealthStatus.cs" />
-    <Compile Include="Drones\Related\Hediff_DroneHandler.cs" />
-    <Compile Include="Drones\Related\Hediff_DroneOwner.cs" />
     <Compile Include="Genes\AthenaGeneTemplateDef.cs" />
     <Compile Include="Genes\GeneGenerationHandler.cs" />
+    <Compile Include="Genes\GeneButcherProductExtension.cs" />
     <Compile Include="Gizmos\Gizmo_ShieldStatus.cs" />
     <Compile Include="Harmony\HarmonyPatches_HideParts.cs" />
     <Compile Include="Hediffs\HediffComp_DraftedGraphics.cs" />
@@ -186,9 +176,6 @@
       <Version>2.*</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Krafs.Rimworld.Ref">
-      <Version>1.4.3580</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

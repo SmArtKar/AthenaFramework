@@ -5,6 +5,7 @@
 	<author>SmArtKar</author>
 	<supportedVersions>
 		<li>1.4</li>
+		<li>1.5</li>
 	</supportedVersions>
 	<packageId>smartkar.athenaframework</packageId>
 	<modDependencies>

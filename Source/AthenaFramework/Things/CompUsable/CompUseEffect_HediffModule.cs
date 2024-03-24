@@ -231,16 +231,17 @@ namespace AthenaFramework
             OwnerComp.InstallModule(parent);
         }
 
-        public override bool CanBeUsedBy(Pawn pawn, out string failReason)
+        public override AcceptanceReport CanBeUsedBy(Pawn p)
         {
-            if (!base.CanBeUsedBy(pawn, out failReason))
+            AcceptanceReport result = base.CanBeUsedBy(p);
+            if (!result.Accepted)
             {
-                return false;
+                return result;
             }
 
-            for (int i = pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
+            for (int i = p.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
             {
-                HediffWithComps hediff = pawn.health.hediffSet.hediffs[i] as HediffWithComps;
+                HediffWithComps hediff = p.health.hediffSet.hediffs[i] as HediffWithComps;
 
                 if (hediff == null)
                 {
@@ -253,19 +254,17 @@ namespace AthenaFramework
 
                     if (comp != null && comp.GetOpenSlots(this).Count > 0)
                     {
-                        if (Props.prerequisites != null && !Props.prerequisites.ValidPawn(pawn, hediff.Part))
+                        if (Props.prerequisites != null && !Props.prerequisites.ValidPawn(p, hediff.Part))
                         {
                             continue;
                         }
 
-                        failReason = null;
                         return true;
                     }
                 }
             }
 
-            failReason = "Cannot apply: No compatible slots availible.";
-            return false;
+            return "Cannot apply: No compatible slots availible.";
         }
     }
 
