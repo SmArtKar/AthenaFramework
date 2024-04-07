@@ -11,17 +11,17 @@ using Verse;
 namespace AthenaFramework
 {
 
-    [HarmonyPatch(typeof(PawnRenderer), nameof(PawnRenderer.DrawPawnFur))]
-    public static class PawnRenderer_FurPrefix
+    [HarmonyPatch(typeof(PawnRenderNode_Body), nameof(PawnRenderNode_Body.GraphicFor))]
+    public static class PawnRenderer_BodyPrefix
     {
-        public static bool Prefix(PawnRenderer __instance, Vector3 shellLoc, Rot4 facing, Quaternion quat, PawnRenderFlags flags)
+        public static bool Prefix(PawnRenderNode_Body __instance, Pawn pawn, Graphic __result)
         {
             if (AthenaCache.bodyCache == null)
             {
                 return true;
             }
 
-            if (!AthenaCache.bodyCache.TryGetValue(__instance.pawn.thingIDNumber, out List<IBodyModifier> mods))
+            if (!AthenaCache.bodyCache.TryGetValue(pawn.thingIDNumber, out List<IBodyModifier> mods))
             {
                 return true;
             }
@@ -30,8 +30,9 @@ namespace AthenaFramework
             {
                 IBodyModifier customBody = mods[i];
 
-                if (customBody.HideFur)
+                if (customBody.HideBody)
                 {
+                    __result = null;
                     return false;
                 }
             }
@@ -40,61 +41,17 @@ namespace AthenaFramework
         }
     }
 
-    [HarmonyPatch(typeof(PawnRenderer), nameof(PawnRenderer.DrawPawnBody))]
-    public static class PawnRenderer_BodyPrefix
+    [HarmonyPatch(typeof(PawnRenderNode_Hair), nameof(PawnRenderNode_Hair.GraphicFor))]
+    public static class PawnRenderNode_Hair_GraphicFor
     {
-        public static bool Prefix(PawnRenderer __instance, ref Vector3 rootLoc, ref float angle, ref Rot4 facing, ref RotDrawMode bodyDrawType, ref PawnRenderFlags flags, ref Mesh bodyMesh)
-        {
-            if (AthenaCache.bodyCache == null || __instance.pawn.RaceProps == null || __instance.graphics == null)
-            {
-                return true;
-            }
-
-            if (!AthenaCache.bodyCache.TryGetValue(__instance.pawn.thingIDNumber, out List<IBodyModifier> mods))
-            {
-                return true;
-            }
-
-            for (int i = mods.Count - 1; i >= 0; i--)
-            {
-                IBodyModifier customBody = mods[i];
-
-                if (!customBody.HideBody)
-                {
-                    continue;
-                }
-
-                if (bodyDrawType == RotDrawMode.Dessicated && !__instance.pawn.RaceProps.Humanlike && __instance.graphics.dessicatedGraphic != null && !flags.FlagSet(PawnRenderFlags.Portrait))
-                {
-                    bodyMesh = null;
-                }
-                else if (__instance.pawn.RaceProps.Humanlike)
-                {
-                    bodyMesh = HumanlikeMeshPoolUtility.GetHumanlikeBodySetForPawn(__instance.pawn).MeshAt(facing);
-                }
-                else
-                {
-                    bodyMesh = __instance.graphics.nakedGraphic.MeshAt(facing);
-                }
-
-                return false;
-            }
-
-            return true;
-        }
-    }
-
-    [HarmonyPatch(typeof(PawnRenderer), nameof(PawnRenderer.DrawHeadHair))]
-    public static class PawnRenderer_HairPrefix
-    {
-        public static bool Prefix(PawnRenderer __instance, Vector3 rootLoc, Vector3 headOffset, float angle, Rot4 bodyFacing, Rot4 headFacing, RotDrawMode bodyDrawType, PawnRenderFlags flags, bool bodyDrawn)
+        public static bool Prefix(PawnRenderNode_Hair __instance, Pawn pawn, Graphic __result)
         {
             if (AthenaCache.bodyCache == null)
             {
                 return true;
             }
 
-            if (!AthenaCache.bodyCache.TryGetValue(__instance.pawn.thingIDNumber, out List<IBodyModifier> mods))
+            if (!AthenaCache.bodyCache.TryGetValue(pawn.thingIDNumber, out List<IBodyModifier> mods))
             {
                 return true;
             }
@@ -105,6 +62,7 @@ namespace AthenaFramework
 
                 if (customBody.HideHair)
                 {
+                    __result = null;
                     return false;
                 }
             }
@@ -114,17 +72,17 @@ namespace AthenaFramework
     }
 
 
-    [HarmonyPatch(typeof(PawnGraphicSet), nameof(PawnGraphicSet.HeadMatAt))]
-    public static class PawnGraphicSet_HeadMat
+    [HarmonyPatch(typeof(PawnRenderNodeWorker_Head), nameof(PawnRenderNodeWorker_Head.CanDrawNow))]
+    public static class PawnGraphicSet_HeadMat_CanDrawNow
     {
-        public static bool Prefix(PawnGraphicSet __instance, Rot4 facing, RotDrawMode bodyCondition, bool stump, bool portrait, bool allowOverride, ref Material __result)
+        public static bool Prefix(PawnRenderNodeWorker_Head __instance, PawnRenderNode node, PawnDrawParms parms, bool __result)
         {
             if (AthenaCache.bodyCache == null)
             {
                 return true;
             }
 
-            if (!AthenaCache.bodyCache.TryGetValue(__instance.pawn.thingIDNumber, out List<IBodyModifier> mods))
+            if (!AthenaCache.bodyCache.TryGetValue(node.tree.pawn.thingIDNumber, out List<IBodyModifier> mods))
             {
                 return true;
             }
@@ -135,7 +93,7 @@ namespace AthenaFramework
 
                 if (customBody.HideHead)
                 {
-                    __result = null;
+                    __result = false;
                     return false;
                 }
             }

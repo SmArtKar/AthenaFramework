@@ -24,7 +24,7 @@ namespace AthenaFramework
                 return;
             }
 
-            ResurrectionUtility.Resurrect(pawn);
+            ResurrectionUtility.TryResurrect(pawn);
             pawn.SetFaction(parent.pawn.Faction, null);
 
             if (ModLister.CheckIdeology("Ideoligion conversion"))

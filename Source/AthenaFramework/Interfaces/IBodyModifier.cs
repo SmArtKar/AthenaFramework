@@ -25,7 +25,7 @@ namespace AthenaFramework
 
         public abstract bool CustomHeadtype(ref HeadTypeDef headType);
 
-        public abstract void FurMat(Rot4 facing, bool portrait, bool cached, ref Material furMat);
+        public abstract void FurGraphic(ref Graphic furGraphic);
 
         // Must be added to AthenaCache.bodyCache to work
         // AthenaCache.AddCache(this, AthenaCache.bodyCache, pawn.thingIDNumber)

@@ -321,7 +321,7 @@ namespace AthenaFramework
         }
     }
 
-    [HarmonyPatch(typeof(GenConstruct), nameof(GenConstruct.CanConstruct), new Type[] { typeof(Thing), typeof(Pawn), typeof(bool), typeof(bool) })]
+    [HarmonyPatch(typeof(GenConstruct), nameof(GenConstruct.CanConstruct), new Type[] { typeof(Thing), typeof(Pawn), typeof(bool), typeof(bool), typeof(JobDef) })]
     public static class GenConstruct_CanConstruct
     {
         public static void Postfix(Thing t, Pawn p, ref bool __result)

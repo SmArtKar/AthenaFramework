@@ -66,7 +66,7 @@ namespace AthenaFramework
                     compChangable.Notify_ProjectileLaunched();
                 }
 
-                CompReloadable compReloadable = EquipmentSource.GetComp<CompReloadable>();
+                CompApparelReloadable compReloadable = EquipmentSource.GetComp<CompApparelReloadable>();
                 if (compReloadable != null)
                 {
                     compReloadable.UsedOnce();
@@ -217,11 +217,11 @@ namespace AthenaFramework
 
             if (hitThing.CanEverAttachFire() && Rand.Chance(verbProps.beamChanceToAttachFire))
             {
-                hitThing.TryAttachFire(verbProps.beamFireSizeRange.RandomInRange);
+                hitThing.TryAttachFire(verbProps.beamFireSizeRange.RandomInRange, Caster);
             }
             else if (Rand.Chance(verbProps.beamChanceToStartFire))
             {
-                FireUtility.TryStartFireIn(currentBeamTile, caster.Map, verbProps.beamFireSizeRange.RandomInRange);
+                FireUtility.TryStartFireIn(currentBeamTile, caster.Map, verbProps.beamFireSizeRange.RandomInRange, Caster);
             }
         }
     }

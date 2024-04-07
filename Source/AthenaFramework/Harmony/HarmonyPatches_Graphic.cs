@@ -10,30 +10,27 @@ using Verse;
 
 namespace AthenaFramework
 {
-    [HarmonyPatch(typeof(PawnGraphicSet), nameof(PawnGraphicSet.ResolveAllGraphics))]
-    public static class PawnGraphicSet_Resolve
+    [HarmonyPatch(typeof(PawnRenderNode), nameof(PawnRenderNode.GraphicFor))]
+    public static class PawnRenderNode_GraphicFor_CustomBody
     {
-        public static Pawn cachedPawn;
-        public static BodyTypeDef initialBodytype;
-        public static HeadTypeDef initialHeadtype;
+        public static Dictionary<Pawn, BodyTypeDef> cachedBodies = new Dictionary<Pawn, BodyTypeDef>();
+        public static Dictionary<Pawn, HeadTypeDef> cachedHeads = new Dictionary<Pawn, HeadTypeDef>();
 
-        public static void Prefix(PawnGraphicSet __instance)
+        public static void Prefix(PawnRenderNode __instance, Pawn pawn)
         {
-            cachedPawn = null;
-            initialBodytype = null;
 
-            if (__instance.pawn == null || __instance.pawn.RaceProps == null || !__instance.pawn.RaceProps.Humanlike || __instance.pawn.apparel == null || __instance.pawn.story == null || __instance.pawn.story.bodyType == null || AthenaCache.bodyCache == null)
+            if (pawn == null || pawn.RaceProps == null || !pawn.RaceProps.Humanlike || pawn.apparel == null || pawn.story == null || pawn.story.bodyType == null || AthenaCache.bodyCache == null)
             {
                 return;
             }
 
-            BodyTypeDef bodyType = __instance.pawn.story.bodyType;
-            HeadTypeDef headType = __instance.pawn.story.headType;
-
-            if (!AthenaCache.bodyCache.TryGetValue(__instance.pawn.thingIDNumber, out List<IBodyModifier> mods))
+            if (!AthenaCache.bodyCache.TryGetValue(pawn.thingIDNumber, out List<IBodyModifier> mods))
             {
                 return;
             }
+
+            BodyTypeDef bodyType = pawn.story.bodyType;
+            HeadTypeDef headType = pawn.story.headType;
 
             for (int i = mods.Count - 1; i >= 0; i--)
             {
@@ -41,40 +38,31 @@ namespace AthenaFramework
 
                 if (customBody.CustomBodytype(ref bodyType))
                 {
-                    cachedPawn = __instance.pawn;
-                    initialBodytype = __instance.pawn.story.bodyType;
-                    __instance.pawn.story.bodyType = bodyType;
+                    cachedBodies[pawn] = pawn.story.bodyType;
+                    pawn.story.bodyType = bodyType;
                 }
 
                 if (customBody.CustomHeadtype(ref headType))
                 {
-                    cachedPawn = __instance.pawn;
-                    initialHeadtype = __instance.pawn.story.headType;
-                    __instance.pawn.story.headType = headType;
+                    cachedHeads[pawn] = pawn.story.headType;
+                    pawn.story.headType = headType;
                 }
             }
         }
 
-        public static void Postfix(PawnGraphicSet __instance)
+        public static void Postfix(PawnRenderNode __instance, Pawn pawn)
         {
-            if (cachedPawn != __instance.pawn)
+            if (cachedBodies.ContainsKey(pawn))
             {
-                return;
+                pawn.story.bodyType = cachedBodies[pawn];
+                cachedBodies.Remove(pawn);
             }
 
-            if (initialBodytype != null)
+            if (cachedHeads.ContainsKey(pawn))
             {
-                __instance.pawn.story.bodyType = initialBodytype;
-                initialBodytype = null;
+                pawn.story.headType = cachedHeads[pawn];
+                cachedHeads.Remove(pawn);
             }
-
-            if (initialHeadtype != null)
-            {
-                __instance.pawn.story.headType = initialHeadtype;
-                initialHeadtype = null;
-            }
-
-            cachedPawn = null;
         }
     }
 
@@ -140,7 +128,7 @@ namespace AthenaFramework
         }
     }
     
-    [HarmonyPatch(typeof(PawnRenderer), nameof(PawnRenderer.DrawEquipmentAiming))]
+    [HarmonyPatch(typeof(PawnRenderUtility), nameof(PawnRenderUtility.DrawEquipmentAiming))]
     public static class PawnRenderer_DrawEquipmentAiming_Offset
     {
         public static void Prefix(PawnRenderer __instance, Thing eq, ref Vector3 drawLoc, ref float aimAngle)
@@ -161,17 +149,43 @@ namespace AthenaFramework
         }
     }
 
-    [HarmonyPatch(typeof(PawnGraphicSet), nameof(PawnGraphicSet.FurMatAt))]
-    public static class PawnGraphicSet_FurMat
+    [HarmonyPatch(typeof(PawnRenderNode_Fur), nameof(PawnRenderNode_Fur.GraphicFor))]
+    public static class PawnRenderNode_Fur_GraphicFor
     {
-        public static void Postfix(PawnGraphicSet __instance, Rot4 facing, bool portrait, bool cached, Material __result)
+        public static bool Prefix(PawnRenderNode_Fur __instance, Pawn pawn, Graphic __result)
+        {
+            if (AthenaCache.bodyCache == null)
+            {
+                return true;
+            }
+
+            if (!AthenaCache.bodyCache.TryGetValue(pawn.thingIDNumber, out List<IBodyModifier> mods))
+            {
+                return true;
+            }
+
+            for (int i = mods.Count - 1; i >= 0; i--)
+            {
+                IBodyModifier customBody = mods[i];
+
+                if (customBody.HideFur)
+                {
+                    __result = null;
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public static void Postfix(PawnRenderNode_Fur __instance, Pawn pawn, Graphic __result)
         {
             if (AthenaCache.bodyCache == null)
             {
                 return;
             }
 
-            if (!AthenaCache.bodyCache.TryGetValue(__instance.pawn.thingIDNumber, out List<IBodyModifier> mods))
+            if (!AthenaCache.bodyCache.TryGetValue(pawn.thingIDNumber, out List<IBodyModifier> mods))
             {
                 return;
             }
@@ -179,7 +193,7 @@ namespace AthenaFramework
             for (int i = mods.Count - 1; i >= 0; i--)
             {
                 IBodyModifier customBody = mods[i];
-                customBody.FurMat(facing, portrait, cached, ref __result);
+                customBody.FurGraphic(ref __result);
             }
         }
     }

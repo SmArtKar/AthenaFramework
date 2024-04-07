@@ -17,7 +17,7 @@ namespace AthenaFramework
 
         public static Dictionary<Pawn, float> NearbyPawnsDistances(IntVec3 cell, Map map, float maxDistance, Faction faction = null, bool hostiles = false, bool checkDowned = false, bool checkDead = false, Func<Pawn, float, bool> additionalCheck = null, Pawn givenPawn = null)
         {
-            List<Pawn> pawns = checkDead ? map.mapPawns.AllPawns : map.mapPawns.AllPawnsSpawned;
+            IReadOnlyList<Pawn> pawns = checkDead ? map.mapPawns.AllPawns : map.mapPawns.AllPawnsSpawned;
 
             if (faction != null && !hostiles)
             {
@@ -97,7 +97,7 @@ namespace AthenaFramework
 
         public static bool NearbyPawnsThreshold(IntVec3 cell, Map map, float maxDistance, int requiredAmount, Faction faction = null, bool hostiles = false, bool checkDowned = false, bool checkDead = false, Func<Pawn, float, bool> additionalCheck = null, Pawn givenPawn = null)
         {
-            List<Pawn> pawns = checkDead ? map.mapPawns.AllPawns : map.mapPawns.AllPawnsSpawned;
+            IReadOnlyList<Pawn> pawns = checkDead ? map.mapPawns.AllPawns : map.mapPawns.AllPawnsSpawned;
 
             if (faction != null && !hostiles)
             {

@@ -8,6 +8,7 @@ using RimWorld;
 using System.Runtime.Remoting.Messaging;
 using Verse.Sound;
 using Verse.AI;
+using RimWorld.Utility;
 
 namespace AthenaFramework
 {

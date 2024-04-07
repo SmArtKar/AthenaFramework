@@ -23,7 +23,7 @@ namespace AthenaFramework
 
         public bool CustomBodytype(ref BodyTypeDef bodyType) { return false; }
         public bool CustomHeadtype(ref HeadTypeDef headType) { return false; }
-        public void FurMat(Rot4 facing, bool portrait, bool cached, ref Material furMat) { }
+        public virtual void FurGraphic(ref Graphic furGraphic) { }
 
         public bool CustomApparelTexture(BodyTypeDef bodyType, Apparel apparel, ref ApparelGraphicRecord rec)
         {
@@ -54,7 +54,7 @@ namespace AthenaFramework
 
             string path = package.wornTexPath;
 
-            if (package.useBodytypes && apparel.def.apparel.LastLayer != ApparelLayerDefOf.Overhead && apparel.def.apparel.LastLayer != ApparelLayerDefOf.EyeCover && !PawnRenderer.RenderAsPack(apparel) && apparel.WornGraphicPath != BaseContent.PlaceholderImagePath && apparel.WornGraphicPath != BaseContent.PlaceholderGearImagePath)
+            if (package.useBodytypes && apparel.def.apparel.LastLayer != ApparelLayerDefOf.Overhead && apparel.def.apparel.LastLayer != ApparelLayerDefOf.EyeCover && !PawnRenderUtility.RenderAsPack(apparel) && apparel.WornGraphicPath != BaseContent.PlaceholderImagePath && apparel.WornGraphicPath != BaseContent.PlaceholderGearImagePath)
             {
                 path += "_" + bodyType.defName;
             }
@@ -69,14 +69,20 @@ namespace AthenaFramework
         {
             base.Notify_Equipped(pawn);
             AthenaCache.AddCache(this, ref AthenaCache.bodyCache, pawn.thingIDNumber);
-            pawn.Drawer.renderer.graphics.nakedGraphic = null;
+            if (pawn.Drawer.renderer.renderTree.rootNode != null)
+            {
+                pawn.Drawer.renderer.renderTree.rootNode.requestRecache = true;
+            }
         }
 
         public override void Notify_Unequipped(Pawn pawn)
         {
             base.Notify_Unequipped(pawn);
             AthenaCache.RemoveCache(this, AthenaCache.bodyCache, pawn.thingIDNumber);
-            pawn.Drawer.renderer.graphics.nakedGraphic = null;
+            if (pawn.Drawer.renderer.renderTree.rootNode != null)
+            {
+                pawn.Drawer.renderer.renderTree.rootNode.requestRecache = true;
+            }
         }
 
         public override void PostExposeData()
@@ -90,7 +96,10 @@ namespace AthenaFramework
             if (Wearer != null)
             {
                 AthenaCache.AddCache(this, ref AthenaCache.bodyCache, Wearer.thingIDNumber);
-                Wearer.Drawer.renderer.graphics.nakedGraphic = null;
+                if (Wearer.Drawer.renderer.renderTree.rootNode != null)
+                {
+                    Wearer.Drawer.renderer.renderTree.rootNode.requestRecache = true;
+                }
             }
         }
     }

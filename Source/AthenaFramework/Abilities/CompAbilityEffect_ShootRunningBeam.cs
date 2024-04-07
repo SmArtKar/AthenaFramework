@@ -223,11 +223,11 @@ namespace AthenaFramework
 
             if (hitThing.CanEverAttachFire() && Rand.Chance(parent.VerbProperties[0].beamChanceToAttachFire))
             {
-                hitThing.TryAttachFire(parent.VerbProperties[0].beamFireSizeRange.RandomInRange);
+                hitThing.TryAttachFire(parent.VerbProperties[0].beamFireSizeRange.RandomInRange, parent.pawn);
             }
             else if (Rand.Chance(parent.VerbProperties[0].beamChanceToStartFire))
             {
-                FireUtility.TryStartFireIn(currentBeamTile, parent.pawn.Map, parent.VerbProperties[0].beamFireSizeRange.RandomInRange);
+                FireUtility.TryStartFireIn(currentBeamTile, parent.pawn.Map, parent.VerbProperties[0].beamFireSizeRange.RandomInRange, parent.pawn);
             }
         }
     }

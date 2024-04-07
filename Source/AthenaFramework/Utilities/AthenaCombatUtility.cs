@@ -345,7 +345,7 @@ namespace AthenaFramework
 
                 List<IntVec3> tempDestList = new List<IntVec3>();
 
-                ShootLeanUtility.CalcShootableCellsOf(tempDestList, target.Thing);
+                ShootLeanUtility.CalcShootableCellsOf(tempDestList, target.Thing, sourceCell);
                 for (int i = 0; i < tempDestList.Count; i++)
                 {
                     if (CanHitCellFromCellIgnoringRange(sourceCell, tempDestList[i], map, target.Thing.def.Fillage == FillCategory.Full))
