@@ -83,6 +83,16 @@ namespace AthenaFramework
                 return subGraphics[2];
             }
 
+            for (int i = comp.VerbTracker.AllVerbs.Count - 1; i >= 0; i--)
+            {
+                Verb verb = comp.VerbTracker.AllVerbs[i];
+
+                if (verb.Bursting)
+                {
+                    return subGraphics[3];
+                }
+            }
+
             return subGraphics[0];
         }
 
