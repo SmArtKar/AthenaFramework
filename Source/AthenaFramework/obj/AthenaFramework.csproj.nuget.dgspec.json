@@ -43,6 +43,10 @@
               "suppressParent": "All",
               "target": "Package",
               "version": "[2.*, )"
+            },
+            "Krafs.Rimworld.Ref": {
+              "target": "Package",
+              "version": "[1.5.4061, )"
             }
           }
         }

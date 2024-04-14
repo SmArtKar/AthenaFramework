@@ -158,7 +158,7 @@ namespace AthenaFramework
         }
     }
 
-    public class CompProperties_UseEffectShieldRecharge : CompProperties_Usable
+    public class CompProperties_UseEffectShieldRecharge : CompProperties_UseEffect
     {
         public float rechargeAmount = 0f;
         public float rechargePercentage = 0f;

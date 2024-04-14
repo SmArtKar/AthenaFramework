@@ -266,9 +266,10 @@ namespace AthenaFramework
 
             return "Cannot apply: No compatible slots availible.";
         }
+            
     }
 
-    public class CompProperties_UseEffectHediffModule : CompProperties_Usable
+    public class CompProperties_UseEffectHediffModule : CompProperties_UseEffect
     {
         public CompProperties_UseEffectHediffModule()
         {

@@ -73,16 +73,6 @@ namespace AthenaFramework
                 return subGraphics[0];
             }
 
-            if (comp.Holder.stances.curStance is Stance_Warmup)
-            {
-                return subGraphics[1];
-            }
-
-            if (comp.Holder.stances.curStance is Stance_Cooldown)
-            {
-                return subGraphics[2];
-            }
-
             for (int i = comp.VerbTracker.AllVerbs.Count - 1; i >= 0; i--)
             {
                 Verb verb = comp.VerbTracker.AllVerbs[i];
@@ -91,6 +81,16 @@ namespace AthenaFramework
                 {
                     return subGraphics[3];
                 }
+            }
+
+            if (comp.Holder.stances.curStance is Stance_Warmup)
+            {
+                return subGraphics[1];
+            }
+
+            if (comp.Holder.stances.curStance is Stance_Cooldown)
+            {
+                return subGraphics[2];
             }
 
             return subGraphics[0];

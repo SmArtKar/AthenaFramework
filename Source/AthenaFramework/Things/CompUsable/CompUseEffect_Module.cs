@@ -472,7 +472,7 @@ namespace AthenaFramework
         }
     }
 
-    public class CompProperties_UseEffectModule : CompProperties_Usable
+    public class CompProperties_UseEffectModule : CompProperties_UseEffect
     {
         public CompProperties_UseEffectModule()
         {
