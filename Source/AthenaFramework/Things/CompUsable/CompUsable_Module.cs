@@ -104,6 +104,7 @@ namespace AthenaFramework
 
             CompUseEffect_Module parentComp = parent.TryGetComp<CompUseEffect_Module>();
             List<CompModular> workingModulars = new List<CompModular>();
+            bool foundSlots = false;
 
             for (int i = pawn.equipment.equipment.Count - 1; i >= 0; i--)
             {
@@ -123,15 +124,17 @@ namespace AthenaFramework
                     for (int k = slots.Count - 1; k >= 0; k--)
                     {
                         ModuleSlotPackage slot = slots[k];
+                        CompModular duplicateComp = comp;
+
                         Action action = delegate ()
                         {
-                            int m = k;
                             if (pawn.CanReserveAndReach(parent, PathEndMode.Touch, Danger.Deadly, 1, -1, null, Props.ignoreOtherReservations))
                             {
-                                StartModuleJob(pawn, comp, parentComp, slots[m], Props.ignoreOtherReservations);
+                                StartModuleJob(pawn, duplicateComp, parentComp, slot, Props.ignoreOtherReservations);
                             }
                         };
 
+                        foundSlots = true;
                         FloatMenuOption floatMenuOption = FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("Install {0} in {1} ({2})".Formatted(parent.Label, thing.Label, slot.slotName), action, Icon, IconColor, Props.floatMenuOptionPriority, null, null, 0f, null, null, true, 0, HorizontalJustification.Left, false), pawn, parent, "ReservedBy", null);
                         yield return floatMenuOption;
                     }
@@ -154,22 +157,30 @@ namespace AthenaFramework
 
                     List<ModuleSlotPackage> slots = comp.GetOpenSlots(parentComp);
 
-                    for (int k = slots.Count - 1; k >= 0; k--)
+                    for (int k = 0; k < slots.Count; k++)
                     {
                         ModuleSlotPackage slot = slots[k];
+                        CompModular duplicateComp = comp;
+
                         Action action = delegate ()
                         {
-                            int m = k;
                             if (pawn.CanReserveAndReach(parent, PathEndMode.Touch, Danger.Deadly, 1, -1, null, Props.ignoreOtherReservations))
                             {
-                                StartModuleJob(pawn, comp, parentComp, slots[m], Props.ignoreOtherReservations);
+                                StartModuleJob(pawn, duplicateComp, parentComp, slot, Props.ignoreOtherReservations);
                             }
                         };
 
+                        foundSlots = true;
                         FloatMenuOption floatMenuOption = FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption("Install {0} in {1} ({2})".Formatted(parent.Label, thing.Label, slot.slotName), action, Icon, IconColor, Props.floatMenuOptionPriority, null, null, 0f, null, null, true, 0, HorizontalJustification.Left, false), pawn, parent, "ReservedBy", null);
                         yield return floatMenuOption;
                     }
                 }
+            }
+
+            if (!foundSlots)
+            {
+                yield return new FloatMenuOption("No valid slots availible", null, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0);
+                yield break;
             }
 
             yield break;

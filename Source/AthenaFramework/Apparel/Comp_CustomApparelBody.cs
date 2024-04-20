@@ -130,7 +130,7 @@ namespace AthenaFramework
             AthenaCache.AddCache(this, ref AthenaCache.bodyCache, pawn.thingIDNumber);
             if (pawn.Drawer.renderer.renderTree.rootNode != null)
             {
-                pawn.Drawer.renderer.renderTree.rootNode.requestRecache = true;
+                pawn.Drawer.renderer.SetAllGraphicsDirty();
             }
         }
 
@@ -140,7 +140,7 @@ namespace AthenaFramework
             AthenaCache.RemoveCache(this, AthenaCache.bodyCache, pawn.thingIDNumber);
             if (pawn.Drawer.renderer.renderTree.rootNode != null)
             {
-                pawn.Drawer.renderer.renderTree.rootNode.requestRecache = true;
+                pawn.Drawer.renderer.SetAllGraphicsDirty();
             }
         }
 
@@ -158,7 +158,7 @@ namespace AthenaFramework
                 AthenaCache.AddCache(this, ref AthenaCache.bodyCache, Wearer.thingIDNumber);
                 if (Wearer.Drawer.renderer.renderTree.rootNode != null)
                 {
-                    Wearer.Drawer.renderer.renderTree.rootNode.requestRecache = true;
+                    Wearer.Drawer.renderer.SetAllGraphicsDirty();
                 }
             }
         }

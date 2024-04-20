@@ -250,9 +250,12 @@ namespace AthenaFramework
 
         public override void DrawAt(Vector3 drawPos, BodyTypeDef bodyType)
         {
-            if (Props.onlyRenderWhenDrafted && (Pawn.drafter == null || !Pawn.drafter.Drafted))
+            if (Props.onlyRenderWhenDrafted && !Pawn.InAggroMentalState && !(Pawn.Faction != null && Pawn.Faction.HostileTo(Faction.OfPlayer) && !Pawn.IsPrisoner))
             {
-                return;
+                if (Pawn.drafter != null && !Pawn.drafter.Drafted)
+                {
+                    return;
+                }
             }
 
             if (Props.graphicData == null)

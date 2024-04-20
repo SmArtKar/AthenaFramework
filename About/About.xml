@@ -8,7 +8,6 @@
 		<li>1.5</li>
 	</supportedVersions>
 	<packageId>smartkar.athenaframework</packageId>
-	<modIconPath IgnoreIfNoMatchingField="True">AthenaModIcon</modIconPath>
 	<modDependencies>
 
 		<li>

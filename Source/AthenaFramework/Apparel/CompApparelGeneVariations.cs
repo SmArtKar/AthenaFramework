@@ -69,20 +69,14 @@ namespace AthenaFramework
         {
             base.Notify_Equipped(pawn);
             AthenaCache.AddCache(this, ref AthenaCache.bodyCache, pawn.thingIDNumber);
-            if (pawn.Drawer.renderer.renderTree.rootNode != null)
-            {
-                pawn.Drawer.renderer.renderTree.rootNode.requestRecache = true;
-            }
+            pawn.Drawer.renderer.SetAllGraphicsDirty();
         }
 
         public override void Notify_Unequipped(Pawn pawn)
         {
             base.Notify_Unequipped(pawn);
             AthenaCache.RemoveCache(this, AthenaCache.bodyCache, pawn.thingIDNumber);
-            if (pawn.Drawer.renderer.renderTree.rootNode != null)
-            {
-                pawn.Drawer.renderer.renderTree.rootNode.requestRecache = true;
-            }
+            pawn.Drawer.renderer.SetAllGraphicsDirty();
         }
 
         public override void PostExposeData()
@@ -96,10 +90,7 @@ namespace AthenaFramework
             if (Wearer != null)
             {
                 AthenaCache.AddCache(this, ref AthenaCache.bodyCache, Wearer.thingIDNumber);
-                if (Wearer.Drawer.renderer.renderTree.rootNode != null)
-                {
-                    Wearer.Drawer.renderer.renderTree.rootNode.requestRecache = true;
-                }
+                Wearer.Drawer.renderer.SetAllGraphicsDirty();
             }
         }
     }

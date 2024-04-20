@@ -74,7 +74,6 @@ namespace AthenaFramework
         public override void Initialize(AbilityCompProperties props)
         {
             base.Initialize(props);
-            remainingCharges = Props.maxCharges;
             AthenaCache.AddCache(this, ref AthenaCache.menuCache, Pawn.thingIDNumber);
         }
 
@@ -159,6 +158,16 @@ namespace AthenaFramework
             }
         }
 
+        public override void CompTick()
+        {
+            base.CompTick();
+
+            if (remainingCharges == -1)
+            {
+                remainingCharges = Props.maxCharges;
+            }
+        }
+
         public virtual List<Thing> FindAmmo(bool forceReload)
         {
             if (!ShouldReload(forceReload))
@@ -187,6 +196,22 @@ namespace AthenaFramework
                 yield break;
             }
 
+            if (!ShouldReload(true))
+            {
+                yield return new FloatMenuOption(reloadText + ": " + "ReloadFull".Translate(), null);
+                yield break;
+            }
+
+            if (thing.stackCount < AmmoPerCharge)
+            {
+                yield return new FloatMenuOption(reloadText + ": " + "ReloadNotEnough".Translate(), null);
+                yield break;
+            }
+
+            // The hell is this code
+
+            /*
+
             if (!NeedsReload(thing, true))
             {
                 yield return new FloatMenuOption(reloadText + ": " + "ReloadFull".Translate(), null);
@@ -207,9 +232,11 @@ namespace AthenaFramework
                 yield break;
             }
 
+            */
+
             Action action = delegate
             {
-                Pawn.jobs.TryTakeOrderedJob(JobGiver_ReloadAbility.MakeReloadJob(this, ammo), JobTag.Misc);
+                Pawn.jobs.TryTakeOrderedJob(JobGiver_ReloadAbility.MakeReloadJob(this, new List<Thing>() { thing }), JobTag.Misc);
             };
 
             yield return FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption(reloadText, action), Pawn, thing);

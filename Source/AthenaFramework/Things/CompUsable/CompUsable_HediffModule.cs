@@ -94,6 +94,7 @@ namespace AthenaFramework
 
             CompUseEffect_HediffModule parentComp = parent.TryGetComp<CompUseEffect_HediffModule>();
             List<HediffComp_Modular> workingModulars = new List<HediffComp_Modular>();
+            bool foundSlots = false;
 
             for (int i = pawn.health.hediffSet.hediffs.Count - 1; i >= 0; i--)
             {
@@ -115,15 +116,16 @@ namespace AthenaFramework
 
                     List<ModuleSlotPackage> slots = comp.GetOpenSlots(parentComp);
 
-                    for (int k = slots.Count - 1; k >= 0; k--)
+                    for (int k = 0; k < slots.Count; k++)
                     {
                         ModuleSlotPackage slot = slots[k];
+                        HediffComp_Modular duplicateComp = comp;
 
                         Action action = delegate ()
                         {
                             if (pawn.CanReserveAndReach(parent, PathEndMode.Touch, Danger.Deadly, 1, -1, null, Props.ignoreOtherReservations))
                             {
-                                StartModuleJob(pawn, comp, parentComp, slot, Props.ignoreOtherReservations);
+                                StartModuleJob(pawn, duplicateComp, parentComp, slot, Props.ignoreOtherReservations);
                             }
                         };
 
@@ -134,10 +136,18 @@ namespace AthenaFramework
                             labeled = "Install {0} in {1} ({2}, {3})".Formatted(parent.Label, hediff.Label, hediff.Part.Label, slots[k].slotName);
                         }
 
+                        foundSlots = true;
+
                         FloatMenuOption floatMenuOption = FloatMenuUtility.DecoratePrioritizedTask(new FloatMenuOption(labeled, action, Icon, IconColor, Props.floatMenuOptionPriority, null, null, 0f, null, null, true, 0, HorizontalJustification.Left, false), pawn, parent, "ReservedBy", null);
                         yield return floatMenuOption;
                     }
                 }
+            }
+
+            if (!foundSlots)
+            {
+                yield return new FloatMenuOption("No valid slots availible", null, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0);
+                yield break;
             }
 
             yield break;

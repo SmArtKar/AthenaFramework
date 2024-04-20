@@ -249,6 +249,7 @@ namespace AthenaFramework
         {
             List<FloatMenuOption> options = new List<FloatMenuOption>();
             ejectableModules = true;
+            int validOptions = 0;
 
             for (int i = moduleHolder.Count - 1; i >= 0; i--)
             {
@@ -262,9 +263,10 @@ namespace AthenaFramework
                 }
 
                 options.Add(new FloatMenuOption("Eject " + module.LabelCap + " (" + comp.GetSlot.slotName + ")", delegate () { RemoveModule(module); }));
+                validOptions += 1;
             }
 
-            if (options.Count == 0)
+            if (options.Count == 0 || validOptions == 0)
             {
                 options.Add(new FloatMenuOption("No ejectable modules", null, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0));
                 ejectableModules = false;
