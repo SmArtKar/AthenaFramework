@@ -17,7 +17,26 @@ namespace AthenaFramework
 
         public virtual bool CustomApparelTexture(BodyTypeDef bodyType, Apparel apparel, ref ApparelGraphicRecord rec)
         {
-            return false;
+            if (!Props.preventBodytype || apparel.WornGraphicPath.NullOrEmpty())
+            {
+                return false;
+            }
+
+            Shader shader = ShaderDatabase.Cutout;
+
+            if (apparel.StyleDef?.graphicData.shaderType != null)
+            {
+                shader = apparel.StyleDef.graphicData.shaderType.Shader;
+            }
+
+            else if ((apparel.StyleDef == null && apparel.def.apparel.useWornGraphicMask) || (apparel.StyleDef != null && apparel.StyleDef.UseWornGraphicMask))
+            {
+                shader = ShaderDatabase.CutoutComplex;
+            }
+
+            Graphic graphic = GraphicDatabase.Get<Graphic_Multi>(apparel.WornGraphicPath, shader, apparel.def.graphicData.drawSize, apparel.DrawColor);
+            rec = new ApparelGraphicRecord(graphic, apparel);
+            return true;
         }
 
         public virtual bool HideBody
