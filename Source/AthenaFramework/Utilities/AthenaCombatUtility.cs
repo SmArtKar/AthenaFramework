@@ -134,11 +134,6 @@ namespace AthenaFramework
             advTool.TargetModification(verb, ref target);
         }
 
-        public static void Cum(LocalTargetInfo target, Verb verb)
-        {
-            ModifyToolTarget(verb, ref target);
-        }
-
         #endregion
 
         #region ===== Ranged Weapon Calculations =====

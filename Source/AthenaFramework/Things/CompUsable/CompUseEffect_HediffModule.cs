@@ -167,6 +167,9 @@ namespace AthenaFramework
                 linkedHediffs.RemoveAt(i);
             }
 
+            ownerComp = null;
+            ownerHediff = null;
+
             return true;
         }
 

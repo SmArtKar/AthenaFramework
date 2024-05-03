@@ -241,6 +241,9 @@ namespace AthenaFramework
                 linkedComps.RemoveAt(i);
             }
 
+            ownerComp = null;
+            ownerThing = null;
+
             return true;
         }
 

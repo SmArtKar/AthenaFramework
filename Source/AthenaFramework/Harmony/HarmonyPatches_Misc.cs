@@ -396,4 +396,26 @@ namespace AthenaFramework
             }
         }
     }
+
+    [HarmonyPatch(typeof(AbilityUtility), nameof(AbilityUtility.MakeAbility), new Type[] { typeof(AbilityDef), typeof(Pawn) })]
+    public static class AbilityUtility_MakeAbility
+    {
+        public static void Postfix(AbilityDef def, Pawn pawn, ref Ability __result)
+        {
+            if (__result.comps == null)
+            {
+                return;
+            }
+
+            for (int i = __result.comps.Count - 1; i >= 0; i--)
+            {
+                CompAbility_Reloadable comp = __result.comps[i] as CompAbility_Reloadable;
+
+                if (comp != null)
+                {
+                    comp.Created();
+                }
+            }
+        }
+    }
 }

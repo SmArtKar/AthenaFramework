@@ -83,6 +83,11 @@ namespace AthenaFramework
             Scribe_Values.Look(ref remainingCharges, "remainingCharges");
         }
 
+        public virtual void Created()
+        {
+            remainingCharges = Props.maxCharges;
+        }
+
         public override bool GizmoDisabled(out string reason)
         {
             if (remainingCharges == 0)
@@ -155,16 +160,6 @@ namespace AthenaFramework
             if (Props.reloadSound != null)
             {
                 Props.reloadSound.PlayOneShot(new TargetInfo(Pawn.Position, Pawn.Map));
-            }
-        }
-
-        public override void CompTick()
-        {
-            base.CompTick();
-
-            if (remainingCharges == -1)
-            {
-                remainingCharges = Props.maxCharges;
             }
         }
 

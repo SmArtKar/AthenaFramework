@@ -43,12 +43,12 @@ namespace AthenaFramework
             }
         }
 
+        public QuadBezierCurve() { }
+
         public QuadBezierCurve(IEnumerable<CurvePoint> points)
         {
             SetPoints(points);
         }
-
-        public QuadBezierCurve() { }
 
         public void SetPoints(IEnumerable<CurvePoint> newPoints)
         {
