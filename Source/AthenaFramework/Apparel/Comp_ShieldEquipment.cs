@@ -59,6 +59,11 @@ namespace AthenaFramework
             Scribe_Values.Look(ref lastResetTick, "lastResetTick");
             Scribe_Values.Look(ref freeRecharge, "freeRecharge");
             Scribe_Values.Look(ref impactAngleVect, "impactAngleVect");
+
+            if (Scribe.mode == LoadSaveMode.ResolvingCrossRefs)
+            {
+                AthenaCache.AddCache(this, ref AthenaCache.renderCache, Pawn.thingIDNumber);
+            }
         }
 
 
