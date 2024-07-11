@@ -331,7 +331,10 @@ namespace AthenaFramework
                 return;
             }
 
-            GeneLockedRecipeExtension extension = t.def.GetModExtension<GeneLockedRecipeExtension>();
+            //GeneLockedRecipeExtension extension = t.def.GetModExtension<GeneLockedRecipeExtension>();
+            //At that point the building doesn't exists yet, the def you're pointing to is either the blueprint or the frame.
+            //The mod extension will likely be added to the buildingdef though, hence :
+            GeneLockedRecipeExtension extension = t.def.entityDefToBuild.GetModExtension<GeneLockedRecipeExtension>();
 
             if (extension != null && !extension.CanCreate(p))
             {
@@ -350,7 +353,8 @@ namespace AthenaFramework
                 return;
             }
 
-            GeneLockedRecipeExtension extension = __instance.recipe.GetModExtension<GeneLockedRecipeExtension>();
+            //This will allow you to reach recipes hidden in recipeMakers by adding the modExtension to the parent thingDef instead
+            GeneLockedRecipeExtension extension = __instance.recipe.GetModExtension<GeneLockedRecipeExtension>() ?? __instance.recipe.ProducedThingDef?.GetModExtension<MindFlayerTechExtension>();
 
             if (extension != null && !extension.CanCreate(p))
             {
